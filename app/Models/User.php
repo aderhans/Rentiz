@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'phone',
+        'avatar',
     ];
 
     /**
@@ -41,4 +44,40 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /* --------------------------------------------------------
+     * Role Helper Methods
+     * -------------------------------------------------------- */
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPenyedia(): bool
+    {
+        return $this->role === 'penyedia';
+    }
+
+    public function isPenyewa(): bool
+    {
+        return $this->role === 'penyewa';
+    }
+
+    /**
+     * Get human-readable role label.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        switch ($this->role) {
+            case 'admin':
+                return 'Administrator';
+            case 'penyedia':
+                return 'Penyedia Barang';
+            case 'penyewa':
+                return 'Penyewa Barang';
+            default:
+                return 'Unknown';
+        }
+    }
 }
