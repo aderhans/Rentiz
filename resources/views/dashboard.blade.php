@@ -82,8 +82,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#4F46E5" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Sewa Aktif</div>
-            <div class="stat-value">3</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 1 baru bulan ini
@@ -96,8 +95,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Total Transaksi</div>
-            <div class="stat-value">12</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +3 bulan ini
@@ -110,8 +108,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#E53E3E" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Wishlist</div>
-            <div class="stat-value">7</div>
+            <div class="stat-value">0</div>
             <div class="stat-change neu">Barang tersimpan</div>
         </div>
     </div>
@@ -121,8 +118,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Rating Saya</div>
-            <div class="stat-value">4.8</div>
+            <div class="stat-value">0.0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 Sangat baik
@@ -174,37 +170,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <div style="font-weight: 600; font-size: 0.84rem;">Sony A7III (Kamera)</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">Dari: Budi Studio</div>
-                        </td>
-                        <td>
-                            <div style="font-size: 0.82rem;">24 Mei – 27 Mei</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">3 hari</div>
-                        </td>
-                        <td><span class="badge badge-success">Aktif</span></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="font-weight: 600; font-size: 0.84rem;">DJI Mini 3 Pro</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">Dari: Drone Indo</div>
-                        </td>
-                        <td>
-                            <div style="font-size: 0.82rem;">25 Mei – 26 Mei</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">1 hari</div>
-                        </td>
-                        <td><span class="badge badge-warning">Proses</span></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="font-weight: 600; font-size: 0.84rem;">Tenda Dome 4P</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">Dari: Alam Gear</div>
-                        </td>
-                        <td>
-                            <div style="font-size: 0.82rem;">28 Mei – 31 Mei</div>
-                            <div style="font-size: 0.76rem; color: var(--text-muted);">3 hari</div>
-                        </td>
-                        <td><span class="badge badge-info">Terjadwal</span></td>
+                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada penyewaan aktif.</td>
                     </tr>
                 </tbody>
             </table>
@@ -220,14 +186,9 @@
         <div class="card-body" style="padding: 1rem;">
             <div style="display: flex; flex-direction: column; gap: 0.7rem;">
                 @php
-                $popular = [
-                    ['name' => 'GoPro Hero 12', 'cat' => 'Fotografi', 'price' => '150.000', 'rating' => '4.9', 'color' => '#EEF2FF', 'icon' => '📷'],
-                    ['name' => 'PS5 + 2 Controller', 'cat' => 'Elektronik', 'price' => '120.000', 'rating' => '4.8', 'color' => '#EFF6FF', 'icon' => '🎮'],
-                    ['name' => 'Sepeda Gunung MTB', 'cat' => 'Olahraga', 'price' => '80.000', 'rating' => '4.7', 'color' => '#F0FDF4', 'icon' => '🚵'],
-                    ['name' => 'Proyektor 4K Full HD', 'cat' => 'Elektronik', 'price' => '200.000', 'rating' => '4.9', 'color' => '#FFF7ED', 'icon' => '📽️'],
-                ];
+                $popular = [];
                 @endphp
-                @foreach($popular as $item)
+                @forelse($popular as $item)
                 <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.65rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--card-border); transition: background 150ms; cursor: pointer;" onmouseover="this.style.background='#F8FAFF'" onmouseout="this.style.background='transparent'">
                     <div style="width: 42px; height: 42px; background: {{ $item['color'] }}; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">{{ $item['icon'] }}</div>
                     <div style="flex: 1; min-width: 0;">
@@ -239,7 +200,9 @@
                         <div style="font-size: 0.73rem; color: var(--warning);">⭐ {{ $item['rating'] }}</div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada barang populer.</div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -260,8 +223,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Total Listing</div>
-            <div class="stat-value">14</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 2 listing aktif baru
@@ -274,8 +236,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Pendapatan Bulan Ini</div>
-            <div class="stat-value" style="font-size: 1.25rem;">Rp 4,2Jt</div>
+            <div class="stat-value" style="font-size: 1.25rem;">Rp 0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +18% vs bulan lalu
@@ -288,8 +249,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Request Masuk</div>
-            <div class="stat-value">5</div>
+            <div class="stat-value">0</div>
             <div class="stat-change down">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 Perlu ditindaklanjuti
@@ -302,8 +262,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Rating Toko</div>
-            <div class="stat-value">4.9</div>
+            <div class="stat-value">0.0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 Top 10% Penyedia
@@ -324,12 +283,12 @@
             <div style="display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 0.5rem;">
                 @php
                 $bars = [
-                    ['h' => 45, 'label' => 'Des', 'val' => '1.8Jt'],
-                    ['h' => 55, 'label' => 'Jan', 'val' => '2.2Jt'],
-                    ['h' => 40, 'label' => 'Feb', 'val' => '1.6Jt'],
-                    ['h' => 70, 'label' => 'Mar', 'val' => '2.8Jt'],
-                    ['h' => 85, 'label' => 'Apr', 'val' => '3.5Jt'],
-                    ['h' => 100, 'label' => 'Mei', 'val' => '4.2Jt'],
+                    ['h' => 0, 'label' => 'Des', 'val' => 'Rp 0'],
+                    ['h' => 0, 'label' => 'Jan', 'val' => 'Rp 0'],
+                    ['h' => 0, 'label' => 'Feb', 'val' => 'Rp 0'],
+                    ['h' => 0, 'label' => 'Mar', 'val' => 'Rp 0'],
+                    ['h' => 0, 'label' => 'Apr', 'val' => 'Rp 0'],
+                    ['h' => 0, 'label' => 'Mei', 'val' => 'Rp 0'],
                 ];
                 @endphp
                 @foreach($bars as $i => $bar)
@@ -356,15 +315,10 @@
         </div>
         <div style="overflow: hidden;">
             @php
-            $requests = [
-                ['name' => 'Ahmad Fauzi', 'item' => 'Kamera Sony A7III', 'period' => '28–31 Mei', 'status' => 'warning', 'label' => 'Menunggu'],
-                ['name' => 'Siti Rahma', 'item' => 'Drone DJI Mini 3', 'period' => '1–3 Jun', 'status' => 'warning', 'label' => 'Menunggu'],
-                ['name' => 'Budi Santoso', 'item' => 'Tenda Dome 4P', 'period' => '5–7 Jun', 'status' => 'info', 'label' => 'Baru'],
-                ['name' => 'Rina Kusuma', 'item' => 'Proyektor 4K', 'period' => '10 Jun', 'status' => 'success', 'label' => 'Disetujui'],
-            ];
+            $requests = [];
             @endphp
             <div style="padding: 0.25rem 0;">
-                @foreach($requests as $req)
+                @forelse($requests as $req)
                 <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.8rem 1.4rem; border-bottom: 1px solid #F1F5F9;">
                     <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.82rem; flex-shrink: 0;">{{ strtoupper(substr($req['name'], 0, 1)) }}</div>
                     <div style="flex: 1; min-width: 0;">
@@ -375,7 +329,9 @@
                         <span class="badge badge-{{ $req['status'] }}" style="font-size: 0.68rem;">{{ $req['label'] }}</span>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada request masuk.</div>
+                @endforelse
             </div>
             <div style="padding: 0.85rem 1.4rem;">
                 <a href="#" class="btn btn-primary-blue btn-sm" style="width: 100%; justify-content: center;">Kelola Semua Request</a>
@@ -408,15 +364,9 @@
             </thead>
             <tbody>
                 @php
-                $listings = [
-                    ['name' => 'Kamera Sony A7III + Lensa', 'cat' => 'Fotografi', 'price' => '350.000', 'sewa' => 28, 'rating' => '4.9', 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'DJI Mini 3 Pro Combo', 'cat' => 'Drone', 'price' => '280.000', 'sewa' => 22, 'rating' => '4.8', 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'Proyektor Epson Full HD', 'cat' => 'Elektronik', 'price' => '200.000', 'sewa' => 18, 'rating' => '4.7', 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'Tenda Dome Camping 4P', 'cat' => 'Outdoor', 'price' => '120.000', 'sewa' => 15, 'rating' => '4.6', 'status' => 'warning', 'label' => 'Disewa'],
-                    ['name' => 'Sound System Portable', 'cat' => 'Audio', 'price' => '180.000', 'sewa' => 11, 'rating' => '4.5', 'status' => 'neutral', 'label' => 'Tersedia'],
-                ];
+                $listings = [];
                 @endphp
-                @foreach($listings as $i => $item)
+                @forelse($listings as $i => $item)
                 <tr>
                     <td style="color: var(--text-muted); font-weight: 600; font-size: 0.82rem;">{{ $i + 1 }}</td>
                     <td style="font-weight: 600; font-size: 0.85rem;">{{ $item['name'] }}</td>
@@ -426,7 +376,11 @@
                     <td style="color: var(--warning);">⭐ {{ $item['rating'] }}</td>
                     <td><span class="badge badge-{{ $item['status'] }}">{{ $item['label'] }}</span></td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada listing yang aktif.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -447,8 +401,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#7C3AED" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Total User</div>
-            <div class="stat-value">1,284</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +42 minggu ini
@@ -461,8 +414,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Penyedia Aktif</div>
-            <div class="stat-value">347</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +12 bulan ini
@@ -475,8 +427,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Transaksi Hari Ini</div>
-            <div class="stat-value">128</div>
+            <div class="stat-value">0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +9% vs kemarin
@@ -489,8 +440,7 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-label">Pendapatan Platform</div>
-            <div class="stat-value" style="font-size: 1.25rem;">Rp 48Jt</div>
+            <div class="stat-value" style="font-size: 1.25rem;">Rp 0</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                 +24% bulan ini
@@ -508,12 +458,12 @@
         <div class="card-body">
             @php
             $adminBars = [
-                ['h' => 50, 'label' => 'Des', 'val' => '980'],
-                ['h' => 58, 'label' => 'Jan', 'val' => '1.050'],
-                ['h' => 65, 'label' => 'Feb', 'val' => '1.100'],
-                ['h' => 75, 'label' => 'Mar', 'val' => '1.180'],
-                ['h' => 88, 'label' => 'Apr', 'val' => '1.240'],
-                ['h' => 100, 'label' => 'Mei', 'val' => '1.284'],
+                ['h' => 0, 'label' => 'Des', 'val' => '0'],
+                ['h' => 0, 'label' => 'Jan', 'val' => '0'],
+                ['h' => 0, 'label' => 'Feb', 'val' => '0'],
+                ['h' => 0, 'label' => 'Mar', 'val' => '0'],
+                ['h' => 0, 'label' => 'Apr', 'val' => '0'],
+                ['h' => 0, 'label' => 'Mei', 'val' => '0'],
             ];
             @endphp
             <div style="display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 0.5rem;">
@@ -534,15 +484,15 @@
             {{-- Role distribution --}}
             <div style="display: flex; gap: 1rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
                 <div style="flex: 1; text-align: center;">
-                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyewa);">937</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyewa);">0</div>
                     <div style="font-size: 0.72rem; color: var(--text-muted);">Penyewa</div>
                 </div>
                 <div style="flex: 1; text-align: center;">
-                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyedia);">347</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyedia);">0</div>
                     <div style="font-size: 0.72rem; color: var(--text-muted);">Penyedia</div>
                 </div>
                 <div style="flex: 1; text-align: center;">
-                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-admin);">3</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-admin);">0</div>
                     <div style="font-size: 0.72rem; color: var(--text-muted);">Admin</div>
                 </div>
             </div>
@@ -557,15 +507,9 @@
         </div>
         <div style="padding: 0.25rem 0;">
             @php
-            $txns = [
-                ['id' => '#TRX-2451', 'user' => 'Ahmad F.', 'item' => 'Kamera Sony A7III', 'amount' => '1.050.000', 'status' => 'success', 'label' => 'Selesai'],
-                ['id' => '#TRX-2450', 'user' => 'Dewi R.', 'item' => 'DJI Mini 3 Pro', 'amount' => '560.000', 'status' => 'warning', 'label' => 'Aktif'],
-                ['id' => '#TRX-2449', 'user' => 'Budi S.', 'item' => 'PS5 + Controller', 'amount' => '360.000', 'status' => 'info', 'label' => 'Terjadwal'],
-                ['id' => '#TRX-2448', 'user' => 'Rina K.', 'item' => 'Proyektor 4K', 'amount' => '200.000', 'status' => 'success', 'label' => 'Selesai'],
-                ['id' => '#TRX-2447', 'user' => 'Siti M.', 'item' => 'Sound System', 'amount' => '540.000', 'status' => 'danger', 'label' => 'Dispute'],
-            ];
+            $txns = [];
             @endphp
-            @foreach($txns as $txn)
+            @forelse($txns as $txn)
             <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.4rem; border-bottom: 1px solid #F1F5F9;">
                 <div style="flex: 1; min-width: 0;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -576,7 +520,9 @@
                 </div>
                 <div style="font-weight: 700; font-size: 0.84rem; color: var(--color-admin); flex-shrink: 0;">Rp {{ $txn['amount'] }}</div>
             </div>
-            @endforeach
+            @empty
+            <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada transaksi terkini.</div>
+            @endforelse
         </div>
     </div>
 </div>
@@ -601,15 +547,9 @@
             </thead>
             <tbody>
                 @php
-                $users = [
-                    ['name' => 'Ahmad Fauzi', 'email' => 'ahmad@example.com', 'role' => 'penyewa', 'join' => '25 Mei 2026', 'trx' => 12, 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'Budi Santoso', 'email' => 'budi@example.com', 'role' => 'penyedia', 'join' => '24 Mei 2026', 'trx' => 45, 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'Siti Rahma', 'email' => 'siti@example.com', 'role' => 'penyewa', 'join' => '23 Mei 2026', 'trx' => 3, 'status' => 'success', 'label' => 'Aktif'],
-                    ['name' => 'Dewi Rahayu', 'email' => 'dewi@example.com', 'role' => 'penyedia', 'join' => '22 Mei 2026', 'trx' => 22, 'status' => 'warning', 'label' => 'Review'],
-                    ['name' => 'Eko Prasetyo', 'email' => 'eko@example.com', 'role' => 'penyewa', 'join' => '21 Mei 2026', 'trx' => 0, 'status' => 'danger', 'label' => 'Suspend'],
-                ];
+                $users = [];
                 @endphp
-                @foreach($users as $u)
+                @forelse($users as $u)
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
@@ -627,7 +567,11 @@
                     <td style="font-weight: 600;">{{ $u['trx'] }}</td>
                     <td><span class="badge badge-{{ $u['status'] }}">{{ $u['label'] }}</span></td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada user terdaftar terbaru.</td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

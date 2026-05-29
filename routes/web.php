@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Penyewa\PenyewaController;
+use App\Http\Controllers\Penyedia\PenyediaController;
+use App\Http\Controllers\Admin\AdminController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,4 +39,44 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/switch-mode', [AuthController::class, 'switchMode'])->name('switch-mode');
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+
+    /* ------------------------------------------------
+     * Penyewa Routes (dummy — UI interaktif)
+     * ------------------------------------------------ */
+    Route::prefix('penyewa')->name('penyewa.')->group(function () {
+        Route::get('/cari-barang',      [PenyewaController::class, 'cariBarang'])->name('cari-barang');
+        Route::get('/penyewaan-aktif',  [PenyewaController::class, 'penyewaanAktif'])->name('penyewaan-aktif');
+        Route::get('/riwayat-sewa',     [PenyewaController::class, 'riwayatSewa'])->name('riwayat-sewa');
+        Route::get('/wishlist',         [PenyewaController::class, 'wishlist'])->name('wishlist');
+        Route::get('/profil',           [PenyewaController::class, 'profil'])->name('profil');
+        Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
+    });
+
+    /* ------------------------------------------------
+     * Penyedia Routes (dummy — UI interaktif)
+     * ------------------------------------------------ */
+    Route::prefix('penyedia')->name('penyedia.')->group(function () {
+        Route::get('/daftar-barang',    [PenyediaController::class, 'daftarBarang'])->name('daftar-barang');
+        Route::get('/tambah-barang',    [PenyediaController::class, 'tambahBarang'])->name('tambah-barang');
+        Route::post('/tambah-barang',   [PenyediaController::class, 'storeBarang'])->name('store-barang');
+        Route::get('/request-sewa',     [PenyediaController::class, 'requestSewa'])->name('request-sewa');
+        Route::get('/riwayat-transaksi',[PenyediaController::class, 'riwayatTransaksi'])->name('riwayat-transaksi');
+        Route::get('/analitik',         [PenyediaController::class, 'analitik'])->name('analitik');
+        Route::get('/penarikan-dana',   [PenyediaController::class, 'penarikanDana'])->name('penarikan-dana');
+        Route::get('/profil-toko',      [PenyediaController::class, 'profilToko'])->name('profil-toko');
+    });
+
+    /* ------------------------------------------------
+     * Admin Routes (dummy — UI interaktif)
+     * ------------------------------------------------ */
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/manajemen-user',   [AdminController::class, 'manajemenUser'])->name('manajemen-user');
+        Route::get('/semua-listing',    [AdminController::class, 'semuaListing'])->name('semua-listing');
+        Route::post('/semua-listing/{id}/approve', [AdminController::class, 'approveBarang'])->name('approve-barang');
+        Route::post('/semua-listing/{id}/reject',  [AdminController::class, 'rejectBarang'])->name('reject-barang');
+        Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
+        Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
+        Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
+        Route::get('/platform-analytics',[AdminController::class, 'platformAnalytics'])->name('platform-analytics');
+    });
 });

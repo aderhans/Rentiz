@@ -91,11 +91,6 @@
         </button>
     </form>
 
-    {{-- Footer (hide register link for admin) --}}
-    @if($role !== 'admin')
-    <div class="auth-footer">
-        Belum punya akun? <a href="{{ route('register', ['role' => $role]) }}">Daftar sekarang</a>
-    </div>
-    @endif
+
 </div>
 @endsection

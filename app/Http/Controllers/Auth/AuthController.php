@@ -105,13 +105,10 @@ class AuthController extends Controller
             'email'    => $validated['email'],
             'phone'    => $validated['phone'] ?? null,
             'password' => Hash::make($validated['password']),
-            'role'     => 'penyewa', // Default — user bisa switch mode
+            'role'     => 'user', // Default — user bisa switch mode
         ]);
 
-        Auth::login($user);
-        session(['active_mode' => 'penyewa']);
-
-        return redirect()->route('dashboard');
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login menggunakan akun baru Anda.');
     }
 
     /**
