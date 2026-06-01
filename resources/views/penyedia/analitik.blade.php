@@ -66,39 +66,54 @@
     </div>
 </div>
 
+@php
+    $revenueThisMonth = $revenueThisMonth ?? 0;
+    $revenueChangeLabel = $revenueChangeLabel ?? 'Belum ada pendapatan';
+    $revenueChangeClass = $revenueChangeClass ?? 'down';
+    $completedRentals = $completedRentals ?? 0;
+    $completedChangeLabel = $completedChangeLabel ?? 'Belum ada sewa selesai';
+    $completedChangeClass = $completedChangeClass ?? 'down';
+    $averageRating = $averageRating ?? 0;
+    $monthlyRevenue = $monthlyRevenue ?? [];
+    $maxRevenue = $maxRevenue ?? 1;
+    $categoryDistribution = $categoryDistribution ?? [];
+    $topItems = $topItems ?? collect();
+    $totalViews = 0;
+@endphp
+
 {{-- KPI Cards --}}
 <div class="analytics-grid">
     <div class="an-card">
         <div class="an-top">
             <div class="an-icon" style="background:#EFF6FF;"><svg fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
-            <span class="an-change up">▲ +18%</span>
+            <span class="an-change {{ $revenueChangeClass }}">▲ {{ $revenueChangeLabel }}</span>
         </div>
-        <div class="an-val">Rp 4,2Jt</div>
+        <div class="an-val">Rp {{ number_format($revenueThisMonth, 0, ',', '.') }}</div>
         <div class="an-lbl">Pendapatan Bulan Ini</div>
     </div>
     <div class="an-card">
         <div class="an-top">
             <div class="an-icon" style="background:#D1FAE5;"><svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
-            <span class="an-change up">▲ +5</span>
+            <span class="an-change {{ $completedChangeClass }}">▲ {{ $completedChangeLabel }}</span>
         </div>
-        <div class="an-val">28</div>
+        <div class="an-val">{{ $completedRentals }}</div>
         <div class="an-lbl">Total Sewa Selesai</div>
     </div>
     <div class="an-card">
         <div class="an-top">
             <div class="an-icon" style="background:#FEF3C7;"><svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div>
-            <span class="an-change up">▲ +12%</span>
+            <span class="an-change up">▲ {{ $totalViews ? '+0' : '0' }}</span>
         </div>
-        <div class="an-val">847</div>
-        <div class="an-lbl">Total Tayangan</div>
+        <div class="an-val">{{ $totalViews }}</div>
+        <div class="an-lbl">{{ $totalViews ? 'Total Tayangan' : 'Data tayangan belum tersedia' }}</div>
     </div>
     <div class="an-card">
         <div class="an-top">
             <div class="an-icon" style="background:#FFFBEB;"><svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
-            <span class="an-change up">▲ Top 10%</span>
+            <span class="an-change up">▲ {{ $averageRating ? 'Top 10%' : '' }}</span>
         </div>
-        <div class="an-val">4.9</div>
-        <div class="an-lbl">Rating Rata-rata</div>
+        <div class="an-val">{{ number_format($averageRating, 1) }}</div>
+        <div class="an-lbl">{{ $averageRating ? 'Rating rata-rata' : 'Belum ada rating' }}</div>
     </div>
 </div>
 
@@ -107,21 +122,29 @@
     <div class="card">
         <div class="card-header">
             <span class="card-title">💰 Tren Pendapatan</span>
-            <span class="badge badge-success">+18% vs bulan lalu</span>
+            <span class="badge badge-success">{{ $revenueChangeLabel }}</span>
         </div>
         <div class="card-body">
             <div class="bar-chart" id="main-chart">
+                @forelse($monthlyRevenue as $i => $bar)
                 @php
-                $bars=[['h'=>45,'l'=>'Des','v'=>'1.8Jt'],['h'=>55,'l'=>'Jan','v'=>'2.2Jt'],['h'=>40,'l'=>'Feb','v'=>'1.6Jt'],['h'=>70,'l'=>'Mar','v'=>'2.8Jt'],['h'=>85,'l'=>'Apr','v'=>'3.5Jt'],['h'=>100,'l'=>'Mei','v'=>'4.2Jt']];
+                    $height = $maxRevenue > 0 ? ($bar['value'] / $maxRevenue) * 100 : 0;
+                    $color = $i === count($monthlyRevenue) - 1 ? 'var(--color-penyedia)' : '#BFDBFE';
                 @endphp
-                @foreach($bars as $i=>$b)
                 <div class="bar-col">
                     <div class="bar-inner">
-                        <div class="bar-fill" style="height:{{ $b['h'] }}%;background:{{ $i===count($bars)-1?'var(--color-penyedia)':'#BFDBFE' }};" data-val="{{ $b['v'] }}"></div>
+                        <div class="bar-fill" style="height:{{ $height }}%;background:{{ $color }};" data-val="{{ $bar['formatted'] }}"></div>
                     </div>
-                    <div class="bar-lbl">{{ $b['l'] }}</div>
+                    <div class="bar-lbl">{{ $bar['label'] }}</div>
                 </div>
-                @endforeach
+                @empty
+                <div class="bar-col">
+                    <div class="bar-inner">
+                        <div class="bar-fill" style="height:10%;background:#BFDBFE;" data-val="Rp 0"></div>
+                    </div>
+                    <div class="bar-lbl">-</div>
+                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -131,19 +154,30 @@
         <div class="card-header"><span class="card-title">🍩 Sewa per Kategori</span></div>
         <div class="card-body">
             <div class="donut-wrap">
+                @php
+                    $colors = ['#2563EB', '#0D9488', '#D97706', '#7C3AED', '#F97316', '#6366F1'];
+                    $offset = 0;
+                @endphp
                 <svg class="donut-svg" width="120" height="120" viewBox="0 0 36 36">
                     <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EFF6FF" stroke-width="3.5"/>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" stroke-width="3.5" stroke-dasharray="40 60" stroke-dashoffset="25"/>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0D9488" stroke-width="3.5" stroke-dasharray="25 75" stroke-dashoffset="-15"/>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#D97706" stroke-width="3.5" stroke-dasharray="20 80" stroke-dashoffset="-40"/>
-                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3.5" stroke-dasharray="15 85" stroke-dashoffset="-60"/>
-                    <text x="18" y="20" text-anchor="middle" font-size="5" font-weight="700" fill="#1A2540">28x</text>
+                    @foreach($categoryDistribution as $index => $category)
+                        @php
+                            $dash = max($category['percent'], 1);
+                            $color = $colors[$index % count($colors)];
+                        @endphp
+                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="{{ $color }}" stroke-width="3.5"
+                            stroke-dasharray="{{ $dash }} {{ 100 - $dash }}" stroke-dashoffset="{{ $offset }}"/>
+                        @php $offset -= $dash; @endphp
+                    @endforeach
+                    <text x="18" y="20" text-anchor="middle" font-size="5" font-weight="700" fill="#1A2540">{{ array_sum(array_column($categoryDistribution, 'count')) ?: 0 }}x</text>
                 </svg>
                 <div class="donut-legend">
-                    <div class="legend-item"><div class="legend-dot" style="background:#2563EB;"></div><span>Fotografi <strong>40%</strong></span></div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#0D9488;"></div><span>Drone <strong>25%</strong></span></div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#D97706;"></div><span>Elektronik <strong>20%</strong></span></div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#7C3AED;"></div><span>Lainnya <strong>15%</strong></span></div>
+                    @forelse($categoryDistribution as $index => $category)
+                        @php $color = $colors[$index % count($colors)]; @endphp
+                        <div class="legend-item"><div class="legend-dot" style="background:{{ $color }};"></div><span>{{ $category['label'] }} <strong>{{ $category['percent'] }}%</strong></span></div>
+                    @empty
+                        <div class="legend-item"><div class="legend-dot" style="background:#2563EB;"></div><span>Tidak ada data kategori</span></div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -153,29 +187,27 @@
 {{-- Top Listing --}}
 <div class="card">
     <div class="card-header"><span class="card-title">🏆 Performa Listing Teratas</span></div>
-    @php
-    $topItems=[
-        ['emoji'=>'📷','name'=>'Kamera Sony A7III + Lensa','cat'=>'Fotografi','sewa'=>28,'rev'=>'9.800.000','pct'=>100],
-        ['emoji'=>'🚁','name'=>'DJI Mini 3 Pro Combo','cat'=>'Drone','sewa'=>22,'rev'=>'6.160.000','pct'=>78],
-        ['emoji'=>'📽️','name'=>'Proyektor Epson Full HD','cat'=>'Elektronik','sewa'=>18,'rev'=>'3.600.000','pct'=>64],
-        ['emoji'=>'🎥','name'=>'GoPro Hero 12 Black','cat'=>'Fotografi','sewa'=>15,'rev'=>'2.250.000','pct'=>54],
-        ['emoji'=>'⛺','name'=>'Tenda Dome Camping 4P','cat'=>'Outdoor','sewa'=>11,'rev'=>'1.320.000','pct'=>39],
-    ];
-    $rankClasses=['gold','silver','bronze','',''];
-    $rankSymbols=['🥇','🥈','🥉','4','5'];
-    @endphp
-    @foreach($topItems as $i=>$ti)
-    <div class="top-item-row">
-        <div class="ti-rank {{ $rankClasses[$i] }}">{{ $rankSymbols[$i] }}</div>
-        <div style="font-size:1.5rem;flex-shrink:0;">{{ $ti['emoji'] }}</div>
-        <div class="ti-info">
-            <div class="ti-name">{{ $ti['name'] }}</div>
-            <div class="ti-sub">{{ $ti['cat'] }} · {{ $ti['sewa'] }}x disewa</div>
+    @if($topItems->isEmpty())
+        <div style="text-align:center;color:var(--text-muted);padding:2rem;">Belum ada listing aktif untuk analitik.</div>
+    @else
+        @php
+            $maxRentals = $topItems->max('total_rentals') ?: 1;
+            $rankClasses=['gold','silver','bronze','',''];
+            $rankSymbols=['🥇','🥈','🥉','4','5'];
+        @endphp
+        @foreach($topItems as $i => $item)
+        <div class="top-item-row">
+            <div class="ti-rank {{ $rankClasses[$i] ?? '' }}">{{ $rankSymbols[$i] ?? ($i + 1) }}</div>
+            <div style="font-size:1.5rem;flex-shrink:0;">📦</div>
+            <div class="ti-info">
+                <div class="ti-name">{{ $item->nama }}</div>
+                <div class="ti-sub">{{ $item->kategori ?? 'Lainnya' }} · {{ $item->total_rentals }}x disewa</div>
+            </div>
+            <div class="ti-bar"><div class="ti-bar-fill" style="width:{{ round($item->total_rentals / $maxRentals * 100) }}%;"></div></div>
+            <div class="ti-amount">Rp {{ number_format($item->revenue, 0, ',', '.') }}</div>
         </div>
-        <div class="ti-bar"><div class="ti-bar-fill" style="width:{{ $ti['pct'] }}%;"></div></div>
-        <div class="ti-amount">Rp {{ $ti['rev'] }}</div>
-    </div>
-    @endforeach
+        @endforeach
+    @endif
 </div>
 @endsection
 
