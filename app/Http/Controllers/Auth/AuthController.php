@@ -58,8 +58,8 @@ class AuthController extends Controller
                     ->withErrors(['email' => 'Akun ini bukan akun administrator.']);
             }
 
-            // Cek apakah email sudah terverifikasi
-            if (is_null($user->email_verified_at)) {
+            // Cek apakah email sudah terverifikasi (Admin tidak perlu verifikasi)
+            if (!$user->isAdmin() && is_null($user->email_verified_at)) {
                 Auth::logout();
                 return back()
                     ->withInput($request->only('email', 'remember', '_form'))
@@ -317,6 +317,21 @@ class AuthController extends Controller
                 'requestCount' => $requestCount,
                 'requests' => $requests,
                 'avgRating' => $avgRating ? round($avgRating, 1) : 0,
+            ]);
+        } elseif ($currentMode === 'admin' || $user->isAdmin()) {
+            $totalUsers = \App\Models\User::where('role', '!=', 'admin')->count();
+            $totalTransaksi = \App\Models\Pesanan::count();
+            $gmv = \App\Models\Pesanan::whereNotIn('status', ['cancelled', 'refunded', 'pending_payment'])->sum('total_biaya');
+            
+            $users = \App\Models\User::where('role', '!=', 'admin')->orderBy('created_at', 'desc')->limit(5)->get();
+            $txns = \App\Models\Pesanan::with(['pemesan', 'pemilik', 'items.barang'])->orderBy('created_at', 'desc')->limit(5)->get();
+
+            $viewData = array_merge($viewData, [
+                'totalUsers' => $totalUsers,
+                'totalTransaksi' => $totalTransaksi,
+                'gmv' => $gmv,
+                'users' => $users,
+                'txns' => $txns,
             ]);
         }
 

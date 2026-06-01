@@ -405,10 +405,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#7C3AED" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0</div>
+            <div class="stat-value">{{ number_format($totalUsers ?? 0) }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                +42 minggu ini
+                Total user terdaftar
             </div>
         </div>
     </div>
@@ -418,10 +418,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0</div>
+            <div class="stat-value">{{ number_format($totalTransaksi ?? 0) }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                +12 bulan ini
+                Total pesanan dibuat
             </div>
         </div>
     </div>
@@ -431,10 +431,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0</div>
+            <div class="stat-value" style="font-size: 1.25rem;">Rp {{ number_format($gmv ?? 0, 0, ',', '.') }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                +9% vs kemarin
+                Total Gross Merchandise Value
             </div>
         </div>
     </div>
@@ -444,10 +444,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value" style="font-size: 1.25rem;">Rp 0</div>
+            <div class="stat-value" style="font-size: 1.25rem;">Rp {{ number_format(($gmv ?? 0) * 0.1, 0, ',', '.') }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                +24% bulan ini
+                Total Platform Fee (10%)
             </div>
         </div>
     </div>
@@ -507,22 +507,22 @@
     <div class="card">
         <div class="card-header">
             <span class="card-title">⚡ Transaksi Terkini</span>
-            <a href="#" class="btn btn-outline btn-sm">Lihat Semua</a>
+            <a href="{{ route('admin.semua-transaksi') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
         </div>
         <div style="padding: 0.25rem 0;">
+            @forelse($txns ?? [] as $txn)
             @php
-            $txns = [];
+                $itemName = $txn->items->first()->barang->nama ?? 'Unknown Item';
             @endphp
-            @forelse($txns as $txn)
             <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.4rem; border-bottom: 1px solid #F1F5F9;">
                 <div style="flex: 1; min-width: 0;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-weight: 700; font-size: 0.78rem; color: var(--text-muted);">{{ $txn['id'] }}</span>
-                        <span class="badge badge-{{ $txn['status'] }}" style="font-size: 0.66rem;">{{ $txn['label'] }}</span>
+                        <span style="font-weight: 700; font-size: 0.78rem; color: var(--text-muted);">{{ substr($txn->id, 0, 8) }}</span>
+                        <span class="badge badge-neutral" style="font-size: 0.66rem;">{{ ucfirst($txn->status) }}</span>
                     </div>
-                    <div style="font-size: 0.83rem; color: var(--text); margin-top: 1px;">{{ $txn['user'] }} · {{ $txn['item'] }}</div>
+                    <div style="font-size: 0.83rem; color: var(--text); margin-top: 1px;">{{ $txn->pemesan->name ?? 'Unknown' }} · {{ $itemName }}</div>
                 </div>
-                <div style="font-weight: 700; font-size: 0.84rem; color: var(--color-admin); flex-shrink: 0;">Rp {{ $txn['amount'] }}</div>
+                <div style="font-weight: 700; font-size: 0.84rem; color: var(--color-admin); flex-shrink: 0;">Rp {{ number_format($txn->total_biaya, 0, ',', '.') }}</div>
             </div>
             @empty
             <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Belum ada transaksi terkini.</div>
@@ -535,7 +535,7 @@
 <div class="card">
     <div class="card-header">
         <span class="card-title">👥 User Terdaftar Terbaru</span>
-        <a href="#" class="btn btn-primary-purple btn-sm">Kelola Semua User</a>
+        <a href="{{ route('admin.manajemen-user') }}" class="btn btn-primary-purple btn-sm">Kelola Semua User</a>
     </div>
     <div class="table-wrapper">
         <table class="data-table">
@@ -545,41 +545,41 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Bergabung</th>
-                    <th>Transaksi</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                $users = [];
-                @endphp
-                @forelse($users as $u)
+                @forelse($users ?? [] as $u)
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.6rem;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.76rem; flex-shrink: 0;">{{ strtoupper(substr($u['name'], 0, 1)) }}</div>
-                            <span style="font-weight: 600; font-size: 0.85rem;">{{ $u['name'] }}</span>
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.76rem; flex-shrink: 0;">{{ strtoupper(substr($u->name, 0, 1)) }}</div>
+                            <span style="font-weight: 600; font-size: 0.85rem;">{{ $u->name }}</span>
                         </div>
                     </td>
-                    <td style="color: var(--text-secondary); font-size: 0.83rem;">{{ $u['email'] }}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.83rem;">{{ $u->email }}</td>
                     <td>
-                        <span class="badge {{ $u['role'] === 'penyedia' ? 'badge-info' : 'badge-neutral' }}">
-                            {{ ucfirst($u['role']) }}
+                        <span class="badge {{ $u->role === 'penyedia' ? 'badge-info' : 'badge-neutral' }}">
+                            {{ ucfirst($u->role) }}
                         </span>
                     </td>
-                    <td style="font-size: 0.82rem; color: var(--text-muted);">{{ $u['join'] }}</td>
-                    <td style="font-weight: 600;">{{ $u['trx'] }}</td>
-                    <td><span class="badge badge-{{ $u['status'] }}">{{ $u['label'] }}</span></td>
+                    <td style="font-size: 0.82rem; color: var(--text-muted);">{{ $u->created_at->format('d M Y') }}</td>
+                    <td>
+                        @if($u->status === 'active') <span class="badge badge-success">Aktif</span>
+                        @elseif($u->status === 'suspended') <span class="badge badge-danger">Suspended</span>
+                        @endif
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada user terdaftar terbaru.</td>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada user terdaftar terbaru.</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
+
 
 @endif
 {{-- END ADMIN --}}

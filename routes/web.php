@@ -74,9 +74,14 @@ Route::middleware('auth')->group(function () {
      * ------------------------------------------------ */
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/manajemen-user',   [AdminController::class, 'manajemenUser'])->name('manajemen-user');
+        Route::post('/manajemen-user/{id}/suspend', [AdminController::class, 'suspendUser'])->name('suspend-user');
+        Route::post('/manajemen-user/{id}/activate', [AdminController::class, 'activateUser'])->name('activate-user');
+        Route::delete('/manajemen-user/{id}/delete', [AdminController::class, 'deleteUser'])->name('delete-user');
         Route::get('/semua-listing',    [AdminController::class, 'semuaListing'])->name('semua-listing');
+        Route::get('/semua-listing/{id}/detail', [AdminController::class, 'detailBarang'])->name('detail-barang');
         Route::post('/semua-listing/{id}/approve', [AdminController::class, 'approveBarang'])->name('approve-barang');
         Route::post('/semua-listing/{id}/reject',  [AdminController::class, 'rejectBarang'])->name('reject-barang');
+        Route::post('/semua-listing/{id}/restore', [AdminController::class, 'restoreBarang'])->name('restore-barang');
         Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
         Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
         Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
