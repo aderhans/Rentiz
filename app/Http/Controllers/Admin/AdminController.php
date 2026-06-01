@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -45,6 +47,27 @@ class AdminController extends Controller
     public function pengaturan()
     {
         return view('admin.pengaturan');
+    }
+
+    public function updateProfil(Request $request)
+    {
+        $request->validate([
+            'foto_profil' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        if ($request->hasFile('foto_profil')) {
+            // Hapus foto lama jika ada
+            if ($user->foto_profil && Storage::disk('public')->exists($user->foto_profil)) {
+                Storage::disk('public')->delete($user->foto_profil);
+            }
+
+            $path = $request->file('foto_profil')->store('profiles', 'public');
+            $user->update(['foto_profil' => $path]);
+        }
+
+        return redirect()->back()->with('success', 'Foto profil berhasil diperbarui.');
     }
 
     public function platformAnalytics()

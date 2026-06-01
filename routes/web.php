@@ -30,6 +30,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/verify-notice/{token}', [AuthController::class, 'verifyNotice'])->name('verification.notice');
+    Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 });
 
 /* --------------------------------------------------------
@@ -77,6 +80,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
         Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
         Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
+        Route::post('/pengaturan/profil', [AdminController::class, 'updateProfil'])->name('update-profil');
         Route::get('/platform-analytics',[AdminController::class, 'platformAnalytics'])->name('platform-analytics');
     });
 });

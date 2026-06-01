@@ -911,7 +911,13 @@
                 $avatarColor = $avatarColors[$activeMode] ?? '#4F8EF7';
             @endphp
             <div class="sidebar-user">
-                <div class="user-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="user-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
                 <div class="user-info">
                     <div class="user-name">{{ Auth::user()->name }}</div>
                     <div class="user-role-tag">
@@ -961,12 +967,27 @@
                     <span class="notif-dot"></span>
                 </button>
 
-                <div class="header-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="header-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
             </div>
         </header>
 
         {{-- Page Content --}}
         <main class="page-content" id="page-main">
+            @if (session('success'))
+            <div id="dashboard-success-alert" style="background:var(--success-bg); border:1px solid #A7F3D0; border-radius:var(--radius-md); padding:0.85rem 1.2rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; font-size:0.88rem; color:var(--success); box-shadow:0 2px 8px rgba(5,150,105,0.1); transition:opacity 0.5s ease-out;">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+            @endif
+
             @yield('content')
         </main>
     </div>
@@ -992,6 +1013,17 @@
         });
 
         if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        // Auto-hide dashboard success alert
+        var dashAlert = document.getElementById('dashboard-success-alert');
+        if (dashAlert) {
+            setTimeout(function() {
+                dashAlert.style.opacity = '0';
+                setTimeout(function() {
+                    dashAlert.style.display = 'none';
+                }, 500);
+            }, 4000);
+        }
     </script>
     @stack('scripts')
 </body>
