@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Barang;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -144,7 +146,92 @@ class AuthController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
+        $currentMode = session('active_mode', 'penyewa');
+        $viewData = ['user' => $user];
 
-        return view('dashboard', compact('user'));
+        if ($currentMode === 'penyedia' && !$user->isAdmin()) {
+            $activeListingCount = Barang::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->count();
+            $revenueThisMonth = (float) DB::table('pesanan')
+                ->where('pemilik_id', $user->id)
+                ->whereNotIn('status', ['cancelled', 'refunded'])
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->sum('total_biaya');
+            $lastMonth = now()->copy()->subMonth();
+            $revenueLastMonth = (float) DB::table('pesanan')
+                ->where('pemilik_id', $user->id)
+                ->whereNotIn('status', ['cancelled', 'refunded'])
+                ->whereYear('created_at', $lastMonth->year)
+                ->whereMonth('created_at', $lastMonth->month)
+                ->sum('total_biaya');
+            $requestCount = DB::table('pesanan')
+                ->where('pemilik_id', $user->id)
+                ->whereIn('status', ['pending_payment', 'paid', 'confirmed'])
+                ->count();
+            $requests = DB::table('pesanan as p')
+                ->join('pesanan_item as pi', 'p.id', '=', 'pi.pesanan_id')
+                ->join('barang as b', 'pi.barang_id', '=', 'b.id')
+                ->join('users as u', 'p.pemesan_id', '=', 'u.id')
+                ->where('p.pemilik_id', $user->id)
+                ->whereIn('p.status', ['pending_payment', 'paid', 'confirmed'])
+                ->select([
+                    'p.status',
+                    'p.total_biaya',
+                    'u.name as pemesan_name',
+                    'b.nama as barang_name',
+                    'pi.tanggal_mulai',
+                    'pi.tanggal_selesai',
+                    'pi.durasi_hari',
+                ])
+                ->orderByDesc('p.created_at')
+                ->limit(5)
+                ->get()
+                ->map(function ($row) {
+                    $period = date('j M', strtotime($row->tanggal_mulai)) . ' - ' . date('j M', strtotime($row->tanggal_selesai));
+                    $statusMap = [
+                        'pending_payment' => ['label' => 'Menunggu pembayaran', 'status' => 'warning'],
+                        'paid' => ['label' => 'Dibayar', 'status' => 'info'],
+                        'confirmed' => ['label' => 'Dikonfirmasi', 'status' => 'success'],
+                    ];
+                    $meta = $statusMap[$row->status] ?? ['label' => ucfirst($row->status), 'status' => 'neutral'];
+
+                    return [
+                        'name' => $row->pemesan_name,
+                        'item' => $row->barang_name,
+                        'period' => $period,
+                        'dur' => $row->durasi_hari . ' hari',
+                        'total' => number_format($row->total_biaya, 0, ',', '.'),
+                        'label' => $meta['label'],
+                        'status' => $meta['status'],
+                    ];
+                })
+                ->toArray();
+            $avgRating = DB::table('rating')
+                ->join('barang', 'rating.barang_id', '=', 'barang.id')
+                ->where('barang.user_id', $user->id)
+                ->avg('nilai');
+
+            if ($revenueLastMonth > 0) {
+                $percent = round((($revenueThisMonth - $revenueLastMonth) / $revenueLastMonth) * 100);
+                $revenueChangeLabel = ($percent > 0 ? '+' : '') . $percent . '% vs bulan lalu';
+            } elseif ($revenueThisMonth > 0) {
+                $revenueChangeLabel = 'Pendapatan baru bulan ini';
+            } else {
+                $revenueChangeLabel = 'Belum ada pendapatan';
+            }
+
+            $viewData = array_merge($viewData, [
+                'activeListingCount' => $activeListingCount,
+                'revenueThisMonth' => $revenueThisMonth,
+                'revenueChangeLabel' => $revenueChangeLabel,
+                'requestCount' => $requestCount,
+                'requests' => $requests,
+                'avgRating' => $avgRating ? round($avgRating, 1) : 0,
+            ]);
+        }
+
+        return view('dashboard', $viewData);
     }
 }

@@ -216,6 +216,13 @@
      DASHBOARD PENYEDIA
 ══════════════════════════════════ --}}
 @if($role === 'penyedia')
+@php
+    $activeListingCount = $activeListingCount ?? 0;
+    $revenueThisMonth = $revenueThisMonth ?? 0;
+    $revenueChangeLabel = $revenueChangeLabel ?? 'Belum ada pendapatan';
+    $requestCount = $requestCount ?? 0;
+    $avgRating = $avgRating ?? 0;
+@endphp
 
 <div class="stat-grid">
     <div class="stat-card">
@@ -223,10 +230,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0</div>
+            <div class="stat-value">{{ $activeListingCount }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                2 listing aktif baru
+                {{ $activeListingCount ? $activeListingCount . ' listing aktif baru' : 'Belum ada listing aktif' }}
             </div>
         </div>
     </div>
@@ -236,10 +243,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#059669" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value" style="font-size: 1.25rem;">Rp 0</div>
+            <div class="stat-value" style="font-size: 1.25rem;">Rp {{ number_format($revenueThisMonth, 0, ',', '.') }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                +18% vs bulan lalu
+                {{ $revenueChangeLabel }}
             </div>
         </div>
     </div>
@@ -249,10 +256,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0</div>
+            <div class="stat-value">{{ $requestCount }}</div>
             <div class="stat-change down">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                Perlu ditindaklanjuti
+                {{ $requestCount ? $requestCount . ' request menunggu' : 'Tidak ada request masuk' }}
             </div>
         </div>
     </div>
@@ -262,10 +269,10 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="#D97706" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
         </div>
         <div class="stat-info">
-            <div class="stat-value">0.0</div>
+            <div class="stat-value">{{ number_format($avgRating, 1) }}</div>
             <div class="stat-change up">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                Top 10% Penyedia
+                {{ $avgRating ? 'Rating rata-rata' : 'Belum ada rating' }}
             </div>
         </div>
     </div>
@@ -277,7 +284,7 @@
     <div class="card">
         <div class="card-header">
             <span class="card-title">📈 Pendapatan 6 Bulan</span>
-            <span class="badge badge-success">+18% bulan ini</span>
+            <span class="badge badge-success">{{ $revenueChangeLabel }}</span>
         </div>
         <div class="card-body">
             <div style="display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 0.5rem;">
@@ -311,12 +318,9 @@
     <div class="card">
         <div class="card-header">
             <span class="card-title">🔔 Request Sewa Masuk</span>
-            <span class="badge badge-warning">5 pending</span>
+            <span class="badge badge-warning">{{ $requestCount }} pending</span>
         </div>
         <div style="overflow: hidden;">
-            @php
-            $requests = [];
-            @endphp
             <div style="padding: 0.25rem 0;">
                 @forelse($requests as $req)
                 <div style="display: flex; align-items: center; gap: 0.85rem; padding: 0.8rem 1.4rem; border-bottom: 1px solid #F1F5F9;">

@@ -49,11 +49,18 @@
     <p class="page-subtitle">Pantau dan moderasi seluruh listing barang di platform</p>
 </div>
 
+@php
+    $totalListing = $items->count();
+    $activeListing = $items->where('status', 'active')->count();
+    $pendingListing = $items->where('status', 'pending')->count();
+    $inactiveListing = $items->whereNotIn('status', ['active', 'pending'])->count();
+@endphp
+
 <div class="stat-row">
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">2.481</div><div class="sl">Total Listing</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);">2.214</div><div class="sl">Aktif</div></div>
-    <div class="scard"><div class="sv" style="color:var(--warning);">189</div><div class="sl">Pending Review</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">78</div><div class="sl">Dinonaktifkan</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $totalListing }}</div><div class="sl">Semua listing toko Anda</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);">{{ $activeListing }}</div><div class="sl">Listing yang aktif disewa</div></div>
+    <div class="scard"><div class="sv" style="color:var(--warning);">{{ $pendingListing }}</div><div class="sl">Menunggu persetujuan admin</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $inactiveListing }}</div><div class="sl">Listing ditolak atau nonaktif</div></div>
 </div>
 
 <div class="toolbar">
@@ -84,7 +91,8 @@
 
 
     @forelse($items as $i=>$l)
-    <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $l->status }}" id="lrow-{{ $i }}">
+    @php $rowStatus = $l->status === 'rejected' ? 'nonaktif' : $l->status; @endphp
+    <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $rowStatus }}" id="lrow-{{ $i }}">
         <div class="l-thumb" style="background:#F1F5F9; padding:0; overflow:hidden;">
             @if($l->fotos && $l->fotos->first())
                 <img src="{{ asset('storage/' . $l->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
