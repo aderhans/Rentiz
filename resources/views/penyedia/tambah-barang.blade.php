@@ -101,14 +101,9 @@
                         <label class="flabel">Kategori <span style="color:var(--danger);">*</span></label>
                         <select class="finput" name="category" required>
                             <option value="">Pilih kategori...</option>
-                            <option value="Fotografi">Fotografi</option>
-                            <option value="Drone">Drone</option>
-                            <option value="Elektronik">Elektronik</option>
-                            <option value="Outdoor & Camping">Outdoor & Camping</option>
-                            <option value="Gaming">Gaming</option>
-                            <option value="Audio & Musik">Audio & Musik</option>
-                            <option value="Kendaraan">Kendaraan</option>
-                            <option value="Alat Rumah">Alat Rumah</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->nama }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="fgroup">
@@ -163,10 +158,6 @@
                         <label class="flabel">Harga per Hari (Rp) <span style="color:var(--danger);">*</span></label>
                         <input type="number" class="finput" id="price-input" name="price" placeholder="0" oninput="updatePreview()" required>
                     </div>
-                    <div class="fgroup">
-                        <label class="flabel">Harga per Minggu (Rp)</label>
-                        <input type="number" class="finput" placeholder="Opsional — otomatis diskon" value="2000000">
-                    </div>
                 </div>
                 <div class="frow">
                     <div class="fgroup">
@@ -188,9 +179,19 @@
                         </select>
                     </div>
                 </div>
+                <div class="frow">
+                    <div class="fgroup">
+                        <label class="flabel">Kota <span style="color:var(--danger);">*</span></label>
+                        <input type="text" class="finput" id="city-input" name="city" placeholder="Contoh: Jakarta Selatan" required oninput="updatePreview()">
+                    </div>
+                    <div class="fgroup">
+                        <label class="flabel">Alamat Pengambilan <span style="color:var(--danger);">*</span></label>
+                        <input type="text" class="finput" name="alamat_pengambilan" placeholder="Contoh: Jl. Sudirman No. 12, Kebayoran Baru" required>
+                    </div>
+                </div>
                 <div class="fgroup">
-                    <label class="flabel">Kota / Lokasi Pengambilan <span style="color:var(--danger);">*</span></label>
-                    <input type="text" class="finput" name="city" placeholder="Contoh: Jakarta Selatan" required>
+                    <label class="flabel">Ketentuan Jaminan</label>
+                    <textarea class="finput" name="ketentuan_jaminan" rows="3" placeholder="Contoh: Harus dikembalikan dalam kondisi sama, tanpa goresan atau kerusakan." ></textarea>
                 </div>
                 <div style="display:flex;align-items:center;gap:.75rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);">
                     <input type="checkbox" id="delivery" style="width:16px;height:16px;accent-color:var(--color-penyedia);" checked>
@@ -211,7 +212,7 @@
                     <div id="preview-name" style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:4px;">Kamera Sony A7III + 2 Lensa</div>
                     <div style="font-size:.76rem;color:var(--text-muted);margin-bottom:.75rem;">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        Jakarta Pusat · Fotografi
+                        <span id="preview-location">Jakarta Pusat · Fotografi</span>
                     </div>
                     <div class="price-preview">
                         <div class="price-preview-label">Harga Sewa</div>
@@ -256,7 +257,9 @@
     function updatePreview() {
         var name = document.getElementById('item-name').value;
         var price = parseInt(document.getElementById('price-input').value)||0;
+        var city = document.getElementById('city-input') ? document.getElementById('city-input').value : '';
         document.getElementById('preview-name').textContent = name || 'Nama barang akan tampil di sini';
+        document.getElementById('preview-location').textContent = (city ? city : 'Jakarta Pusat') + ' · Fotografi';
         document.getElementById('preview-price').innerHTML = 'Rp ' + price.toLocaleString('id-ID') + '<span style="font-size:.8rem;font-weight:400;opacity:.7;">/hari</span>';
     }
     function addTag(e) {

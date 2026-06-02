@@ -6,13 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PenyediaController extends Controller
 {
     public function daftarBarang()
     {
-        $items = Barang::with('fotos')->where('user_id', auth()->id())->get();
+        $items = Barang::with('fotos')
+            ->leftJoin('kategori as k', 'barang.kategori_id', '=', 'k.id')
+            ->where('barang.user_id', auth()->id())
+            ->select('barang.*', 'k.nama as kategori_nama')
+            ->get();
         $itemIds = $items->pluck('id')->all();
+
+        $categories = DB::table('kategori')
+            ->orderBy('nama')
+            ->get();
 
         $rentedItemIds = [];
         if (!empty($itemIds)) {
@@ -37,6 +46,7 @@ class PenyediaController extends Controller
 
         return view('penyedia.daftar-barang', compact(
             'items',
+            'categories',
             'totalListing',
             'activeListing',
             'rentedListing',
@@ -48,7 +58,11 @@ class PenyediaController extends Controller
 
     public function tambahBarang()
     {
-        return view('penyedia.tambah-barang');
+        $categories = DB::table('kategori')
+            ->orderBy('nama')
+            ->get();
+
+        return view('penyedia.tambah-barang', compact('categories'));
     }
 
     public function storeBarang(Request $request)
@@ -57,8 +71,10 @@ class PenyediaController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'category' => 'nullable|string',
+            'category' => 'required|uuid',
             'city' => 'required|string',
+            'alamat_pengambilan' => 'required|string',
+            'ketentuan_jaminan' => 'nullable|string',
             'kondisi' => 'required|string',
             'min_durasi_sewa' => 'required|integer',
             'max_durasi_sewa' => 'required|integer',
@@ -68,12 +84,14 @@ class PenyediaController extends Controller
 
         $barang = \App\Models\Barang::create([
             'user_id' => auth()->id(),
-            'kategori_id' => null, // Kategori text bisa disimpan di relasi lain nanti, atau biarkan null sesuai plan
+            'kategori_id' => $validated['category'],
             'nama' => $validated['title'],
             'deskripsi' => $validated['description'],
             'kondisi' => $validated['kondisi'],
             'harga_per_hari' => $validated['price'],
             'kota' => $validated['city'],
+            'alamat_pengambilan' => $validated['alamat_pengambilan'],
+            'ketentuan_jaminan' => $validated['ketentuan_jaminan'] ?? null,
             'min_durasi_sewa' => $validated['min_durasi_sewa'],
             'max_durasi_sewa' => $validated['max_durasi_sewa'],
             'status' => 'pending'
@@ -90,6 +108,64 @@ class PenyediaController extends Controller
         }
 
         return redirect()->route('penyedia.daftar-barang')->with('success', 'Barang berhasil diunggah dan sedang menunggu verifikasi admin.');
+    }
+
+    public function updateBarang(Request $request, $id)
+    {
+        $barang = Barang::where('user_id', auth()->id())->findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'category' => 'required|uuid',
+            'condition' => 'required|string',
+            'min_durasi_sewa' => 'required|integer',
+            'max_durasi_sewa' => 'required|integer',
+            'city' => 'required|string',
+            'alamat_pengambilan' => 'nullable|string',
+            'ketentuan_jaminan' => 'nullable|string',
+        ]);
+
+        $barang->update([
+            'nama' => $validated['title'],
+            'deskripsi' => $validated['description'],
+            'harga_per_hari' => $validated['price'],
+            'kategori_id' => $validated['category'],
+            'kondisi' => $validated['condition'],
+            'kota' => $validated['city'],
+            'alamat_pengambilan' => $validated['alamat_pengambilan'] ?? null,
+            'ketentuan_jaminan' => $validated['ketentuan_jaminan'] ?? null,
+            'min_durasi_sewa' => $validated['min_durasi_sewa'],
+            'max_durasi_sewa' => $validated['max_durasi_sewa'],
+            'status' => 'pending',
+        ]);
+
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+            if (is_array($images) && count($images) > 0) {
+                \App\Models\FotoBarang::where('barang_id', $barang->id)->delete();
+                foreach ($images as $index => $image) {
+                    $path = $image->store('public/items');
+                    \App\Models\FotoBarang::create([
+                        'barang_id' => $barang->id,
+                        'path_foto' => str_replace('public/', '', $path),
+                        'is_primary' => $index === 0,
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('penyedia.daftar-barang')->with('success', 'Barang berhasil diperbarui dan menunggu verifikasi admin.');
+    }
+
+    public function destroy($id)
+    {
+        $barang = Barang::where('user_id', auth()->id())->findOrFail($id);
+        \App\Models\FotoBarang::where('barang_id', $barang->id)->delete();
+        $barang->delete();
+
+        return redirect()->route('penyedia.daftar-barang')->with('success', 'Barang berhasil dihapus.');
     }
 
     public function requestSewa()

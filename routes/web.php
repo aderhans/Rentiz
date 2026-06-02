@@ -59,6 +59,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/daftar-barang',    [PenyediaController::class, 'daftarBarang'])->name('daftar-barang');
         Route::get('/tambah-barang',    [PenyediaController::class, 'tambahBarang'])->name('tambah-barang');
         Route::post('/tambah-barang',   [PenyediaController::class, 'storeBarang'])->name('store-barang');
+        Route::patch('/barang/{id}',    [PenyediaController::class, 'updateBarang'])->name('update-barang');
+        Route::delete('/barang/{id}',   [PenyediaController::class, 'destroy'])->name('delete-barang');
         Route::get('/request-sewa',     [PenyediaController::class, 'requestSewa'])->name('request-sewa');
         Route::get('/riwayat-transaksi',[PenyediaController::class, 'riwayatTransaksi'])->name('riwayat-transaksi');
         Route::get('/analitik',         [PenyediaController::class, 'analitik'])->name('analitik');
