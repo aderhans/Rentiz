@@ -18,7 +18,16 @@ Route::get('/', function () {
         return redirect()->route('dashboard');
     }
 
-    return view('landing', ['activeTab' => 'login']);
+    $activeUsers = \App\Models\User::where('role', '!=', 'admin')->count();
+    $totalTransaksi = \App\Models\Pesanan::count();
+    $rating = '4.8'; // Rating default karena belum ada tabel rating
+
+    return view('landing', [
+        'activeTab' => 'login',
+        'activeUsers' => $activeUsers,
+        'totalTransaksi' => $totalTransaksi,
+        'rating' => $rating
+    ]);
 })->name('landing');
 
 /* --------------------------------------------------------
@@ -38,7 +47,7 @@ Route::middleware('guest')->group(function () {
 /* --------------------------------------------------------
  * Authenticated Routes
  * -------------------------------------------------------- */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.status'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/switch-mode', [AuthController::class, 'switchMode'])->name('switch-mode');
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');

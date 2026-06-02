@@ -45,16 +45,35 @@
 @endpush
 
 @section('content')
-<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+<div id="analytics-data" style="position: relative;">
+    {{-- Indikator loading HTMX (opsional, tapi bagus untuk UX) --}}
+    <style>
+        .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; position: absolute; inset: 0; background: rgba(240,244,251,0.6); z-index: 50; display: flex; align-items: center; justify-content: center; pointer-events: none; backdrop-filter: blur(2px); }
+        .htmx-request .htmx-indicator { opacity: 1; pointer-events: all; }
+        .spinner { width: 30px; height: 30px; border: 3px solid var(--card-border); border-top-color: var(--color-admin); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <div class="htmx-indicator"><div class="spinner"></div></div>
+
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
     <div>
         <h1 class="page-title">📈 Platform Analytics</h1>
         <p class="page-subtitle">Visualisasi performa keseluruhan platform Rentiz</p>
     </div>
-    <select style="padding:.5rem 1rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;color:var(--text);outline:none;background:white;font-family:var(--font-body);">
-        <option>Bulan Ini (Mei 2026)</option>
-        <option>Bulan Lalu (Apr 2026)</option>
-        <option>Tahun Ini (2026)</option>
-    </select>
+        <select 
+            name="filter"
+            hx-get="{{ route('admin.platform-analytics') }}" 
+            hx-target="#analytics-data" 
+            hx-select="#analytics-data" 
+            hx-swap="outerHTML" 
+            hx-indicator="#analytics-data"
+            style="padding:.5rem 1rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;color:var(--text);outline:none;background:white;font-family:var(--font-body);cursor:pointer;"
+        >
+            <option value="this_month" {{ $filter === 'this_month' ? 'selected' : '' }}>Bulan Ini ({{ \Carbon\Carbon::now()->translatedFormat('M Y') }})</option>
+            <option value="last_month" {{ $filter === 'last_month' ? 'selected' : '' }}>Bulan Lalu ({{ \Carbon\Carbon::now()->subMonth()->translatedFormat('M Y') }})</option>
+            <option value="this_year" {{ $filter === 'this_year' ? 'selected' : '' }}>Tahun Ini ({{ \Carbon\Carbon::now()->format('Y') }})</option>
+            <option value="all_time" {{ $filter === 'all_time' ? 'selected' : '' }}>Semua Waktu</option>
+        </select>
 </div>
 
 <div class="grid-4">
@@ -95,56 +114,87 @@
                 <div class="lc-line"></div><div class="lc-line"></div><div class="lc-line"></div><div class="lc-line"></div><div class="lc-line"></div>
             </div>
             @php
-            $pts = [20, 25, 22, 35, 45, 40, 55, 65, 60, 75, 85, 100];
-            $lbls = ['1 Mei','3','6','9','12','15','18','21','24','27','30'];
+            $pts = $trenData;
+            $lbls = $trenLabels;
+            $maxPts = count($pts) > 0 ? max($pts) : 1;
             @endphp
-            @foreach($pts as $i=>$p)
-            <div class="lc-col">
-                <div class="lc-tooltip">{{ $p * 15 }} Trx</div>
-                <div class="lc-dot" style="margin-bottom:{{ $p }}px;"></div>
-                @if(isset($lbls[$i])) <div class="lc-lbl">{{ $lbls[$i] }}</div> @endif
-            </div>
-            @endforeach
+            @if(count($pts) > 0)
+                @foreach($pts as $i => $p)
+                @php $h = ($p / $maxPts) * 100; @endphp
+                <div class="lc-col">
+                    <div class="lc-tooltip">{{ $p }} Trx</div>
+                    <div class="lc-dot" style="margin-bottom:{{ $h }}px;"></div>
+                    @if(isset($lbls[$i])) <div class="lc-lbl">{{ $lbls[$i] }}</div> @endif
+                </div>
+                @endforeach
+            @else
+                <div style="text-align:center; width:100%; color:var(--text-muted); font-size:0.8rem; margin-top:20px;">Belum ada data transaksi 10 hari terakhir.</div>
+            @endif
         </div>
     </div>
 
     {{-- Kategori Terpopuler --}}
     <div class="chart-box">
         <div class="cb-header"><span class="cb-title">Kategori Terlaris</span></div>
-        <div class="prog-row">
-            <div class="prog-top"><span>📷 Fotografi</span><span>42%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:42%;background:#2563EB;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>⛺ Outdoor & Camp</span><span>24%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:24%;background:#0D9488;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>🎮 Console Game</span><span>18%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:18%;background:#D97706;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>🚁 Drone</span><span>10%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:10%;background:#7C3AED;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>Lainnya</span><span>6%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:6%;background:#94A3B8;"></div></div>
-        </div>
+        @if($kategoriTerlaris->isEmpty())
+             <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding: 2rem 0;">Belum ada data penjualan.</div>
+        @else
+            @php $colors = ['#2563EB', '#0D9488', '#D97706', '#7C3AED', '#94A3B8']; @endphp
+            @foreach($kategoriTerlaris as $idx => $k)
+                @php 
+                    $pct = $totalTerjualAll > 0 ? round(($k->total_terjual / $totalTerjualAll) * 100) : 0;
+                    $color = $colors[$idx % count($colors)];
+                @endphp
+                <div class="prog-row">
+                    <div class="prog-top"><span>{{ $k->nama }}</span><span>{{ $pct }}% ({{ $k->total_terjual }})</span></div>
+                    <div class="prog-bar"><div class="prog-fill" style="width:{{ $pct }}%;background:{{ $color }};"></div></div>
+                </div>
+            @endforeach
+        @endif
     </div>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
-    {{-- Peta Sebaran --}}
+    {{-- Status Transaksi Keseluruhan --}}
     <div class="chart-box">
-        <div class="cb-header"><span class="cb-title">Sebaran Transaksi (Simulasi Map)</span></div>
-        <div class="map-box">
-            <div style="position:absolute;font-weight:700;color:var(--text-muted);font-size:2rem;opacity:.3;letter-spacing:5px;">INDONESIA</div>
-            <div class="map-pin" style="top:40%;left:30%;"><div class="pin-pulse"></div><div class="pin-dot"></div><div class="pin-lbl">Jabodetabek (65%)</div></div>
-            <div class="map-pin" style="top:55%;left:50%;"><div class="pin-pulse" style="animation-delay:.5s;"></div><div class="pin-dot"></div><div class="pin-lbl">Surabaya (15%)</div></div>
-            <div class="map-pin" style="top:65%;left:75%;"><div class="pin-pulse" style="animation-delay:1s;"></div><div class="pin-dot"></div><div class="pin-lbl">Bali (10%)</div></div>
-            <div class="map-pin" style="top:45%;left:40%;"><div class="pin-dot" style="width:8px;height:8px;"></div></div>
-            <div class="map-pin" style="top:30%;left:60%;"><div class="pin-dot" style="width:8px;height:8px;"></div></div>
+        <div class="cb-header"><span class="cb-title">Status Transaksi Keseluruhan</span></div>
+        <div style="padding-top:1rem;">
+            @php
+                $stsArr = [
+                    ['label' => 'Selesai (Completed)', 'key' => 'completed', 'color' => '#10B981'],
+                    ['label' => 'Aktif Berjalan', 'key' => 'active', 'color' => '#3B82F6'],
+                    ['label' => 'Menunggu Pembayaran', 'key' => 'pending_payment', 'color' => '#F59E0B'],
+                    ['label' => 'Dalam Dispute', 'key' => 'disputed', 'color' => '#8B5CF6'],
+                    ['label' => 'Dibatalkan / Refund', 'key' => 'cancelled', 'color' => '#EF4444'],
+                ];
+                $grandTotal = $statusTransaksi->sum('total');
+            @endphp
+            
+            @if($grandTotal == 0)
+                <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding: 2rem 0;">Belum ada transaksi di platform.</div>
+            @else
+                @foreach($stsArr as $s)
+                    @php 
+                        $val = 0;
+                        if ($s['key'] === 'cancelled') {
+                            $val = (isset($statusTransaksi['cancelled']) ? $statusTransaksi['cancelled']->total : 0) + (isset($statusTransaksi['refunded']) ? $statusTransaksi['refunded']->total : 0);
+                        } else {
+                            $val = isset($statusTransaksi[$s['key']]) ? $statusTransaksi[$s['key']]->total : 0;
+                        }
+                        $pct = $grandTotal > 0 ? round(($val / $grandTotal) * 100) : 0;
+                    @endphp
+                    <div class="prog-row" style="margin-bottom:1rem;">
+                        <div class="prog-top">
+                            <span style="display:flex;align-items:center;gap:6px;">
+                                <span style="width:10px;height:10px;border-radius:50%;background:{{ $s['color'] }};"></span>
+                                {{ $s['label'] }}
+                            </span>
+                            <span>{{ $val }} ({{ $pct }}%)</span>
+                        </div>
+                        <div class="prog-bar"><div class="prog-fill" style="width:{{ $pct }}%;background:{{ $s['color'] }};"></div></div>
+                    </div>
+                @endforeach
+            @endif
         </div>
     </div>
 
@@ -165,6 +215,7 @@
                 <div style="font-size: 0.72rem; color: var(--text-muted);">Admin</div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 @endsection

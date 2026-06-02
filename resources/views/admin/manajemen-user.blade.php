@@ -41,6 +41,21 @@
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    /* Custom Confirm Modal */
+    .c-modal-overlay { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 200ms;backdrop-filter:blur(2px); }
+    .c-modal-overlay.show { opacity:1; }
+    .c-modal { background:white;border-radius:var(--radius-md);padding:1.5rem;width:90%;max-width:320px;box-shadow:0 10px 25px rgba(0,0,0,0.15);text-align:center;transform:scale(0.95);transition:transform 200ms; }
+    .c-modal-overlay.show .c-modal { transform:scale(1); }
+    .c-modal-icon { width:45px;height:45px;border-radius:50%;background:#FEE2E2;color:var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem; }
+    .c-modal-title { font-family:var(--font-heading);font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.4rem; }
+    .c-modal-msg { font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.4; }
+    .c-modal-actions { display:flex;gap:.6rem;justify-content:center; }
+    .c-modal-btn { padding:.45rem 1.1rem;border-radius:var(--radius-sm);font-weight:600;font-size:.82rem;cursor:pointer;border:none;transition:all 150ms;font-family:var(--font-body); }
+    .c-btn-cancel { background:#F1F5F9;color:var(--text-secondary); }
+    .c-btn-cancel:hover { background:#E2E8F0; }
+    .c-btn-confirm { background:var(--color-admin);color:white; }
+    .c-btn-confirm:hover { filter:brightness(1.1); }
 </style>
 @endpush
 
@@ -106,20 +121,20 @@
             <div class="u-right">
                 <span class="badge {{ $statusBadge }}" style="font-size:.65rem;">{{ $statusText }}</span>
                 @if($u->status === 'active')
-                    <form action="{{ route('admin.suspend-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin men-suspend {{ $u->name }}?');">
+                    <form action="{{ route('admin.suspend-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="event.preventDefault(); openConfirm(this, 'Yakin ingin men-suspend {{ $u->name }}?');">
                         @csrf
                         <button type="submit" class="action-btn suspend">Suspend</button>
                     </form>
                 @else
-                    <form action="{{ route('admin.activate-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin mengaktifkan akun {{ $u->name }}?');">
+                    <form action="{{ route('admin.activate-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="event.preventDefault(); openConfirm(this, 'Yakin ingin mengaktifkan akun {{ $u->name }}?');">
                         @csrf
                         <button type="submit" class="action-btn activate">Aktifkan</button>
                     </form>
                 @endif
-                <form action="{{ route('admin.delete-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus permanen akun {{ $u->name }}?');">
+                <form action="{{ route('admin.delete-user', $u->id) }}" method="POST" style="display:inline;" onsubmit="event.preventDefault(); openConfirm(this, 'Yakin ingin menghapus permanen akun {{ $u->name }}?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="action-btn suspend" style="color:var(--danger);">Hapus</button>
+                    <button type="submit" class="action-btn suspend">Hapus</button>
                 </form>
             </div>
         </div>
@@ -131,6 +146,21 @@
         {{ $users->appends(request()->query())->links() }}
     </div>
     @endif
+</div>
+
+<!-- Custom Confirm Modal -->
+<div class="c-modal-overlay" id="confirm-modal">
+    <div class="c-modal">
+        <div class="c-modal-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:22px;height:22px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="c-modal-title">Konfirmasi Tindakan</div>
+        <div class="c-modal-msg" id="confirm-modal-msg">Pesan konfirmasi di sini.</div>
+        <div class="c-modal-actions">
+            <button class="c-modal-btn c-btn-cancel" onclick="closeConfirm()">Batal</button>
+            <button class="c-modal-btn c-btn-confirm" onclick="doConfirm()">Ya, Lanjutkan</button>
+        </div>
+    </div>
 </div>
 
 <div class="toast" id="admin-user-toast"></div>
@@ -150,6 +180,27 @@
         var t = document.getElementById('admin-user-toast');
         t.style.background = bg; t.textContent = msg; t.classList.add('show');
         clearTimeout(window._aut); window._aut = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+    }
+    
+    // Custom Confirm Script
+    window._confirmForm = null;
+    function openConfirm(form, msg) {
+        document.getElementById('confirm-modal-msg').textContent = msg;
+        var m = document.getElementById('confirm-modal');
+        m.style.display = 'flex';
+        // force reflow
+        void m.offsetWidth;
+        m.classList.add('show');
+        window._confirmForm = form;
+    }
+    function closeConfirm() {
+        var m = document.getElementById('confirm-modal');
+        m.classList.remove('show');
+        setTimeout(() => m.style.display = 'none', 200);
+        window._confirmForm = null;
+    }
+    function doConfirm() {
+        if(window._confirmForm) window._confirmForm.submit();
     }
 </script>
 @endpush

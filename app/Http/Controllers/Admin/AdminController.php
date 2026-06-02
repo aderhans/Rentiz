@@ -192,17 +192,87 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Foto profil berhasil diperbarui.');
     }
 
-    public function platformAnalytics()
+    public function platformAnalytics(\Illuminate\Http\Request $request)
     {
-        $totalUsers = \App\Models\User::where('role', '!=', 'admin')->count();
-        $totalTransaksi = \App\Models\Pesanan::count();
-        $gmv = \App\Models\Pesanan::whereNotIn('status', ['cancelled', 'refunded', 'pending_payment'])->sum('total_biaya');
+        $filter = $request->query('filter', 'all_time');
+        
+        $queryPesanan = \App\Models\Pesanan::query();
+        $queryUser = \App\Models\User::where('role', '!=', 'admin');
+        $queryPenyewa = \App\Models\User::where('role', 'penyewa');
+        $queryPenyedia = \App\Models\User::where('role', 'penyedia');
+
+        if ($filter === 'this_month') {
+            $start = now()->startOfMonth();
+            $end = now()->endOfMonth();
+        } elseif ($filter === 'last_month') {
+            $start = now()->subMonth()->startOfMonth();
+            $end = now()->subMonth()->endOfMonth();
+        } elseif ($filter === 'this_year') {
+            $start = now()->startOfYear();
+            $end = now()->endOfYear();
+        } else { // all_time
+            $start = null;
+            $end = null;
+        }
+
+        if ($start && $end) {
+            $queryPesanan->whereBetween('created_at', [$start, $end]);
+            $queryUser->whereBetween('created_at', [$start, $end]);
+            $queryPenyewa->whereBetween('created_at', [$start, $end]);
+            $queryPenyedia->whereBetween('created_at', [$start, $end]);
+        }
+
+        $totalUsers = $queryUser->count();
+        $totalTransaksi = (clone $queryPesanan)->count();
+        $gmv = (clone $queryPesanan)->whereNotIn('status', ['cancelled', 'refunded', 'pending_payment'])->sum('total_biaya');
         $platformFee = $gmv * 0.1;
 
-        $penyewaCount = \App\Models\User::where('role', 'penyewa')->count();
-        $penyediaCount = \App\Models\User::where('role', 'penyedia')->count();
+        $penyewaCount = $queryPenyewa->count();
+        $penyediaCount = $queryPenyedia->count();
         $adminCount = \App\Models\User::where('role', 'admin')->count();
 
-        return view('admin.platform-analytics', compact('totalUsers', 'totalTransaksi', 'gmv', 'platformFee', 'penyewaCount', 'penyediaCount', 'adminCount'));
+        // 1. Tren Pertumbuhan Transaksi (10 hari terakhir dari filter yang dipilih)
+        $trenTransaksi = (clone $queryPesanan)->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->limit(10)
+            ->get()
+            ->reverse()
+            ->values();
+            
+        $trenLabels = $trenTransaksi->pluck('date')->map(function($d) { return \Carbon\Carbon::parse($d)->translatedFormat('d M'); })->toArray();
+        $trenData = $trenTransaksi->pluck('total')->toArray();
+
+        // 2. Kategori Terlaris
+        $queryKategori = \Illuminate\Support\Facades\DB::table('pesanan_item')
+            ->join('pesanan', 'pesanan_item.pesanan_id', '=', 'pesanan.id')
+            ->join('barang', 'pesanan_item.barang_id', '=', 'barang.id')
+            ->join('kategori', 'barang.kategori_id', '=', 'kategori.id')
+            ->select('kategori.nama', \Illuminate\Support\Facades\DB::raw('COUNT(pesanan_item.id) as total_terjual'));
+            
+        if ($start && $end) {
+            $queryKategori->whereBetween('pesanan.created_at', [$start, $end]);
+        }
+            
+        $kategoriTerlaris = $queryKategori->groupBy('kategori.id', 'kategori.nama')
+            ->orderByDesc('total_terjual')
+            ->limit(5)
+            ->get();
+            
+        $totalTerjualAll = $kategoriTerlaris->sum('total_terjual');
+
+        // 3. Status Transaksi Keseluruhan
+        $statusTransaksi = (clone $queryPesanan)->select('status', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        return view('admin.platform-analytics', compact(
+            'totalUsers', 'totalTransaksi', 'gmv', 'platformFee', 
+            'penyewaCount', 'penyediaCount', 'adminCount',
+            'trenLabels', 'trenData',
+            'kategoriTerlaris', 'totalTerjualAll',
+            'statusTransaksi', 'filter'
+        ));
     }
 }

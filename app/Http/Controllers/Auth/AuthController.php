@@ -58,6 +58,16 @@ class AuthController extends Controller
                     ->withErrors(['email' => 'Akun ini bukan akun administrator.']);
             }
 
+            // Cek jika akun disuspend
+            if ($user->status === 'suspended') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()
+                    ->withInput($request->only('email', 'remember', '_form'))
+                    ->withErrors(['email' => 'Akun Anda ditangguhkan karena melanggar kebijakan. Hubungi admin.']);
+            }
+
             // Cek apakah email sudah terverifikasi (Admin tidak perlu verifikasi)
             if (!$user->isAdmin() && is_null($user->email_verified_at)) {
                 Auth::logout();
@@ -132,8 +142,8 @@ class AuthController extends Controller
             'token'    => $token
         ];
 
-        // Simpan ke Cache RAM selama 5 menit
-        Cache::put('register_' . $token, $userData, now()->addMinutes(5));
+        // Simpan ke Cache selama 60 menit (cukup waktu user cek email)
+        Cache::put('register_' . $token, $userData, now()->addMinutes(60));
 
         // Kirim email verifikasi magic link
         try {
@@ -166,7 +176,7 @@ class AuthController extends Controller
         $userData = Cache::get('register_' . $token);
         
         if (!$userData) {
-            return redirect()->route('register')->withErrors(['email' => 'Tautan verifikasi sudah kedaluwarsa (lebih dari 5 menit). Silakan daftar ulang.']);
+            return redirect()->route('register')->withErrors(['email' => 'Tautan verifikasi sudah kedaluwarsa (lebih dari 60 menit). Silakan daftar ulang.']);
         }
 
         return $this->finalizeRegistration($userData, $token);
@@ -235,9 +245,9 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        // Redirect admin langsung ke halaman manajemen user
+        // Redirect admin langsung ke halaman dashboard (platform analytics)
         if ($user->isAdmin()) {
-            return redirect()->route('admin.manajemen-user');
+            return redirect()->route('admin.platform-analytics');
         }
 
         $mode = session('active_mode', 'penyewa');
