@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/riwayat-sewa',     [PenyewaController::class, 'riwayatSewa'])->name('riwayat-sewa');
         Route::get('/wishlist',         [PenyewaController::class, 'wishlist'])->name('wishlist');
         Route::get('/profil',           [PenyewaController::class, 'profil'])->name('profil');
+        Route::put('/profil',           [PenyewaController::class, 'updateProfil'])->name('profil.update');
+        Route::put('/profil/password',  [PenyewaController::class, 'updatePassword'])->name('profil.password');
         Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
     });
 

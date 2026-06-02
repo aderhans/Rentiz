@@ -135,8 +135,11 @@
         left: 10px;
         font-size: 0.68rem;
         font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 50px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        backdrop-filter: blur(4px);
     }
     .wishlist-btn {
         position: absolute;
@@ -190,7 +193,7 @@
         margin-top: 0.85rem;
         padding: 0.5rem;
         border-radius: var(--radius-sm);
-        background: var(--color-penyewa);
+        background: #0264c8; /* Traveloka blue style */
         color: white;
         font-size: 0.82rem;
         font-weight: 600;
@@ -199,7 +202,7 @@
         transition: background 180ms;
         font-family: var(--font-body);
     }
-    .btn-sewa-mini:hover { background: #0F766E; }
+    .btn-sewa-mini:hover { background: #014f9c; }
 
     /* Sort bar */
     .result-bar {
@@ -254,31 +257,38 @@
 <div class="search-hero">
     <p class="search-hero-sub">🔍 Temukan barang yang kamu butuhkan</p>
     <h1 class="search-hero-title">Cari Barang untuk Disewa</h1>
-    <div class="search-bar-wrap">
-        <div class="search-input-wrap">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" id="main-search" class="search-input" placeholder="Cari nama barang..." value="{{ $query }}" oninput="filterProducts()">
+    <form action="{{ route('penyewa.cari-barang') }}" method="GET" id="search-form">
+        <div class="search-bar-wrap">
+            <div class="search-input-wrap">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" name="q" id="main-search" class="search-input" placeholder="Cari nama barang..." value="{{ $query }}">
+            </div>
+            <div class="search-input-wrap" style="flex: 0.5; min-width: 150px;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <select name="kota" id="city-search" class="filter-select" style="width: 100%; padding-left: 2.7rem;">
+                    <option value="">Semua Kota</option>
+                    @foreach($cities as $c)
+                        <option value="{{ $c }}" {{ $kota == $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <select class="filter-select" id="sort-hero">
+                <option value="populer">Terpopuler</option>
+                <option value="murah">Harga Terendah</option>
+                <option value="mahal">Harga Tertinggi</option>
+                <option value="rating">Rating Tertinggi</option>
+            </select>
+            <button type="submit" class="btn btn-sm" style="background:white;color:var(--color-penyewa);font-weight:700;border:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Cari
+            </button>
         </div>
-        <div class="search-input-wrap" style="flex: 0.5; min-width: 150px;">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <input type="text" id="city-search" class="search-input" placeholder="Kota / Lokasi" value="{{ $kota ?? '' }}" oninput="filterProducts()">
-        </div>
-        <select class="filter-select" id="sort-hero" onchange="filterProducts()">
-            <option value="populer">Terpopuler</option>
-            <option value="murah">Harga Terendah</option>
-            <option value="mahal">Harga Tertinggi</option>
-            <option value="rating">Rating Tertinggi</option>
-        </select>
-        <button class="btn btn-sm" style="background:white;color:var(--color-penyewa);font-weight:700;border:none;" onclick="filterProducts()">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            Cari
-        </button>
-    </div>
+    </form>
 </div>
 
 {{-- Category Filters --}}
@@ -295,7 +305,7 @@
 
 {{-- Result Bar --}}
 <div class="result-bar">
-    <span class="result-count" id="result-count">Menampilkan <strong>16</strong> barang</span>
+    <span class="result-count" id="result-count">Menampilkan <strong>{{ count($items) }}</strong> barang</span>
     <select class="sort-select">
         <option>Urutkan: Terpopuler</option>
         <option>Harga Terendah</option>
@@ -311,26 +321,44 @@
 
 
     @forelse($items as $p)
+    @php
+        $primaryPhoto = $p->fotos ? $p->fotos->where('is_primary', true)->first() : null;
+        if (!$primaryPhoto && $p->fotos) $primaryPhoto = $p->fotos->first();
+    @endphp
     <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}">
-        <div class="product-img" style="background: #F1F5F9; padding:0; overflow:hidden;">
-            @if($p->fotos && $p->fotos->first())
-                <img src="{{ asset('storage/' . $p->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
+        <div class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden;">
+            @if($primaryPhoto)
+                <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
-                📷
+                <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             @endif
+            
+            <div class="product-badge-corner" style="background: {{ $p->status == 'active' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }}">
+                {{ $p->status == 'active' ? 'Tersedia' : 'Disewa' }}
+            </div>
             <button class="wishlist-btn" onclick="toggleWishlist(this, '{{ $p->nama }}')" title="Tambah ke wishlist">
                 ♥
             </button>
         </div>
-        <div class="product-body">
-            <div class="product-name">{{ $p->nama }}</div>
-            <div class="product-seller">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                {{ $p->user->name ?? 'Unknown' }} · {{ $p->kota }}
+        <div class="product-body" style="padding: 1.2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <div class="product-name" style="font-size: 1.05rem; line-height: 1.3; white-space: normal; height: 2.6em; overflow: hidden; color: #1e293b;">
+                    {{ $p->nama }}
+                </div>
             </div>
-            <div class="product-footer">
-                <div class="product-price">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
-                <div class="product-rating">⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0x)</span></div>
+            
+            <div class="product-rating" style="margin-bottom: 0.5rem;">
+                ⭐ 4.5 <span style="color:var(--text-muted);font-weight:400;">(24 Review)</span>
+            </div>
+
+            <div class="product-seller" style="font-size: 0.8rem; display: flex; align-items: center; color: #64748b; margin-bottom: 1rem;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ $p->kota }}
+            </div>
+            
+            <div class="product-footer" style="flex-direction: column; align-items: flex-start; border-top: 1px solid #f1f5f9; padding-top: 0.8rem;">
+                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.2rem;">Mulai dari</div>
+                <div class="product-price" style="font-size: 1.15rem; color: #0f172a;">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span style="font-size:0.8rem; color:#64748b;"> /hari</span></div>
             </div>
             <button class="btn-sewa-mini" onclick="showToast('🛒 Permintaan sewa dikirim untuk <strong>{{ $p->nama }}</strong>!')">
                 Sewa Sekarang
@@ -356,36 +384,23 @@
     var currentCat = 'semua';
 
     function setCat(btn, cat) {
+        // Option to submit form with category if needed in future
         document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
         btn.classList.add('active');
         currentCat = cat;
-        filterProducts();
-    }
-
-    function filterProducts() {
-        var q = document.getElementById('main-search').value.toLowerCase();
-        var c = document.getElementById('city-search').value.toLowerCase();
+        // Basic frontend filtering for category pills if still desired
         var cards = document.querySelectorAll('#product-grid .product-card');
         var count = 0;
-
         cards.forEach(function(card) {
-            var cat  = card.dataset.cat;
-            var name = card.dataset.name;
-            var city = card.dataset.city;
-            var catMatch  = (currentCat === 'semua' || cat === currentCat);
-            var nameMatch = (q === '' || name.includes(q));
-            var cityMatch = (c === '' || city.includes(c));
-
-            if (catMatch && nameMatch && cityMatch) {
+            var cardCat = card.dataset.cat;
+            if (currentCat === 'semua' || cardCat === currentCat) {
                 card.style.display = '';
                 count++;
             } else {
                 card.style.display = 'none';
             }
         });
-
-        document.getElementById('result-count').innerHTML =
-            'Menampilkan <strong>' + count + '</strong> barang';
+        document.getElementById('result-count').innerHTML = 'Menampilkan <strong>' + count + '</strong> barang';
     }
 
     function toggleWishlist(btn, name) {

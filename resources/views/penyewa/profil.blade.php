@@ -254,12 +254,12 @@
                 </div>
             </div>
             <div class="profile-nav">
-                <button class="profile-nav-item active" onclick="switchTab('info', this)">
+                <button class="profile-nav-item {{ session('active_tab', 'info') === 'info' ? 'active' : '' }}" onclick="switchTab('info', this)">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     Informasi Pribadi
                     <svg class="nav-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
-                <button class="profile-nav-item" onclick="switchTab('security', this)">
+                <button class="profile-nav-item {{ session('active_tab', 'info') === 'security' ? 'active' : '' }}" onclick="switchTab('security', this)">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     Keamanan Akun
                     <svg class="nav-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
@@ -288,79 +288,88 @@
     <div>
 
         {{-- Info Pribadi --}}
-        <div class="card profile-tab-content active" id="tab-info">
-            <div class="card-header">
-                <span class="card-title">✏️ Informasi Pribadi</span>
-                <button class="btn btn-primary-teal btn-sm" onclick="saveProfile()">Simpan Perubahan</button>
-            </div>
-            <div class="card-body">
-                <div class="form-section-title">Data Diri</div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Nama Depan</label>
-                        <input type="text" class="form-input" id="first-name" value="{{ explode(' ', $user->name)[0] }}">
+        <div class="card profile-tab-content {{ session('active_tab', 'info') === 'info' ? 'active' : '' }}" id="tab-info">
+            <form action="{{ route('penyewa.profil.update') }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="card-header">
+                    <span class="card-title">✏️ Informasi Pribadi</span>
+                    <button type="submit" class="btn btn-primary-teal btn-sm">Simpan Perubahan</button>
+                </div>
+                <div class="card-body">
+                    @if ($errors->any() && session('active_tab', 'info') === 'info')
+                        <div style="background:var(--danger);color:white;padding:0.75rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-size:0.85rem;">
+                            <ul style="margin:0;padding-left:1.5rem;">
+                                @foreach ($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="form-section-title">Data Diri</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nama Depan</label>
+                            <input type="text" name="first_name" class="form-input" id="first-name" value="{{ old('first_name', explode(' ', $user->name)[0]) }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Belakang</label>
+                            <input type="text" name="last_name" class="form-input" id="last-name" value="{{ old('last_name', count(explode(' ', $user->name)) > 1 ? implode(' ', array_slice(explode(' ', $user->name), 1)) : '') }}">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Nama Belakang</label>
-                        <input type="text" class="form-input" id="last-name" value="{{ count(explode(' ', $user->name)) > 1 ? implode(' ', array_slice(explode(' ', $user->name), 1)) : '' }}">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" value="{{ $user->email }}" disabled>
+                        <p style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;">Email tidak dapat diubah. Hubungi support jika perlu.</p>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" value="{{ $user->email }}" disabled>
-                    <p style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;">Email tidak dapat diubah. Hubungi support jika perlu.</p>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Nomor HP</label>
-                        <input type="text" class="form-input" placeholder="+62 812-xxxx-xxxx" value="+62 812-3456-7890">
+                        <input type="text" name="phone" class="form-input" placeholder="+62 812-xxxx-xxxx" value="{{ old('phone', $user->phone) }}">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Tanggal Lahir</label>
-                        <input type="date" class="form-input" value="1998-05-15">
-                    </div>
-                </div>
 
-                <div class="form-section-title" style="margin-top:1rem;">Alamat</div>
-                <div class="form-group">
-                    <label class="form-label">Alamat Lengkap</label>
-                    <textarea class="form-input" rows="2" style="resize:vertical;">Jl. Sudirman No. 88, Karet Tengsin</textarea>
+
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Kota</label>
-                        <input type="text" class="form-input" value="Jakarta Pusat">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Kode Pos</label>
-                        <input type="text" class="form-input" value="10250">
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
 
         {{-- Keamanan --}}
-        <div class="card profile-tab-content" id="tab-security">
+        <div class="card profile-tab-content {{ session('active_tab', 'info') === 'security' ? 'active' : '' }}" id="tab-security">
             <div class="card-header">
                 <span class="card-title">🔐 Keamanan Akun</span>
             </div>
             <div class="card-body">
-                <div class="form-section-title">Ubah Password</div>
-                <div class="form-group">
-                    <label class="form-label">Password Saat Ini</label>
-                    <input type="password" class="form-input" placeholder="••••••••">
-                </div>
-                <div class="form-row">
+                <form action="{{ route('penyewa.profil.password') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-section-title">Ubah Password</div>
+
+                    @if ($errors->any() && session('active_tab', 'info') === 'security')
+                        <div style="background:var(--danger);color:white;padding:0.75rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-size:0.85rem;">
+                            <ul style="margin:0;padding-left:1.5rem;">
+                                @foreach ($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <div class="form-group">
-                        <label class="form-label">Password Baru</label>
-                        <input type="password" class="form-input" placeholder="Min. 8 karakter">
+                        <label class="form-label">Password Saat Ini</label>
+                        <input type="password" name="current_password" class="form-input" placeholder="••••••••" required>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Konfirmasi Password</label>
-                        <input type="password" class="form-input" placeholder="Ulangi password baru">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Password Baru</label>
+                            <input type="password" name="password" class="form-input" placeholder="Min. 8 karakter" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Konfirmasi Password</label>
+                            <input type="password" name="password_confirmation" class="form-input" placeholder="Ulangi password baru" required>
+                        </div>
                     </div>
-                </div>
-                <button class="btn btn-primary-teal" onclick="showToast('✅ Password berhasil diperbarui!')">Update Password</button>
+                    <button type="submit" class="btn btn-primary-teal">Update Password</button>
+                </form>
 
                 <div class="form-section-title" style="margin-top:1.5rem;">Autentikasi 2 Faktor</div>
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem;background:var(--content-bg);border-radius:var(--radius-sm);">
@@ -460,7 +469,14 @@
         document.getElementById('tab-' + tab).classList.add('active');
     }
 
+    document.addEventListener("DOMContentLoaded", function() {
+        @if(session('success'))
+            showToast('{{ session('success') }}');
+        @endif
+    });
+
     function saveProfile() {
+        // Obsolete, we use standard form submission now
         showToast('✅ Profil berhasil disimpan!');
     }
 
