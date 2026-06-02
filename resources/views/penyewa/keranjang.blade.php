@@ -132,6 +132,38 @@
         border: 1px solid var(--card-border);
         border-radius: var(--radius-lg);
     }
+
+    .item-checkbox {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .item-checkbox input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: var(--color-penyewa);
+        cursor: pointer;
+    }
+
+    .store-footer-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .store-total {
+        font-family: var(--font-heading);
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+    
+    .btn-checkout:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+    }
 </style>
 @endpush
 
@@ -158,7 +190,7 @@
         @php
             $penyedia = $items->first()->barang->user;
         @endphp
-        <div class="store-group">
+        <div class="store-group" id="store-group-{{ $penyediaId }}">
             <div class="store-header">
                 <div class="store-name">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:20px;height:20px;color:var(--color-penyewa);">
@@ -170,7 +202,27 @@
             </div>
 
             @foreach($items as $item)
-                <div class="cart-item">
+                @php
+                    // Hitung durasi
+                    $mulai = \Carbon\Carbon::parse($item->tanggal_mulai)->startOfDay();
+                    $selesai = \Carbon\Carbon::parse($item->tanggal_selesai)->startOfDay();
+                    $durasi = $mulai->diffInDays($selesai);
+                    if ($durasi == 0) $durasi = 1;
+                    $total_harga = $item->barang->harga_per_hari * $durasi;
+                @endphp
+                <div class="cart-item" style="{{ $item->is_overlap ? 'opacity: 0.7; background: #fff1f2;' : '' }}">
+                    <div style="width: 1.25rem; display: flex; align-items: center; justify-content: center; margin-right: 0.5rem;">
+                        @if($item->is_overlap)
+                            <svg title="Tanggal tidak tersedia" style="width: 20px; height: 20px; color: var(--danger);" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        @else
+                            <label class="item-checkbox">
+                                <input type="checkbox" name="keranjang_ids[]" value="{{ $item->id }}" class="cart-checkbox" data-price="{{ $total_harga }}" onchange="calcTotal('{{ $penyediaId }}')">
+                            </label>
+                        @endif
+                    </div>
+
                     @php
                         $primaryPhoto = $item->barang->fotos ? $item->barang->fotos->where('is_primary', true)->first() : null;
                         if (!$primaryPhoto && $item->barang->fotos) $primaryPhoto = $item->barang->fotos->first();
@@ -185,8 +237,31 @@
                     
                     <div class="item-details">
                         <div class="item-name">{{ $item->barang->nama }}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Lokasi: {{ $item->barang->kota }}</div>
-                        <div class="item-price">Rp {{ number_format($item->barang->harga_per_hari, 0, ',', '.') }} <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">/hari</span></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem;">Lokasi: {{ $item->barang->kota }}</div>
+                        <div class="item-price" style="margin-bottom: 0.5rem;">Rp {{ number_format($item->barang->harga_per_hari, 0, ',', '.') }} <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">/hari</span></div>
+                        
+                        <form action="{{ route('penyewa.keranjang.update-tanggal', $item->id) }}" method="POST" style="display:flex; gap:0.5rem; align-items:flex-end;">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label style="font-size:0.75rem; color:var(--text-secondary); display:block;">Mulai</label>
+                                <input type="date" name="tanggal_mulai" value="{{ $item->tanggal_mulai }}" required min="{{ date('Y-m-d') }}" style="padding:0.4rem; border:1px solid var(--card-border); border-radius:4px; font-size:0.8rem;" onchange="this.form.submit()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem; color:var(--text-secondary); display:block;">Selesai</label>
+                                <input type="date" name="tanggal_selesai" value="{{ $item->tanggal_selesai }}" required min="{{ date('Y-m-d') }}" style="padding:0.4rem; border:1px solid var(--card-border); border-radius:4px; font-size:0.8rem;" onchange="this.form.submit()">
+                            </div>
+                            <div style="font-size:0.8rem; color:var(--text-muted); padding-bottom:0.4rem; font-weight:600;">
+                                = {{ $durasi }} Hari
+                            </div>
+                            <noscript><button type="submit">Update</button></noscript>
+                        </form>
+
+                        @if($item->is_overlap)
+                            <div style="margin-top: 0.75rem; font-size: 0.8rem; font-weight: 700; color: var(--danger); background: #fef2f2; padding: 0.5rem; border-radius: 4px; border: 1px solid #fecaca; display: inline-block;">
+                                ⚠️ Tanggal ini sudah dipesan. Silakan pilih tanggal lain.
+                            </div>
+                        @endif
                     </div>
 
                     <div class="item-actions">
@@ -204,10 +279,15 @@
             @endforeach
 
             <div class="store-footer">
-                <button class="btn-checkout" onclick="alert('Checkout untuk {{ $penyedia->name ?? 'Penyedia' }} (Dummy) \nNantinya akan dibawa ke halaman detail tanggal sewa dan pembayaran.')">
-                    Lanjut Checkout
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </button>
+                <div class="store-footer-inner">
+                    <div class="store-total">
+                        Total Sementara: <span style="color:var(--color-penyewa);" id="total-price-{{ $penyediaId }}">Rp 0</span>
+                    </div>
+                    <button type="button" class="btn-checkout" id="btn-checkout-{{ $penyediaId }}" onclick="submitCheckout('{{ $penyediaId }}')" disabled>
+                        Lanjut Checkout
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
     @empty
@@ -223,3 +303,44 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    function calcTotal(storeId) {
+        let storeDiv = document.getElementById('store-group-' + storeId);
+        let checkboxes = storeDiv.querySelectorAll('.cart-checkbox');
+        let total = 0;
+        let checkedCount = 0;
+
+        checkboxes.forEach(function(cb) {
+            if (cb.checked) {
+                total += parseInt(cb.dataset.price);
+                checkedCount++;
+            }
+        });
+
+        // Format to Rupiah
+        let formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+        document.getElementById('total-price-' + storeId).innerText = formatter.format(total);
+
+        let btn = document.getElementById('btn-checkout-' + storeId);
+        if (checkedCount > 0) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
+    function submitCheckout(storeId) {
+        let storeDiv = document.getElementById('store-group-' + storeId);
+        let checkboxes = storeDiv.querySelectorAll('.cart-checkbox:checked');
+        
+        let url = new URL('{{ route("penyewa.keranjang.checkout") }}');
+        checkboxes.forEach(function(cb) {
+            url.searchParams.append('keranjang_ids[]', cb.value);
+        });
+        
+        window.location.href = url.toString();
+    }
+</script>
+@endpush

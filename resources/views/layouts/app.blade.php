@@ -976,6 +976,23 @@
             </div>
             @endif
 
+            @if (session('error'))
+                <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+                    <strong style="font-weight: 700;">Gagal:</strong> {{ session('error') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+                    <strong style="font-weight: 700;">Terdapat kesalahan:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
         </main>
     </div>

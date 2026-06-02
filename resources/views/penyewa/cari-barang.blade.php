@@ -4,6 +4,7 @@
 @section('breadcrumb', 'Cari Barang')
 
 @push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .search-hero {
         background: linear-gradient(135deg, #0D9488 0%, #065f52 100%);
@@ -140,26 +141,7 @@
         background: rgba(0,0,0,0.6);
         color: white;
         backdrop-filter: blur(4px);
-    }
-    .wishlist-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 32px; height: 32px;
-        border-radius: 50%;
-        background: white;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer;
-        transition: all 160ms;
-        color: #CBD5E1;
-        font-size: 1rem;
-    }
-    .wishlist-btn:hover { color: #EF4444; transform: scale(1.1); }
-    .wishlist-btn.liked { color: #EF4444; }
-
-    .product-body { padding: 1rem 1.1rem; }
+    }    .product-body { padding: 1rem 1.1rem; }
     .product-name {
         font-weight: 700;
         font-size: 0.9rem;
@@ -258,6 +240,7 @@
     <p class="search-hero-sub">🔍 Temukan barang yang kamu butuhkan</p>
     <h1 class="search-hero-title">Cari Barang untuk Disewa</h1>
     <form action="{{ route('penyewa.cari-barang') }}" method="GET" id="search-form">
+        <input type="hidden" name="kategori" id="kategori-input" value="{{ $kategori }}">
         <div class="search-bar-wrap">
             <div class="search-input-wrap">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -277,11 +260,11 @@
                     @endforeach
                 </select>
             </div>
-            <select class="filter-select" id="sort-hero">
-                <option value="populer">Terpopuler</option>
-                <option value="murah">Harga Terendah</option>
-                <option value="mahal">Harga Tertinggi</option>
-                <option value="rating">Rating Tertinggi</option>
+            <select name="sort" class="filter-select" id="sort-hero">
+                <option value="populer" {{ request('sort') == 'populer' ? 'selected' : '' }}>Terpopuler</option>
+                <option value="murah" {{ request('sort') == 'murah' ? 'selected' : '' }}>Harga Terendah</option>
+                <option value="mahal" {{ request('sort') == 'mahal' ? 'selected' : '' }}>Harga Tertinggi</option>
+                <option value="terbaru" {{ request('sort') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
             </select>
             <button type="submit" class="btn btn-sm" style="background:white;color:var(--color-penyewa);font-weight:700;border:none;">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -293,26 +276,19 @@
 
 {{-- Category Filters --}}
 <div class="category-pills">
-    <button class="cat-pill active" onclick="setCat(this,'semua')">🏷️ Semua</button>
-    <button class="cat-pill" onclick="setCat(this,'elektronik')">⚡ Elektronik</button>
-    <button class="cat-pill" onclick="setCat(this,'fotografi')">📷 Fotografi</button>
-    <button class="cat-pill" onclick="setCat(this,'drone')">🚁 Drone</button>
-    <button class="cat-pill" onclick="setCat(this,'olahraga')">⛺ Outdoor</button>
-    <button class="cat-pill" onclick="setCat(this,'gaming')">🎮 Gaming</button>
-    <button class="cat-pill" onclick="setCat(this,'audio')">🔊 Audio</button>
-    <button class="cat-pill" onclick="setCat(this,'kendaraan')">🚗 Kendaraan</button>
+    <button class="cat-pill {{ $kategori == 'semua' ? 'active' : '' }}" onclick="setCat('semua')">🏷️ Semua</button>
+    <button class="cat-pill {{ $kategori == 'elektronik' ? 'active' : '' }}" onclick="setCat('elektronik')">⚡ Elektronik</button>
+    <button class="cat-pill {{ $kategori == 'fotografi' ? 'active' : '' }}" onclick="setCat('fotografi')">📷 Fotografi</button>
+    <button class="cat-pill {{ $kategori == 'drone' ? 'active' : '' }}" onclick="setCat('drone')">🚁 Drone</button>
+    <button class="cat-pill {{ $kategori == 'olahraga' ? 'active' : '' }}" onclick="setCat('olahraga')">⛺ Outdoor</button>
+    <button class="cat-pill {{ $kategori == 'gaming' ? 'active' : '' }}" onclick="setCat('gaming')">🎮 Gaming</button>
+    <button class="cat-pill {{ $kategori == 'audio' ? 'active' : '' }}" onclick="setCat('audio')">🔊 Audio</button>
+    <button class="cat-pill {{ $kategori == 'kendaraan' ? 'active' : '' }}" onclick="setCat('kendaraan')">🚗 Kendaraan</button>
 </div>
 
 {{-- Result Bar --}}
 <div class="result-bar">
     <span class="result-count" id="result-count">Menampilkan <strong>{{ count($items) }}</strong> barang</span>
-    <select class="sort-select">
-        <option>Urutkan: Terpopuler</option>
-        <option>Harga Terendah</option>
-        <option>Harga Tertinggi</option>
-        <option>Rating Tertinggi</option>
-        <option>Terbaru</option>
-    </select>
 </div>
 
 {{-- Product Grid --}}
@@ -326,29 +302,28 @@
         if (!$primaryPhoto && $p->fotos) $primaryPhoto = $p->fotos->first();
     @endphp
     <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}">
-        <div class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden;">
+        <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden; display:block; text-decoration:none;">
             @if($primaryPhoto)
                 <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
-                <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;">
+                    <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
             @endif
             
             <div class="product-badge-corner" style="background: {{ $p->status == 'active' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }}">
                 {{ $p->status == 'active' ? 'Tersedia' : 'Disewa' }}
             </div>
-            <button class="wishlist-btn" onclick="toggleWishlist(this, '{{ $p->nama }}')" title="Tambah ke wishlist">
-                ♥
-            </button>
-        </div>
+        </a>
         <div class="product-body" style="padding: 1.2rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <div class="product-name" style="font-size: 1.05rem; line-height: 1.3; white-space: normal; height: 2.6em; overflow: hidden; color: #1e293b;">
+                <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-name" style="font-size: 1.05rem; line-height: 1.3; white-space: normal; height: 2.6em; overflow: hidden; color: #1e293b; text-decoration: none;">
                     {{ $p->nama }}
-                </div>
+                </a>
             </div>
             
             <div class="product-rating" style="margin-bottom: 0.5rem;">
-                ⭐ 4.5 <span style="color:var(--text-muted);font-weight:400;">(24 Review)</span>
+                ⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0 Ulasan)</span>
             </div>
 
             <div class="product-seller" style="font-size: 0.8rem; display: flex; align-items: center; color: #64748b; margin-bottom: 1rem;">
@@ -361,19 +336,24 @@
                 <div class="product-price" style="font-size: 1.15rem; color: #0f172a;">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span style="font-size:0.8rem; color:#64748b;"> /hari</span></div>
             </div>
             
-            <form action="{{ route('penyewa.keranjang.tambah') }}" method="POST">
-                @csrf
-                <input type="hidden" name="barang_id" value="{{ $p->id }}">
-                @if(auth()->id() == $p->user_id)
-                    <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; cursor:not-allowed;">
-                        Barang Anda Sendiri
+            @if(auth()->id() == $p->user_id)
+                <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; cursor:not-allowed; width:100%; margin-top:0.85rem;">
+                    Barang Anda Sendiri
+                </button>
+            @elseif($p->status != 'active')
+                <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; width:100%; margin-top:0.85rem;">
+                    Tidak Tersedia
+                </button>
+            @else
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.85rem;">
+                    <button type="button" class="btn-sewa-mini" style="margin-top:0; background:white; color:var(--color-penyewa); border:1px solid var(--color-penyewa);" onclick="openSewaModal('{{ $p->id }}', '{{ addslashes($p->nama) }}', 'keranjang')">
+                        + Keranjang
                     </button>
-                @else
-                    <button type="submit" class="btn-sewa-mini" {{ $p->status != 'active' ? 'disabled style=background:#94a3b8;' : '' }}>
-                        {{ $p->status == 'active' ? 'Masukkan Keranjang' : 'Tidak Tersedia' }}
+                    <button type="button" class="btn-sewa-mini" style="margin-top:0;" onclick="openSewaModal('{{ $p->id }}', '{{ addslashes($p->nama) }}', 'sewa')">
+                        Sewa
                     </button>
-                @endif
-            </form>
+                </div>
+            @endif
         </div>
     </div>
     @empty
@@ -388,40 +368,39 @@
 {{-- Toast --}}
 <div class="toast-notify" id="toast" role="alert"></div>
 
+{{-- Sewa Modal --}}
+<div id="sewaModal" style="display:none; position:fixed; inset:0; background:rgba(15,32,68,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
+    <div style="background:white; border-radius:var(--radius-lg); width:90%; max-width:400px; padding:1.5rem; position:relative; box-shadow:var(--shadow-lg);">
+        <button type="button" onclick="closeSewaModal()" style="position:absolute; top:1rem; right:1.2rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        <h3 id="modalTitle" style="margin-bottom:0.25rem; font-family:var(--font-heading); font-size:1.2rem; color:var(--text);">Pilih Tanggal Sewa</h3>
+        <p id="modalItemName" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem;"></p>
+        
+        <form action="{{ route('penyewa.keranjang.tambah') }}" method="POST">
+            @csrf
+            <input type="hidden" name="barang_id" id="modalBarangId">
+            <input type="hidden" name="action_type" id="modalActionType">
+            
+            <div style="margin-bottom:1rem;">
+                <label style="display:block; font-size:0.85rem; margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">Tanggal Pengambilan</label>
+                <input type="text" id="tanggal_mulai_modal" name="tanggal_mulai" required placeholder="Pilih Tanggal Pengambilan..." style="width:100%; padding:0.65rem; border:1.5px solid var(--card-border); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; background:white;">
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label style="display:block; font-size:0.85rem; margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">Tanggal Pengembalian</label>
+                <input type="text" id="tanggal_selesai_modal" name="tanggal_selesai" required placeholder="Pilih Tanggal Pengembalian..." style="width:100%; padding:0.65rem; border:1.5px solid var(--card-border); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; background:white;">
+            </div>
+            
+            <button type="submit" class="btn-sewa-mini" id="modalSubmitBtn" style="width:100%; margin:0; padding:0.75rem; font-size:0.9rem;">Lanjut</button>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
-    var currentCat = 'semua';
-
-    function setCat(btn, cat) {
-        // Option to submit form with category if needed in future
-        document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        currentCat = cat;
-        // Basic frontend filtering for category pills if still desired
-        var cards = document.querySelectorAll('#product-grid .product-card');
-        var count = 0;
-        cards.forEach(function(card) {
-            var cardCat = card.dataset.cat;
-            if (currentCat === 'semua' || cardCat === currentCat) {
-                card.style.display = '';
-                count++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-        document.getElementById('result-count').innerHTML = 'Menampilkan <strong>' + count + '</strong> barang';
-    }
-
-    function toggleWishlist(btn, name) {
-        event.stopPropagation();
-        btn.classList.toggle('liked');
-        if (btn.classList.contains('liked')) {
-            showToast('❤️ <strong>' + name + '</strong> ditambahkan ke Wishlist!');
-        } else {
-            showToast('💔 <strong>' + name + '</strong> dihapus dari Wishlist.');
-        }
+    function setCat(cat) {
+        document.getElementById('kategori-input').value = cat;
+        document.getElementById('search-form').submit();
     }
 
     function showToast(msg) {
@@ -433,5 +412,53 @@
             toast.classList.remove('show');
         }, 3000);
     }
+
+    function closeSewaModal() {
+        document.getElementById('sewaModal').style.display = 'none';
+    }
+
+    const allBookedDates = @json($bookedDates ?? []);
+    let startDatePicker, endDatePicker;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        startDatePicker = flatpickr("#tanggal_mulai_modal", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    endDatePicker.set('minDate', dateStr);
+                }
+            }
+        });
+
+        endDatePicker = flatpickr("#tanggal_selesai_modal", {
+            minDate: "today",
+            dateFormat: "Y-m-d"
+        });
+    });
+
+    function openSewaModal(id, name, actionType) {
+        document.getElementById('modalBarangId').value = id;
+        document.getElementById('modalActionType').value = actionType;
+        document.getElementById('modalItemName').innerText = name;
+        
+        if(actionType === 'sewa') {
+            document.getElementById('modalSubmitBtn').innerText = "Sewa Sekarang";
+        } else {
+            document.getElementById('modalSubmitBtn').innerText = "Masukkan Keranjang";
+        }
+        
+        // Update disabled dates untuk item ini
+        const itemDates = allBookedDates[id] || [];
+        const disabledRanges = itemDates.map(r => ({ from: r.from, to: r.to }));
+        
+        startDatePicker.set('disable', disabledRanges);
+        endDatePicker.set('disable', disabledRanges);
+        startDatePicker.clear();
+        endDatePicker.clear();
+
+        document.getElementById('sewaModal').style.display = 'flex';
+    }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 @endpush

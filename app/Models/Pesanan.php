@@ -23,15 +23,7 @@ class Pesanan extends Model
     }
 
     protected $table = 'pesanan';
-
-    protected $fillable = [
-        'pemesan_id',
-        'pemilik_id',
-        'total_biaya',
-        'catatan_penyewa',
-        'status',
-        'payment_timestamp',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'payment_timestamp' => 'datetime',
@@ -51,5 +43,10 @@ class Pesanan extends Model
     public function items()
     {
         return $this->hasMany(PesananItem::class, 'pesanan_id');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasOne(Pembayaran::class);
     }
 }
