@@ -215,13 +215,40 @@
         <div class="card" style="margin-bottom:1.25rem;">
             <div class="card-header">
                 <span class="card-title">⏳ Menunggu Pembayaran</span>
-                <span class="badge badge-neutral">0 Tagihan</span>
+                <span class="badge badge-neutral">{{ $tagihans->count() }} Tagihan</span>
             </div>
-            <div class="card-body">
-                <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
-                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
-                    <p style="font-size: 0.9rem;">Tidak ada tagihan yang menunggu pembayaran.</p>
-                </div>
+            <div class="card-body" style="padding: 0;">
+                @if($tagihans->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+                        <p style="font-size: 0.9rem;">Tidak ada tagihan yang menunggu pembayaran.</p>
+                    </div>
+                @else
+                    @foreach($tagihans as $tagihan)
+                        <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border);">
+                            <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <div>
+                                    <span style="font-weight:600; font-size:0.95rem;">ID Pesanan: {{ substr($tagihan->pesanan_id, 0, 8) }}...</span>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan->expired_at)->format('d M Y H:i') }}</div>
+                                </div>
+                                <div style="font-weight:700; color:var(--color-penyewa); font-size:1.1rem;">
+                                    Rp {{ number_format($tagihan->jumlah, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div style="font-size: 0.8rem; color:var(--text-secondary); margin-bottom: 0.8rem;">
+                                @foreach($tagihan->pesanan->items as $item)
+                                    <div>- {{ $item->barang->nama }} ({{ $item->durasi_hari }} Hari)</div>
+                                @endforeach
+                            </div>
+                            <form action="{{ route('penyewa.pembayaran.proses', $tagihan->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.5rem; font-size:0.85rem;" onclick="return confirm('Apakah Anda yakin ingin menyimulasikan pembayaran lunas untuk tagihan ini?')">
+                                    Bayar Sekarang (Simulasi)
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                @endif
             </div>
         </div>
 
@@ -231,9 +258,28 @@
                 <span class="card-title">📄 Riwayat Pembayaran</span>
                 <a href="{{ route('penyewa.riwayat-sewa') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
             </div>
-            <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
-                <p style="font-size: 0.85rem;">Belum ada riwayat transaksi.</p>
+            <div style="padding: 0;">
+                @if($riwayats->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
+                        <p style="font-size: 0.85rem;">Belum ada riwayat transaksi.</p>
+                    </div>
+                @else
+                    @foreach($riwayats as $riwayat)
+                        <div class="txn-row">
+                            <div class="txn-icon" style="background: {{ $riwayat->status == 'paid' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}; color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                @if($riwayat->status == 'paid') ✓ @else ✕ @endif
+                            </div>
+                            <div class="txn-info">
+                                <div class="txn-name">Pembayaran Pesanan</div>
+                                <div class="txn-date">{{ \Carbon\Carbon::parse($riwayat->updated_at)->format('d M Y H:i') }} • Status: {{ ucfirst($riwayat->status) }}</div>
+                            </div>
+                            <div class="txn-amount" style="color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                {{ $riwayat->status == 'paid' ? '-' : '' }}Rp {{ number_format($riwayat->jumlah, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
             </div>
         </div>
     </div>

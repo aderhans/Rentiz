@@ -49,16 +49,25 @@ Route::middleware('auth')->group(function () {
     Route::prefix('penyewa')->name('penyewa.')->group(function () {
         Route::get('/cari-barang',      [PenyewaController::class, 'cariBarang'])->name('cari-barang');
         Route::get('/penyewaan-aktif',  [PenyewaController::class, 'penyewaanAktif'])->name('penyewaan-aktif');
+        Route::get('/penyewaan-aktif/{id}/checklist', [PenyewaController::class, 'formChecklist'])->name('penyewaan-aktif.checklist');
+        Route::post('/penyewaan-aktif/{id}/checklist', [PenyewaController::class, 'simpanChecklist'])->name('penyewaan-aktif.checklist.simpan');
         Route::get('/riwayat-sewa',     [PenyewaController::class, 'riwayatSewa'])->name('riwayat-sewa');
         Route::get('/profil',           [PenyewaController::class, 'profil'])->name('profil');
         Route::put('/profil',           [PenyewaController::class, 'updateProfil'])->name('profil.update');
         Route::put('/profil/password',  [PenyewaController::class, 'updatePassword'])->name('profil.password');
         Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
+        Route::post('/pembayaran/{id}/proses', [PenyewaController::class, 'prosesBayar'])->name('pembayaran.proses');
         
         // Keranjang Routes
         Route::get('/keranjang',        [PenyewaController::class, 'keranjang'])->name('keranjang');
         Route::post('/keranjang/tambah',[PenyewaController::class, 'tambahKeranjang'])->name('keranjang.tambah');
+        Route::put('/keranjang/{id}/tanggal', [PenyewaController::class, 'updateTanggalKeranjang'])->name('keranjang.update-tanggal');
         Route::delete('/keranjang/{id}',[PenyewaController::class, 'hapusKeranjang'])->name('keranjang.hapus');
+        Route::get('/keranjang/checkout', [PenyewaController::class, 'checkout'])->name('keranjang.checkout');
+        Route::post('/keranjang/checkout/proses', [PenyewaController::class, 'prosesCheckout'])->name('keranjang.checkout.proses');
+        
+        // Detail Barang Route
+        Route::get('/barang/{id}', [PenyewaController::class, 'detailBarang'])->name('barang.detail');
     });
 
     /* ------------------------------------------------

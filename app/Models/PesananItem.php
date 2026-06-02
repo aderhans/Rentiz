@@ -24,15 +24,7 @@ class PesananItem extends Model
 
     protected $table = 'pesanan_item';
 
-    protected $fillable = [
-        'pesanan_id',
-        'barang_id',
-        'harga_per_hari',
-        'jumlah_hari',
-        'tanggal_mulai',
-        'tanggal_selesai',
-        'subtotal',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'tanggal_mulai' => 'date',
@@ -49,5 +41,15 @@ class PesananItem extends Model
     public function barang()
     {
         return $this->belongsTo(Barang::class, 'barang_id');
+    }
+
+    public function inventoryLock()
+    {
+        return $this->hasOne(InventoryLock::class);
+    }
+
+    public function checklistPengambilan()
+    {
+        return $this->hasOne(ChecklistSerahTerima::class)->where('tipe', 'pengambilan');
     }
 }
