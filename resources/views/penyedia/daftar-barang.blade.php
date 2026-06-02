@@ -38,11 +38,12 @@
     .modal-overlay.open { opacity:1;pointer-events:auto; }
     .modal-box { background:white;border-radius:var(--radius-xl);width:100%;max-width:460px;box-shadow:var(--shadow-lg);transform:translateY(20px);transition:transform 250ms;overflow:hidden; }
     .modal-overlay.open .modal-box { transform:translateY(0); }
+    .modal-box { max-height: calc(100vh - 40px); }
     .modal-header { padding:1.1rem 1.3rem;border-bottom:1px solid var(--card-border);display:flex;align-items:center;justify-content:space-between; }
     .modal-title { font-family:var(--font-heading);font-weight:700;font-size:.95rem;color:var(--text); }
     .modal-close { background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.2rem;padding:4px;border-radius:6px; }
     .modal-close:hover { background:var(--content-bg); }
-    .modal-body { padding:1.25rem; }
+    .modal-body { padding:1.25rem; overflow-y:auto; max-height: calc(100vh - 160px); }
     .image-slider { position:relative; height:180px; border-radius:14px; overflow:hidden; background:#F3F4F6; margin-bottom:1rem; }
     .slide-track { display:flex; height:100%; transition:transform 300ms ease; }
     .slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#F3F4F6; }
@@ -101,14 +102,11 @@
             <option value="disewa">Sedang Disewa</option>
             <option value="nonaktif">Nonaktif</option>
         </select>
-        <select class="flt">
-            <option>Semua Kategori</option>
-            <option>Fotografi</option>
-            <option>Drone</option>
-            <option>Elektronik</option>
-            <option>Outdoor</option>
-            <option>Gaming</option>
-            <option>Audio</option>
+        <select class="flt" id="item-filter-category" onchange="filterItems()">
+            <option value="semua">Semua Kategori</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->nama }}">{{ $category->nama }}</option>
+            @endforeach
         </select>
     </div>
     <div style="display:flex;gap:.5rem;">
@@ -133,12 +131,17 @@
         $displayStatus = 'nonaktif';
     }
 @endphp
-<div class="item-card" data-name="{{ strtolower($item->nama) }}" data-status="{{ $displayStatus }}"
+<div class="item-card" data-id="{{ $item->id }}" data-name="{{ $item->nama }}" data-search-name="{{ strtolower($item->nama) }}" data-display-status="{{ $displayStatus }}" data-status="{{ $item->status }}"
      data-images='@json($item->fotos->pluck('path_foto')->map(fn($p) => asset('storage/' . ltrim($p, '/')))->all())'
-     data-category="{{ $item->kategori_id ?? 'Lainnya' }}"
+     data-category-id="{{ $item->kategori_id ?? '' }}"
+     data-category-name="{{ $item->kategori_nama ?? 'Lainnya' }}"
      data-desc="{{ e($item->deskripsi) }}"
      data-city="{{ $item->kota }}"
+     data-address="{{ e($item->alamat_pengambilan) }}"
+     data-guarantee="{{ e($item->ketentuan_jaminan) }}"
      data-condition="{{ $item->kondisi }}"
+     data-min-duration="{{ $item->min_durasi_sewa ?? 1 }}"
+     data-max-duration="{{ $item->max_durasi_sewa ?? 0 }}"
      data-price="{{ $item->harga_per_hari }}"
      onclick="openEditModal(this)">
     <div class="item-img" style="background:#F1F5F9; padding: 0;">
@@ -158,8 +161,7 @@
     </div>
     <div class="item-body">
         <div class="item-name">{{ $item->nama }}</div>
-        <div class="item-cat">{{ $item->kategori_id ?? '-' }}</div>
-        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.55rem;">Klik kartu untuk melihat detail & edit</div>
+        <div class="item-cat">{{ $item->kategori_nama ?? '-' }}</div>
         <div class="item-footer">
             <div class="item-price">Rp {{ number_format($item->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
             <div style="font-size:.76rem;color:var(--warning);">⭐ 0.0</div>
@@ -197,44 +199,108 @@
             <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <div class="modal-body">
-            <div class="image-slider" id="edit-slider">
-                <div class="slide-track" id="edit-slide-track"></div>
-                <button class="slider-arrow left" onclick="prevSlide(event)">&#8249;</button>
-                <button class="slider-arrow right" onclick="nextSlide(event)">&#8250;</button>
-                <div class="slider-dots" id="edit-slider-dots"></div>
-            </div>
-            <div style="margin-bottom:.85rem;">
-                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Nama Barang</label>
-                <input type="text" id="edit-name" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">
-                <div>
-                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Harga/Hari (Rp)</label>
-                    <input type="number" id="edit-price" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" value="350000" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
+            <form id="edit-form" method="POST" action="" enctype="multipart/form-data">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" id="edit-item-id" name="id">
+                <div class="image-slider" id="edit-slider">
+                    <div class="slide-track" id="edit-slide-track"></div>
+                    <button class="slider-arrow left" onclick="prevSlide(event)">&#8249;</button>
+                    <button class="slider-arrow right" onclick="nextSlide(event)">&#8250;</button>
+                    <div class="slider-dots" id="edit-slider-dots"></div>
                 </div>
-                <div>
-                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Status</label>
-                    <select id="edit-status" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.84rem;font-family:var(--font-body);outline:none;background:white;">
-                        <option value="aktif">Aktif</option>
-                        <option value="nonaktif">Nonaktif</option>
-                        <option value="disewa">Sedang Disewa</option>
-                        <option value="pending">Menunggu Verifikasi</option>
-                    </select>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Nama Barang</label>
+                    <input type="text" id="edit-name" name="title" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
                 </div>
-            </div>
-            <div style="margin-bottom:.85rem;">
-                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kategori</label>
-                <input type="text" id="edit-category" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" readonly>
-            </div>
-            <div style="margin-bottom:.85rem;">
-                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kota / Lokasi</label>
-                <input type="text" id="edit-city" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" readonly>
-            </div>
-            <div style="margin-bottom:.85rem;">
-                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Deskripsi</label>
-                <textarea id="edit-desc" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" rows="4" readonly></textarea>
-            </div>
-            <button class="btn btn-primary-blue" style="width:100%;justify-content:center;" onclick="closeModal();showToast('✅ Perubahan berhasil disimpan!')">Simpan Perubahan</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Harga/Hari (Rp)</label>
+                        <input type="number" id="edit-price" name="price" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" value="350000" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Status Saat Ini</label>
+                        <input type="text" id="edit-status-text" disabled style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);background:#f8fafc;color:#334155;">
+                        <input type="hidden" id="edit-status" name="status" value="pending">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kategori</label>
+                        <select id="edit-category" name="category" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" required>
+                            <option value="">Pilih kategori...</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kondisi</label>
+                        <select id="edit-condition" name="condition" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
+                            <option value="Baru (99%)">Baru (99%)</option>
+                            <option value="Seperti Baru (95%)">Seperti Baru (95%)</option>
+                            <option value="Sangat Baik (90%)">Sangat Baik (90%)</option>
+                            <option value="Baik (80%)">Baik (80%)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Foto Baru</label>
+                    <div class="upload-area" onclick="document.getElementById('edit-images').click()" style="cursor:pointer;">
+                        <div style="padding:.75rem 1rem;border:1.5px dashed var(--card-border);border-radius:var(--radius-sm);background:#f8fafc;display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
+                            <span>Pilih foto baru atau klik kembali untuk menambah</span>
+                            <span style="font-size:1.1rem;">＋</span>
+                        </div>
+                    </div>
+                    <input type="file" id="edit-images" name="images[]" accept="image/*" multiple style="display:none;" onchange="previewEditImages(event)">
+                    <div style="font-size:.74rem;color:var(--text-muted);margin-top:.35rem;">Maksimal 4 gambar. Pilih satu per satu atau beberapa sekaligus.</div>
+                    <div class="img-preview" id="edit-img-preview" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Min. Durasi Sewa</label>
+                        <select id="edit-min-duration" name="min_durasi_sewa" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
+                            <option value="1">1 hari</option>
+                            <option value="2">2 hari</option>
+                            <option value="3">3 hari</option>
+                            <option value="7">1 minggu</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Maks. Durasi Sewa</label>
+                        <select id="edit-max-duration" name="max_durasi_sewa" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
+                            <option value="7">7 hari</option>
+                            <option value="14">14 hari</option>
+                            <option value="30">30 hari</option>
+                            <option value="0">Tidak terbatas</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kota</label>
+                    <input type="text" id="edit-city" name="city" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
+                </div>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Alamat Pengambilan</label>
+                    <input type="text" id="edit-address" name="alamat_pengambilan" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
+                </div>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Ketentuan Jaminan</label>
+                    <textarea id="edit-guarantee" name="ketentuan_jaminan" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" rows="3"></textarea>
+                </div>
+                <div style="margin-bottom:.85rem;">
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Deskripsi</label>
+                    <textarea id="edit-desc" name="description" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" rows="4"></textarea>
+                </div>
+                <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                    <button type="submit" class="btn btn-primary-blue" style="flex:1;justify-content:center;">Simpan Perubahan</button>
+                    <button type="button" class="btn btn-outline-danger" style="flex:1;justify-content:center;" onclick="submitDelete()">Hapus Barang</button>
+                </div>
+            </form>
+            <form id="delete-form" method="POST" action="" style="display:none;">
+                @csrf
+                @method('DELETE')
+            </form>
         </div>
     </div>
 </div>
@@ -247,15 +313,22 @@
     function filterItems() {
         var q      = document.getElementById('item-search').value.toLowerCase();
         var status = document.getElementById('item-filter-status').value;
+        var category = document.getElementById('item-filter-category').value;
         document.querySelectorAll('#item-grid .item-card').forEach(function(c) {
-            var nm = c.dataset.name;
-            var st = c.dataset.status;
-            c.style.display = (nm.includes(q) && (status==='semua'||st===status)) ? '' : 'none';
+            var nm = (c.dataset.searchName || c.dataset.name || '').toLowerCase();
+            var st = c.dataset.displayStatus;
+            var ct = (c.dataset.categoryName || '').toLowerCase();
+            var matchesSearch = nm.includes(q);
+            var matchesStatus = status === 'semua' || st === status;
+            var matchesCategory = category === 'semua' || ct === category.toLowerCase();
+            c.style.display = (matchesSearch && matchesStatus && matchesCategory) ? '' : 'none';
         });
     }
 
     var sliderImages = [];
     var currentSlideIndex = 0;
+
+    var updateBaseUrl = "{{ url('/penyedia/barang') }}";
 
     function openEditModal(card) {
         var imagesJson = card.dataset.images || '[]';
@@ -267,20 +340,36 @@
         }
         currentSlideIndex = 0;
 
+        var itemId = card.dataset.id || '';
         var name = card.dataset.name || '';
-        var category = card.dataset.category || '';
+        var categoryId = card.dataset.categoryId || '';
+        var categoryName = card.dataset.categoryName || '';
         var desc = card.dataset.desc || '';
         var city = card.dataset.city || '';
+        var address = card.dataset.address || '';
+        var guarantee = card.dataset.guarantee || '';
         var condition = card.dataset.condition || '';
+        var minDuration = card.dataset.minDuration || '1';
+        var maxDuration = card.dataset.maxDuration || '0';
         var price = card.dataset.price || '';
-        var status = card.dataset.status || 'aktif';
+        var status = card.dataset.status || 'pending';
 
+        var editForm = document.getElementById('edit-form');
+        editForm.action = updateBaseUrl + '/' + itemId;
+        document.getElementById('edit-item-id').value = itemId;
         document.getElementById('edit-name').value = name;
         document.getElementById('edit-price').value = price;
-        document.getElementById('edit-status').value = status;
-        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-status-text').value = status === 'pending' ? 'Menunggu Verifikasi' : (status === 'active' ? 'Aktif' : (status === 'rented' ? 'Sedang Disewa' : (status === 'inactive' ? 'Nonaktif' : (status === 'rejected' ? 'Ditolak' : (status === 'suspended' ? 'Ditangguhkan' : status)))));
+        document.getElementById('edit-category').value = categoryId;
+        document.getElementById('edit-condition').value = condition || 'Baru (99%)';
+        document.getElementById('edit-min-duration').value = minDuration;
+        document.getElementById('edit-max-duration').value = maxDuration;
         document.getElementById('edit-city').value = city;
+        document.getElementById('edit-address').value = address;
+        document.getElementById('edit-guarantee').value = guarantee;
         document.getElementById('edit-desc').value = desc;
+        document.getElementById('delete-form').action = updateBaseUrl + '/' + itemId;
+        resetEditImageInput();
         document.getElementById('edit-modal-title').textContent = '✏️ Detail: ' + name;
         renderSlider();
         document.getElementById('edit-modal').classList.add('open');
@@ -347,6 +436,93 @@
         currentSlideIndex = index;
         updateSliderPosition();
     }
+
+    var editSelectedImages = [];
+
+    function previewEditImages(event) {
+        var files = Array.from(event.target.files);
+        if (!files.length) return;
+
+        if (editSelectedImages.length + files.length > 4) {
+            alert('Maksimal 4 gambar saja.');
+            return;
+        }
+
+        files.forEach(function(file) {
+            if (!file.type.startsWith('image/')) return;
+            editSelectedImages.push(file);
+        });
+
+        updateEditImageInput();
+        renderEditImagePreview();
+    }
+
+    function updateEditImageInput() {
+        var dataTransfer = new DataTransfer();
+        editSelectedImages.forEach(function(file) {
+            dataTransfer.items.add(file);
+        });
+        document.getElementById('edit-images').files = dataTransfer.files;
+    }
+
+    function renderEditImagePreview() {
+        var preview = document.getElementById('edit-img-preview');
+        if (!preview) return;
+        preview.innerHTML = '';
+        editSelectedImages.forEach(function(file, index) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                var thumb = document.createElement('div');
+                thumb.style.position = 'relative';
+                thumb.style.width = '90px';
+                thumb.style.height = '90px';
+                thumb.style.borderRadius = '12px';
+                thumb.style.overflow = 'hidden';
+                thumb.style.background = '#f8fafc';
+                thumb.style.boxShadow = '0 1px 4px rgba(15,23,42,.08)';
+                thumb.innerHTML = '<img src="' + reader.result + '" style="width:100%;height:100%;object-fit:cover;">';
+
+                var remove = document.createElement('div');
+                remove.textContent = '✕';
+                remove.style.position = 'absolute';
+                remove.style.top = '6px';
+                remove.style.right = '6px';
+                remove.style.width = '20px';
+                remove.style.height = '20px';
+                remove.style.borderRadius = '50%';
+                remove.style.background = 'rgba(15,23,42,.75)';
+                remove.style.color = 'white';
+                remove.style.display = 'flex';
+                remove.style.alignItems = 'center';
+                remove.style.justifyContent = 'center';
+                remove.style.cursor = 'pointer';
+                remove.onclick = function() { removeEditImage(index); };
+                thumb.appendChild(remove);
+                preview.appendChild(thumb);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removeEditImage(index) {
+        editSelectedImages.splice(index, 1);
+        updateEditImageInput();
+        renderEditImagePreview();
+    }
+
+    function resetEditImageInput() {
+        editSelectedImages = [];
+        if (document.getElementById('edit-images')) {
+            document.getElementById('edit-images').value = '';
+        }
+        renderEditImagePreview();
+    }
+
+    function submitDelete() {
+        if (!confirm('Hapus barang ini sekarang?')) return;
+        document.getElementById('delete-form').submit();
+    }
+
     function closeModal(e) {
         if (!e || e.target === document.getElementById('edit-modal')) {
             document.getElementById('edit-modal').classList.remove('open');
