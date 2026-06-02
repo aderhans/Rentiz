@@ -52,14 +52,6 @@ class PenyewaController extends Controller
     }
 
     /**
-     * Halaman Wishlist (dummy)
-     */
-    public function wishlist()
-    {
-        return view('penyewa.wishlist');
-    }
-
-    /**
      * Halaman Profil Saya (dummy)
      */
     public function profil()
@@ -135,5 +127,63 @@ class PenyewaController extends Controller
     public function pembayaran()
     {
         return view('penyewa.pembayaran');
+    }
+
+    /* --------------------------------------------------------
+     * Keranjang Methods
+     * -------------------------------------------------------- */
+
+    public function keranjang()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $keranjangs = \App\Models\Keranjang::with(['barang.user', 'barang.fotos'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        // Kelompokkan berdasarkan penyedia (user dari barang)
+        $grouped = $keranjangs->groupBy(function ($item) {
+            return $item->barang->user->id;
+        });
+
+        return view('penyewa.keranjang', compact('grouped'));
+    }
+
+    public function tambahKeranjang(Request $request)
+    {
+        $request->validate([
+            'barang_id' => 'required|exists:barang,id',
+        ]);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        $barang = \App\Models\Barang::findOrFail($request->barang_id);
+        if ($barang->user_id == $user->id) {
+            return redirect()->back()->with('error', 'Anda tidak dapat menyewa atau memasukkan barang milik Anda sendiri ke keranjang.');
+        }
+
+        // Cek apakah barang sudah ada di keranjang
+        $existing = \App\Models\Keranjang::where('user_id', $user->id)
+            ->where('barang_id', $request->barang_id)
+            ->first();
+
+        if ($existing) {
+            return redirect()->back()->with('info', 'Barang sudah ada di keranjang.');
+        }
+
+        \App\Models\Keranjang::create([
+            'user_id' => $user->id,
+            'barang_id' => $request->barang_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Barang berhasil ditambahkan ke keranjang!');
+    }
+
+    public function hapusKeranjang($id)
+    {
+        $keranjang = \App\Models\Keranjang::where('id', $id)->where('user_id', \Illuminate\Support\Facades\Auth::id())->firstOrFail();
+        $keranjang->delete();
+
+        return redirect()->back()->with('success', 'Barang dihapus dari keranjang.');
     }
 }

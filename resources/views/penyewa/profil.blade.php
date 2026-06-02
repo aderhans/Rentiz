@@ -241,16 +241,12 @@
             </div>
             <div class="profile-stats-row">
                 <div class="profile-stat-item">
-                    <div class="val">12</div>
+                    <div class="val">0</div>
                     <div class="lbl">Transaksi</div>
                 </div>
                 <div class="profile-stat-item">
-                    <div class="val" style="color:var(--warning);">4.8</div>
+                    <div class="val" style="color:var(--warning);">0.0</div>
                     <div class="lbl">Rating</div>
-                </div>
-                <div class="profile-stat-item">
-                    <div class="val" style="color:var(--danger);">7</div>
-                    <div class="lbl">Wishlist</div>
                 </div>
             </div>
             <div class="profile-nav">
@@ -269,11 +265,7 @@
                     Notifikasi
                     <svg class="nav-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
-                <button class="profile-nav-item" onclick="switchTab('achievement', this)">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                    Pencapaian
-                    <svg class="nav-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
+
             </div>
         </div>
 
@@ -415,41 +407,7 @@
             </div>
         </div>
 
-        {{-- Pencapaian --}}
-        <div class="card profile-tab-content" id="tab-achievement">
-            <div class="card-header">
-                <span class="card-title">🏆 Pencapaian Kamu</span>
-                <span class="badge badge-success">5 / 8 Diraih</span>
-            </div>
-            <div class="card-body">
-                <div class="achievement-grid">
-                    @php
-                    $achievements = [
-                        ['icon'=>'🎉','name'=>'Pendaftar Awal','desc'=>'Bergabung di bulan pertama','unlocked'=>true],
-                        ['icon'=>'🛒','name'=>'Penyewa Pertama','desc'=>'Sewa barang pertama kali','unlocked'=>true],
-                        ['icon'=>'⭐','name'=>'Review Master','desc'=>'Beri 5 rating & ulasan','unlocked'=>true],
-                        ['icon'=>'🔥','name'=>'Langganan','desc'=>'5 transaksi sukses','unlocked'=>true],
-                        ['icon'=>'💎','name'=>'Pelanggan VIP','desc'=>'10 transaksi sukses','unlocked'=>true],
-                        ['icon'=>'🚀','name'=>'Super Penyewa','desc'=>'25 transaksi sukses','unlocked'=>false],
-                        ['icon'=>'👑','name'=>'Legenda','desc'=>'50 transaksi sukses','unlocked'=>false],
-                        ['icon'=>'🌟','name'=>'Explorers','desc'=>'Sewa 5 kategori berbeda','unlocked'=>false],
-                    ];
-                    @endphp
-                    @foreach($achievements as $ach)
-                    <div class="achievement-badge" style="{{ $ach['unlocked'] ? '' : 'opacity:0.4;filter:grayscale(1);' }}">
-                        <div class="ach-icon">{{ $ach['icon'] }}</div>
-                        <div class="ach-name">{{ $ach['name'] }}</div>
-                        <div class="ach-desc">{{ $ach['desc'] }}</div>
-                        @if($ach['unlocked'])
-                        <div style="margin-top:5px;font-size:0.65rem;color:var(--success);font-weight:600;">✓ Diraih</div>
-                        @else
-                        <div style="margin-top:5px;font-size:0.65rem;color:var(--text-muted);">Belum diraih</div>
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+
 
     </div>
 </div>

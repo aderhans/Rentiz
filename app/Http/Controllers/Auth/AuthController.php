@@ -145,6 +145,16 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        return view('dashboard', compact('user'));
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.manajemen-user');
+        }
+
+        $mode = session('active_mode', 'penyewa');
+
+        if ($mode === 'penyedia') {
+            return redirect()->route('penyedia.daftar-barang');
+        }
+
+        return redirect()->route('penyewa.cari-barang');
     }
 }

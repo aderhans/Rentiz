@@ -360,9 +360,20 @@
                 <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.2rem;">Mulai dari</div>
                 <div class="product-price" style="font-size: 1.15rem; color: #0f172a;">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span style="font-size:0.8rem; color:#64748b;"> /hari</span></div>
             </div>
-            <button class="btn-sewa-mini" onclick="showToast('🛒 Permintaan sewa dikirim untuk <strong>{{ $p->nama }}</strong>!')">
-                Sewa Sekarang
-            </button>
+            
+            <form action="{{ route('penyewa.keranjang.tambah') }}" method="POST">
+                @csrf
+                <input type="hidden" name="barang_id" value="{{ $p->id }}">
+                @if(auth()->id() == $p->user_id)
+                    <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; cursor:not-allowed;">
+                        Barang Anda Sendiri
+                    </button>
+                @else
+                    <button type="submit" class="btn-sewa-mini" {{ $p->status != 'active' ? 'disabled style=background:#94a3b8;' : '' }}>
+                        {{ $p->status == 'active' ? 'Masukkan Keranjang' : 'Tidak Tersedia' }}
+                    </button>
+                @endif
+            </form>
         </div>
     </div>
     @empty
