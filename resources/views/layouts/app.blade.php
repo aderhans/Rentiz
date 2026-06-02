@@ -847,6 +847,7 @@
 
             {{-- ── ADMIN MENU ── --}}
             @if($isAdmin)
+            @php $pendingCount = \App\Models\Barang::where('status', 'pending')->count(); @endphp
 
             <div class="nav-group">
                 <div class="nav-group-label">Manajemen</div>
@@ -854,9 +855,12 @@
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Manajemen User
                 </a>
-                <a href="{{ route('admin.semua-listing') }}" class="nav-item {{ $routeName === 'admin.semua-listing' ? 'active' : '' }}">
+                <a href="{{ route('admin.semua-listing') }}" class="nav-item {{ $routeName === 'admin.semua-listing' || $routeName === 'admin.detail-barang' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     Semua Listing
+                    @if($pendingCount > 0)
+                    <span style="margin-left:auto;min-width:19px;height:19px;background:#EF4444;color:white;border-radius:50px;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;line-height:1;">{{ $pendingCount > 99 ? '99+' : $pendingCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('admin.semua-transaksi') }}" class="nav-item {{ $routeName === 'admin.semua-transaksi' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -890,7 +894,13 @@
                 $avatarColor = $avatarColors[$activeMode] ?? '#4F8EF7';
             @endphp
             <div class="sidebar-user">
-                <div class="user-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="user-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
                 <div class="user-info">
                     <div class="user-name">{{ Auth::user()->name }}</div>
                     <div class="user-role-tag">
@@ -940,12 +950,27 @@
                     <span class="notif-dot"></span>
                 </button>
 
-                <div class="header-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="header-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
             </div>
         </header>
 
         {{-- Page Content --}}
         <main class="page-content" id="page-main">
+            @if (session('success'))
+            <div id="dashboard-success-alert" style="background:var(--success-bg); border:1px solid #A7F3D0; border-radius:var(--radius-md); padding:0.85rem 1.2rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; font-size:0.88rem; color:var(--success); box-shadow:0 2px 8px rgba(5,150,105,0.1); transition:opacity 0.5s ease-out;">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+            @endif
+
             @yield('content')
         </main>
     </div>
@@ -971,6 +996,17 @@
         });
 
         if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        // Auto-hide dashboard success alert
+        var dashAlert = document.getElementById('dashboard-success-alert');
+        if (dashAlert) {
+            setTimeout(function() {
+                dashAlert.style.opacity = '0';
+                setTimeout(function() {
+                    dashAlert.style.display = 'none';
+                }, 500);
+            }, 4000);
+        }
     </script>
     @stack('scripts')
 </body>

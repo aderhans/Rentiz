@@ -56,4 +56,9 @@ class Barang extends Model
     {
         return $this->hasMany(FotoBarang::class, 'barang_id');
     }
+
+    public function kategori()
+    {
+        return $this->belongsTo(\App\Models\Kategori::class, 'kategori_id');
+    }
 }

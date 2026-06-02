@@ -43,6 +43,17 @@
     .modal-close { background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.2rem;padding:4px;border-radius:6px; }
     .modal-close:hover { background:var(--content-bg); }
     .modal-body { padding:1.25rem; }
+    .image-slider { position:relative; height:180px; border-radius:14px; overflow:hidden; background:#F3F4F6; margin-bottom:1rem; }
+    .slide-track { display:flex; height:100%; transition:transform 300ms ease; }
+    .slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#F3F4F6; }
+    .slide img { max-width:100%; max-height:100%; width:auto; height:100%; object-fit:contain; }
+    .slider-arrow { position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:12px; background:rgba(255,255,255,.85); border:1px solid rgba(148,163,184,.3); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 150ms; }
+    .slider-arrow:hover { background:white; }
+    .slider-arrow.left { left:10px; }
+    .slider-arrow.right { right:10px; }
+    .slider-dots { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:6px; }
+    .slider-dot { width:9px; height:9px; border-radius:50%; background:rgba(148,163,184,.55); cursor:pointer; }
+    .slider-dot.active { background:var(--color-penyedia); }
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;background:var(--color-penyedia);color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
@@ -62,12 +73,19 @@
 </div>
 
 {{-- Summary Bar --}}
+@php
+    $totalListing = $totalListing ?? 0;
+    $activeListing = $activeListing ?? 0;
+    $rentedListing = $rentedListing ?? 0;
+    $inactiveListing = $inactiveListing ?? 0;
+    $pendapatanBulanIni = $pendapatanBulanIni ?? 0;
+@endphp
 <div class="summary-bar">
-    <div class="sum-card"><div class="sum-val" style="color:var(--color-penyedia);">14</div><div class="sum-lbl">Total Listing</div></div>
-    <div class="sum-card"><div class="sum-val" style="color:var(--success);">11</div><div class="sum-lbl">Aktif</div></div>
-    <div class="sum-card"><div class="sum-val" style="color:var(--warning);">2</div><div class="sum-lbl">Sedang Disewa</div></div>
-    <div class="sum-card"><div class="sum-val" style="color:var(--text-muted);">1</div><div class="sum-lbl">Nonaktif</div></div>
-    <div class="sum-card"><div class="sum-val" style="font-size:1rem;">Rp 4,2Jt</div><div class="sum-lbl">Pendapatan Bulan Ini</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--color-penyedia);">{{ $totalListing }}</div><div class="sum-lbl">Total Listing</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--success);">{{ $activeListing }}</div><div class="sum-lbl">Aktif</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--warning);">{{ $rentedListing }}</div><div class="sum-lbl">Sedang Disewa</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:var(--text-muted);">{{ $inactiveListing }}</div><div class="sum-lbl">Nonaktif</div></div>
+    <div class="sum-card"><div class="sum-val" style="font-size:1rem;">Rp {{ number_format($pendapatanBulanIni, 0, ',', '.') }}</div><div class="sum-lbl">Pendapatan Bulan Ini</div></div>
 </div>
 
 {{-- Toolbar --}}
@@ -106,27 +124,42 @@
 
 
 @forelse($items as $item)
-<div class="item-card" data-name="{{ strtolower($item->nama) }}" data-status="{{ $item->status }}">
+@php
+    if (in_array($item->id, $rentedItemIds ?? [], true)) {
+        $displayStatus = 'disewa';
+    } elseif ($item->status === 'active') {
+        $displayStatus = 'aktif';
+    } else {
+        $displayStatus = 'nonaktif';
+    }
+@endphp
+<div class="item-card" data-name="{{ strtolower($item->nama) }}" data-status="{{ $displayStatus }}"
+     data-images='@json($item->fotos->pluck('path_foto')->map(fn($p) => asset('storage/' . ltrim($p, '/')))->all())'
+     data-category="{{ $item->kategori_id ?? 'Lainnya' }}"
+     data-desc="{{ e($item->deskripsi) }}"
+     data-city="{{ $item->kota }}"
+     data-condition="{{ $item->kondisi }}"
+     data-price="{{ $item->harga_per_hari }}"
+     onclick="openEditModal(this)">
     <div class="item-img" style="background:#F1F5F9; padding: 0;">
-        @if($item->fotos && $item->fotos->first())
-            <img src="{{ asset('storage/' . $item->fotos->first()->path_foto) }}" style="width:100%; height:100%; object-fit:cover;">
+        @php $firstImage = $item->fotos && $item->fotos->first() ? $item->fotos->first()->path_foto : null; @endphp
+        @if($firstImage)
+            <img src="{{ asset('storage/' . ltrim($firstImage, '/')) }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">
         @else
             <span>📷</span>
         @endif
         <div class="item-status">
-            @if($item->status==='active') <span class="badge badge-success" style="font-size:.64rem;">● Aktif</span>
+            @if($displayStatus==='disewa') <span class="badge badge-warning" style="font-size:.64rem;">● Sedang Disewa</span>
+            @elseif($displayStatus==='aktif') <span class="badge badge-success" style="font-size:.64rem;">● Aktif</span>
             @elseif($item->status==='pending') <span class="badge badge-warning" style="font-size:.64rem;">● Menunggu Verifikasi</span>
-            @else <span class="badge badge-danger" style="font-size:.64rem;">● Ditolak</span>
+            @else <span class="badge badge-danger" style="font-size:.64rem;">● Nonaktif</span>
             @endif
-        </div>
-        <div class="item-actions-menu">
-            <button class="icon-btn" title="Edit" onclick="openEditModal('{{ $item->nama }}')">✏️</button>
-            <button class="icon-btn" title="Hapus" onclick="deleteItem(this,'{{ $item->nama }}')">🗑️</button>
         </div>
     </div>
     <div class="item-body">
         <div class="item-name">{{ $item->nama }}</div>
         <div class="item-cat">{{ $item->kategori_id ?? '-' }}</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.55rem;">Klik kartu untuk melihat detail & edit</div>
         <div class="item-footer">
             <div class="item-price">Rp {{ number_format($item->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
             <div style="font-size:.76rem;color:var(--warning);">⭐ 0.0</div>
@@ -164,6 +197,12 @@
             <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <div class="modal-body">
+            <div class="image-slider" id="edit-slider">
+                <div class="slide-track" id="edit-slide-track"></div>
+                <button class="slider-arrow left" onclick="prevSlide(event)">&#8249;</button>
+                <button class="slider-arrow right" onclick="nextSlide(event)">&#8250;</button>
+                <div class="slider-dots" id="edit-slider-dots"></div>
+            </div>
             <div style="margin-bottom:.85rem;">
                 <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Nama Barang</label>
                 <input type="text" id="edit-name" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
@@ -171,15 +210,29 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.85rem;">
                 <div>
                     <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Harga/Hari (Rp)</label>
-                    <input type="number" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" value="350000" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
+                    <input type="number" id="edit-price" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" value="350000" onfocus="this.style.borderColor='var(--color-penyedia)'" onblur="this.style.borderColor='var(--card-border)'">
                 </div>
                 <div>
                     <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Status</label>
-                    <select style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.84rem;font-family:var(--font-body);outline:none;background:white;">
-                        <option>Aktif</option>
-                        <option>Nonaktif</option>
+                    <select id="edit-status" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.84rem;font-family:var(--font-body);outline:none;background:white;">
+                        <option value="aktif">Aktif</option>
+                        <option value="nonaktif">Nonaktif</option>
+                        <option value="disewa">Sedang Disewa</option>
+                        <option value="pending">Menunggu Verifikasi</option>
                     </select>
                 </div>
+            </div>
+            <div style="margin-bottom:.85rem;">
+                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kategori</label>
+                <input type="text" id="edit-category" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" readonly>
+            </div>
+            <div style="margin-bottom:.85rem;">
+                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Kota / Lokasi</label>
+                <input type="text" id="edit-city" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" readonly>
+            </div>
+            <div style="margin-bottom:.85rem;">
+                <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Deskripsi</label>
+                <textarea id="edit-desc" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" rows="4" readonly></textarea>
             </div>
             <button class="btn btn-primary-blue" style="width:100%;justify-content:center;" onclick="closeModal();showToast('✅ Perubahan berhasil disimpan!')">Simpan Perubahan</button>
         </div>
@@ -201,10 +254,98 @@
         });
     }
 
-    function openEditModal(name) {
+    var sliderImages = [];
+    var currentSlideIndex = 0;
+
+    function openEditModal(card) {
+        var imagesJson = card.dataset.images || '[]';
+        sliderImages = [];
+        try {
+            sliderImages = JSON.parse(imagesJson);
+        } catch (e) {
+            sliderImages = [];
+        }
+        currentSlideIndex = 0;
+
+        var name = card.dataset.name || '';
+        var category = card.dataset.category || '';
+        var desc = card.dataset.desc || '';
+        var city = card.dataset.city || '';
+        var condition = card.dataset.condition || '';
+        var price = card.dataset.price || '';
+        var status = card.dataset.status || 'aktif';
+
         document.getElementById('edit-name').value = name;
-        document.getElementById('edit-modal-title').textContent = '✏️ Edit: ' + name;
+        document.getElementById('edit-price').value = price;
+        document.getElementById('edit-status').value = status;
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-city').value = city;
+        document.getElementById('edit-desc').value = desc;
+        document.getElementById('edit-modal-title').textContent = '✏️ Detail: ' + name;
+        renderSlider();
         document.getElementById('edit-modal').classList.add('open');
+    }
+
+    function renderSlider() {
+        var track = document.getElementById('edit-slide-track');
+        var dots = document.getElementById('edit-slider-dots');
+        track.innerHTML = '';
+        dots.innerHTML = '';
+        if (!sliderImages.length) {
+            track.innerHTML = '<div class="slide"><span style="font-size:3rem;">📷</span></div>';
+            return;
+        }
+
+        sliderImages.forEach(function(url, index) {
+            var slide = document.createElement('div');
+            slide.className = 'slide';
+            var img = document.createElement('img');
+            img.src = url;
+            img.onerror = function() {
+                var fallback = document.createElement('span');
+                fallback.style.fontSize = '3rem';
+                fallback.textContent = '📷';
+                slide.innerHTML = '';
+                slide.appendChild(fallback);
+            };
+            slide.appendChild(img);
+            track.appendChild(slide);
+
+            var dot = document.createElement('div');
+            dot.className = 'slider-dot' + (index === currentSlideIndex ? ' active' : '');
+            dot.addEventListener('click', function() { goToSlide(index); });
+            dots.appendChild(dot);
+        });
+
+        updateSliderPosition();
+    }
+
+    function updateSliderPosition() {
+        var track = document.getElementById('edit-slide-track');
+        var dots = document.querySelectorAll('#edit-slider-dots .slider-dot');
+        track.style.transform = 'translateX(-' + (currentSlideIndex * 100) + '%)';
+        dots.forEach(function(dot, index) {
+            dot.classList.toggle('active', index === currentSlideIndex);
+        });
+    }
+
+    function prevSlide(event) {
+        event.stopPropagation();
+        if (!sliderImages.length) return;
+        currentSlideIndex = (currentSlideIndex - 1 + sliderImages.length) % sliderImages.length;
+        updateSliderPosition();
+    }
+
+    function nextSlide(event) {
+        event.stopPropagation();
+        if (!sliderImages.length) return;
+        currentSlideIndex = (currentSlideIndex + 1) % sliderImages.length;
+        updateSliderPosition();
+    }
+
+    function goToSlide(index) {
+        currentSlideIndex = index;
+        updateSliderPosition();
     }
     function closeModal(e) {
         if (!e || e.target === document.getElementById('edit-modal')) {

@@ -61,26 +61,26 @@
     <div class="kpi-card">
         <div class="kpi-bg">👥</div>
         <div class="kpi-lbl">Total Pengguna Aktif</div>
-        <div class="kpi-val">12.482</div>
-        <div class="kpi-sub up">▲ +8.2% vs bulan lalu</div>
+        <div class="kpi-val">{{ number_format($totalUsers) }}</div>
+        <div class="kpi-sub up">Total user terdaftar</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">📦</div>
         <div class="kpi-lbl">Total Transaksi</div>
-        <div class="kpi-val">4.829</div>
-        <div class="kpi-sub up">▲ +12.5% vs bulan lalu</div>
+        <div class="kpi-val">{{ number_format($totalTransaksi) }}</div>
+        <div class="kpi-sub up">Total seluruh pesanan</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">💰</div>
         <div class="kpi-lbl">Gross Merchandise Value</div>
-        <div class="kpi-val" style="color:var(--success);">Rp 284M</div>
-        <div class="kpi-sub up">▲ +15.1% vs bulan lalu</div>
+        <div class="kpi-val" style="color:var(--success);">Rp {{ number_format($gmv, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">Total nilai transaksi sukses</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">🏢</div>
         <div class="kpi-lbl">Platform Revenue (Fee)</div>
-        <div class="kpi-val" style="color:var(--color-admin);">Rp 28.4M</div>
-        <div class="kpi-sub up">▲ +15.1% vs bulan lalu</div>
+        <div class="kpi-val" style="color:var(--color-admin);">Rp {{ number_format($platformFee, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">Total 10% potongan platform</div>
     </div>
 </div>
 
@@ -150,21 +150,19 @@
 
     {{-- User Retention --}}
     <div class="chart-box">
-        <div class="cb-header"><span class="cb-title">Retensi Pengguna (Bulan Ini)</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;height:240px;gap:2rem;">
-            <div style="text-align:center;">
-                <div style="width:120px;height:120px;border-radius:50%;border:10px solid var(--color-admin);display:flex;align-items:center;justify-content:center;margin:0 auto;margin-bottom:1rem;">
-                    <span style="font-family:var(--font-heading);font-size:1.8rem;font-weight:700;">68%</span>
-                </div>
-                <div style="font-weight:600;font-size:.85rem;">Returning Users</div>
-                <div style="font-size:.7rem;color:var(--text-muted);">Penyewa yang sewa > 1 kali</div>
+        <div class="cb-header"><span class="cb-title">Distribusi Pengguna</span></div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+            <div style="flex: 1; text-align: center;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyewa);">{{ number_format($penyewaCount) }}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Penyewa</div>
             </div>
-            <div style="text-align:center;">
-                <div style="width:120px;height:120px;border-radius:50%;border:10px solid var(--success);display:flex;align-items:center;justify-content:center;margin:0 auto;margin-bottom:1rem;">
-                    <span style="font-family:var(--font-heading);font-size:1.8rem;font-weight:700;">4.8</span>
-                </div>
-                <div style="font-weight:600;font-size:.85rem;">Avg. Rating</div>
-                <div style="font-size:.7rem;color:var(--text-muted);">Tingkat kepuasan platform</div>
+            <div style="flex: 1; text-align: center;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyedia);">{{ number_format($penyediaCount) }}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Penyedia</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-admin);">{{ number_format($adminCount) }}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Admin</div>
             </div>
         </div>
     </div>

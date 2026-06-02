@@ -30,6 +30,9 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/verify-notice/{token}', [AuthController::class, 'verifyNotice'])->name('verification.notice');
+    Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 });
 
 /* --------------------------------------------------------
@@ -77,12 +80,18 @@ Route::middleware('auth')->group(function () {
      * ------------------------------------------------ */
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/manajemen-user',   [AdminController::class, 'manajemenUser'])->name('manajemen-user');
+        Route::post('/manajemen-user/{id}/suspend', [AdminController::class, 'suspendUser'])->name('suspend-user');
+        Route::post('/manajemen-user/{id}/activate', [AdminController::class, 'activateUser'])->name('activate-user');
+        Route::delete('/manajemen-user/{id}/delete', [AdminController::class, 'deleteUser'])->name('delete-user');
         Route::get('/semua-listing',    [AdminController::class, 'semuaListing'])->name('semua-listing');
+        Route::get('/semua-listing/{id}/detail', [AdminController::class, 'detailBarang'])->name('detail-barang');
         Route::post('/semua-listing/{id}/approve', [AdminController::class, 'approveBarang'])->name('approve-barang');
         Route::post('/semua-listing/{id}/reject',  [AdminController::class, 'rejectBarang'])->name('reject-barang');
+        Route::post('/semua-listing/{id}/restore', [AdminController::class, 'restoreBarang'])->name('restore-barang');
         Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
         Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
         Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
+        Route::post('/pengaturan/profil', [AdminController::class, 'updateProfil'])->name('update-profil');
         Route::get('/platform-analytics',[AdminController::class, 'platformAnalytics'])->name('platform-analytics');
     });
 });
