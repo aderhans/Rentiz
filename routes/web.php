@@ -50,9 +50,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/cari-barang',      [PenyewaController::class, 'cariBarang'])->name('cari-barang');
         Route::get('/penyewaan-aktif',  [PenyewaController::class, 'penyewaanAktif'])->name('penyewaan-aktif');
         Route::get('/riwayat-sewa',     [PenyewaController::class, 'riwayatSewa'])->name('riwayat-sewa');
-        Route::get('/wishlist',         [PenyewaController::class, 'wishlist'])->name('wishlist');
         Route::get('/profil',           [PenyewaController::class, 'profil'])->name('profil');
+        Route::put('/profil',           [PenyewaController::class, 'updateProfil'])->name('profil.update');
+        Route::put('/profil/password',  [PenyewaController::class, 'updatePassword'])->name('profil.password');
         Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
+        
+        // Keranjang Routes
+        Route::get('/keranjang',        [PenyewaController::class, 'keranjang'])->name('keranjang');
+        Route::post('/keranjang/tambah',[PenyewaController::class, 'tambahKeranjang'])->name('keranjang.tambah');
+        Route::delete('/keranjang/{id}',[PenyewaController::class, 'hapusKeranjang'])->name('keranjang.hapus');
     });
 
     /* ------------------------------------------------
