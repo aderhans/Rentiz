@@ -215,68 +215,40 @@
         <div class="card" style="margin-bottom:1.25rem;">
             <div class="card-header">
                 <span class="card-title">⏳ Menunggu Pembayaran</span>
-                <span class="badge badge-warning">1 Tagihan</span>
+                <span class="badge badge-neutral">{{ $tagihans->count() }} Tagihan</span>
             </div>
-            <div class="card-body">
-                <div style="display:flex;align-items:flex-start;gap:1rem;padding:1rem;background:var(--warning-bg);border-radius:var(--radius-sm);border:1px dashed var(--warning);">
-                    <div style="font-size:2rem;">🚁</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:700;font-size:0.92rem;color:var(--text);">DJI Mini 3 Pro Combo</div>
-                        <div style="font-size:0.77rem;color:var(--text-muted);margin-top:2px;">Dari: Drone Indo · 25–26 Mei 2026 · 1 hari</div>
-                        <div style="font-family:var(--font-heading);font-size:1.2rem;font-weight:700;color:var(--warning);margin-top:6px;">Rp 280.000</div>
+            <div class="card-body" style="padding: 0;">
+                @if($tagihans->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+                        <p style="font-size: 0.9rem;">Tidak ada tagihan yang menunggu pembayaran.</p>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:6px;">Bayar sebelum:</div>
-                        <div class="countdown" id="countdown" style="justify-content:flex-end;">
-                            <div class="countdown-item"><div class="countdown-val" id="cd-h">01</div><div class="countdown-label">Jam</div></div>
-                            <div class="countdown-item"><div class="countdown-val" id="cd-m">47</div><div class="countdown-label">Menit</div></div>
-                            <div class="countdown-item"><div class="countdown-val" id="cd-s">22</div><div class="countdown-label">Detik</div></div>
+                @else
+                    @foreach($tagihans as $tagihan)
+                        <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border);">
+                            <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <div>
+                                    <span style="font-weight:600; font-size:0.95rem;">ID Pesanan: {{ substr($tagihan->pesanan_id, 0, 8) }}...</span>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan->expired_at)->format('d M Y H:i') }}</div>
+                                </div>
+                                <div style="font-weight:700; color:var(--color-penyewa); font-size:1.1rem;">
+                                    Rp {{ number_format($tagihan->jumlah, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div style="font-size: 0.8rem; color:var(--text-secondary); margin-bottom: 0.8rem;">
+                                @foreach($tagihan->pesanan->items as $item)
+                                    <div>- {{ $item->barang->nama }} ({{ $item->durasi_hari }} Hari)</div>
+                                @endforeach
+                            </div>
+                            <form action="{{ route('penyewa.pembayaran.proses', $tagihan->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.5rem; font-size:0.85rem;" onclick="return confirm('Apakah Anda yakin ingin menyimulasikan pembayaran lunas untuk tagihan ini?')">
+                                    Bayar Sekarang (Simulasi)
+                                </button>
+                            </form>
                         </div>
-                    </div>
-                </div>
-                <div style="margin-top:1rem;">
-                    <p style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:0.75rem;">Pilih Metode Pembayaran:</p>
-
-                    <div class="method-card selected" id="m-transfer" onclick="selectMethod('transfer', this)">
-                        <div class="method-icon" style="background:#EFF6FF;">🏦</div>
-                        <div class="method-info">
-                            <div class="method-name">Transfer Bank</div>
-                            <div class="method-sub">BCA, Mandiri, BNI, BRI</div>
-                        </div>
-                        <div class="method-radio"></div>
-                    </div>
-                    <div class="va-detail show" id="va-bca">
-                        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:5px;">Virtual Account BCA</div>
-                        <div class="va-number">
-                            1234 5678 9012 3456
-                            <button class="copy-btn" onclick="copyVA()">Salin</button>
-                        </div>
-                        <div style="font-size:0.73rem;color:var(--text-muted);margin-top:5px;">Berlaku hingga 25 Mei 2026, 20:30 WIB</div>
-                    </div>
-
-                    <div class="method-card" id="m-ewallet" onclick="selectMethod('ewallet', this)">
-                        <div class="method-icon" style="background:#F0FDF4;">📱</div>
-                        <div class="method-info">
-                            <div class="method-name">E-Wallet</div>
-                            <div class="method-sub">GoPay, OVO, Dana, ShopeePay</div>
-                        </div>
-                        <div class="method-radio"></div>
-                    </div>
-
-                    <div class="method-card" id="m-qris" onclick="selectMethod('qris', this)">
-                        <div class="method-icon" style="background:#FFF7ED;">⬛</div>
-                        <div class="method-info">
-                            <div class="method-name">QRIS</div>
-                            <div class="method-sub">Scan QR dengan semua e-wallet</div>
-                        </div>
-                        <div class="method-radio"></div>
-                    </div>
-
-                    <button class="btn btn-primary-teal" style="width:100%;margin-top:0.5rem;justify-content:center;" onclick="showToast('✅ Konfirmasi pembayaran berhasil dikirim! Tim kami akan memverifikasi dalam 1x24 jam.')">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Konfirmasi Sudah Bayar
-                    </button>
-                </div>
+                    @endforeach
+                @endif
             </div>
         </div>
 
@@ -286,27 +258,29 @@
                 <span class="card-title">📄 Riwayat Pembayaran</span>
                 <a href="{{ route('penyewa.riwayat-sewa') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
             </div>
-            @php
-            $payments = [
-                ['icon'=>'📷','bg'=>'#EEF2FF','name'=>'Sony A7III + Lensa Kit','date'=>'21 Mei 2026','amount'=>'1.050.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'🎮','bg'=>'#F0F9FF','name'=>'PS5 + 2 Controller','date'=>'18 Mei 2026','amount'=>'240.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'⭐','bg'=>'#FFFBEB','name'=>'Cashback Promo Mei','date'=>'15 Mei 2026','amount'=>'25.000','type'=>'credit','status'=>'success','label'=>'Cashback'],
-                ['icon'=>'📽️','bg'=>'#FFF7ED','name'=>'Proyektor 4K Epson','date'=>'10 Mei 2026','amount'=>'200.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'🚵','bg'=>'#F0FDF4','name'=>'Refund - Sepeda MTB','date'=>'6 Mei 2026','amount'=>'160.000','type'=>'credit','status'=>'success','label'=>'Refund'],
-            ];
-            @endphp
-            @foreach($payments as $p)
-            <div class="txn-row">
-                <div class="txn-icon" style="background:{{ $p['bg'] }};">{{ $p['icon'] }}</div>
-                <div class="txn-info">
-                    <div class="txn-name">{{ $p['name'] }}</div>
-                    <div class="txn-date">{{ $p['date'] }} · <span class="badge badge-{{ $p['status'] }}" style="font-size:0.65rem;">{{ $p['label'] }}</span></div>
-                </div>
-                <div class="txn-amount" style="color:{{ $p['type'] === 'credit' ? 'var(--success)' : 'var(--text)' }};">
-                    {{ $p['type'] === 'credit' ? '+' : '-' }} Rp {{ $p['amount'] }}
-                </div>
+            <div style="padding: 0;">
+                @if($riwayats->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
+                        <p style="font-size: 0.85rem;">Belum ada riwayat transaksi.</p>
+                    </div>
+                @else
+                    @foreach($riwayats as $riwayat)
+                        <div class="txn-row">
+                            <div class="txn-icon" style="background: {{ $riwayat->status == 'paid' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}; color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                @if($riwayat->status == 'paid') ✓ @else ✕ @endif
+                            </div>
+                            <div class="txn-info">
+                                <div class="txn-name">Pembayaran Pesanan</div>
+                                <div class="txn-date">{{ \Carbon\Carbon::parse($riwayat->updated_at)->format('d M Y H:i') }} • Status: {{ ucfirst($riwayat->status) }}</div>
+                            </div>
+                            <div class="txn-amount" style="color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                {{ $riwayat->status == 'paid' ? '-' : '' }}Rp {{ number_format($riwayat->jumlah, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
             </div>
-            @endforeach
         </div>
     </div>
 
@@ -316,7 +290,7 @@
         <div class="saldo-card">
             <div style="font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:2px;">RentizPay</div>
             <div class="saldo-label">Saldo Kamu</div>
-            <div class="saldo-amount">Rp 185.000</div>
+            <div class="saldo-amount">Rp 0</div>
             <div class="saldo-actions">
                 <button class="saldo-btn" onclick="showToast('🏧 Fitur top-up sedang dalam pengembangan!')">
                     + Top Up
@@ -335,10 +309,10 @@
             <div class="card-body">
                 @php
                 $summaryItems = [
-                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp 1.290.000', 'color'=>'var(--danger)', 'icon'=>'↓'],
-                    ['label'=>'Total Refund Diterima', 'value'=>'Rp 185.000', 'color'=>'var(--success)', 'icon'=>'↑'],
-                    ['label'=>'Cashback Terkumpul', 'value'=>'Rp 45.000', 'color'=>'var(--warning)', 'icon'=>'⭐'],
-                    ['label'=>'Transaksi Bulan Ini', 'value'=>'4 transaksi', 'color'=>'var(--info)', 'icon'=>'#'],
+                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↓'],
+                    ['label'=>'Total Refund Diterima', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↑'],
+                    ['label'=>'Cashback Terkumpul', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'⭐'],
+                    ['label'=>'Transaksi Bulan Ini', 'value'=>'0 transaksi', 'color'=>'var(--text)', 'icon'=>'#'],
                 ];
                 @endphp
                 @foreach($summaryItems as $s)
@@ -357,21 +331,8 @@
                 <button class="btn btn-outline btn-sm" onclick="showToast('➕ Fitur tambah metode pembayaran segera hadir!')">+ Tambah</button>
             </div>
             <div class="card-body">
-                <div style="display:flex;align-items:center;gap:0.85rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);margin-bottom:0.75rem;">
-                    <div style="width:36px;height:36px;background:#EFF6FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏦</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:600;font-size:0.85rem;">BCA Virtual Account</div>
-                        <div style="font-size:0.74rem;color:var(--text-muted);">****3456 · Default</div>
-                    </div>
-                    <span class="badge badge-success" style="font-size:0.65rem;">Utama</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.85rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);">
-                    <div style="width:36px;height:36px;background:#F0FDF4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📱</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:600;font-size:0.85rem;">GoPay</div>
-                        <div style="font-size:0.74rem;color:var(--text-muted);">+62 812-3456-7890</div>
-                    </div>
-                    <span class="badge badge-neutral" style="font-size:0.65rem;">Tersimpan</span>
+                <div style="text-align:center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    Belum ada metode yang tersimpan.
                 </div>
             </div>
         </div>
@@ -384,40 +345,6 @@
 
 @push('scripts')
 <script>
-    // Countdown timer
-    var totalSecs = 6442; // ~1 jam 47 menit
-    function updateCountdown() {
-        if (totalSecs <= 0) {
-            document.getElementById('cd-h').textContent = '00';
-            document.getElementById('cd-m').textContent = '00';
-            document.getElementById('cd-s').textContent = '00';
-            return;
-        }
-        var h = Math.floor(totalSecs / 3600);
-        var m = Math.floor((totalSecs % 3600) / 60);
-        var s = totalSecs % 60;
-        document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
-        document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
-        document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
-        totalSecs--;
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    // Payment method selection
-    function selectMethod(method, el) {
-        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        // Toggle VA detail
-        var va = document.getElementById('va-bca');
-        va.classList.toggle('show', method === 'transfer');
-    }
-
-    function copyVA() {
-        navigator.clipboard.writeText('1234567890123456').catch(function() {});
-        showToast('📋 Nomor VA berhasil disalin!');
-    }
-
     function showToast(msg) {
         var toast = document.getElementById('pay-toast');
         toast.textContent = msg;

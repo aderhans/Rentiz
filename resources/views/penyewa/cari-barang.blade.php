@@ -4,6 +4,7 @@
 @section('breadcrumb', 'Cari Barang')
 
 @push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .search-hero {
         background: linear-gradient(135deg, #0D9488 0%, #065f52 100%);
@@ -135,28 +136,12 @@
         left: 10px;
         font-size: 0.68rem;
         font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 50px;
-    }
-    .wishlist-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 32px; height: 32px;
-        border-radius: 50%;
-        background: white;
-        border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer;
-        transition: all 160ms;
-        color: #CBD5E1;
-        font-size: 1rem;
-    }
-    .wishlist-btn:hover { color: #EF4444; transform: scale(1.1); }
-    .wishlist-btn.liked { color: #EF4444; }
-
-    .product-body { padding: 1rem 1.1rem; }
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        backdrop-filter: blur(4px);
+    }    .product-body { padding: 1rem 1.1rem; }
     .product-name {
         font-weight: 700;
         font-size: 0.9rem;
@@ -190,7 +175,7 @@
         margin-top: 0.85rem;
         padding: 0.5rem;
         border-radius: var(--radius-sm);
-        background: var(--color-penyewa);
+        background: #0264c8; /* Traveloka blue style */
         color: white;
         font-size: 0.82rem;
         font-weight: 600;
@@ -199,7 +184,7 @@
         transition: background 180ms;
         font-family: var(--font-body);
     }
-    .btn-sewa-mini:hover { background: #0F766E; }
+    .btn-sewa-mini:hover { background: #014f9c; }
 
     /* Sort bar */
     .result-bar {
@@ -254,55 +239,56 @@
 <div class="search-hero">
     <p class="search-hero-sub">🔍 Temukan barang yang kamu butuhkan</p>
     <h1 class="search-hero-title">Cari Barang untuk Disewa</h1>
-    <div class="search-bar-wrap">
-        <div class="search-input-wrap">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input type="text" id="main-search" class="search-input" placeholder="Cari nama barang..." value="{{ $query }}" oninput="filterProducts()">
+    <form action="{{ route('penyewa.cari-barang') }}" method="GET" id="search-form">
+        <input type="hidden" name="kategori" id="kategori-input" value="{{ $kategori }}">
+        <div class="search-bar-wrap">
+            <div class="search-input-wrap">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" name="q" id="main-search" class="search-input" placeholder="Cari nama barang..." value="{{ $query }}">
+            </div>
+            <div class="search-input-wrap" style="flex: 0.5; min-width: 150px;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <select name="kota" id="city-search" class="filter-select" style="width: 100%; padding-left: 2.7rem;">
+                    <option value="">Semua Kota</option>
+                    @foreach($cities as $c)
+                        <option value="{{ $c }}" {{ $kota == $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <select name="sort" class="filter-select" id="sort-hero">
+                <option value="populer" {{ request('sort') == 'populer' ? 'selected' : '' }}>Terpopuler</option>
+                <option value="murah" {{ request('sort') == 'murah' ? 'selected' : '' }}>Harga Terendah</option>
+                <option value="mahal" {{ request('sort') == 'mahal' ? 'selected' : '' }}>Harga Tertinggi</option>
+                <option value="terbaru" {{ request('sort') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+            </select>
+            <button type="submit" class="btn btn-sm" style="background:white;color:var(--color-penyewa);font-weight:700;border:none;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Cari
+            </button>
         </div>
-        <div class="search-input-wrap" style="flex: 0.5; min-width: 150px;">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <input type="text" id="city-search" class="search-input" placeholder="Kota / Lokasi" value="{{ $kota ?? '' }}" oninput="filterProducts()">
-        </div>
-        <select class="filter-select" id="sort-hero" onchange="filterProducts()">
-            <option value="populer">Terpopuler</option>
-            <option value="murah">Harga Terendah</option>
-            <option value="mahal">Harga Tertinggi</option>
-            <option value="rating">Rating Tertinggi</option>
-        </select>
-        <button class="btn btn-sm" style="background:white;color:var(--color-penyewa);font-weight:700;border:none;" onclick="filterProducts()">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            Cari
-        </button>
-    </div>
+    </form>
 </div>
 
 {{-- Category Filters --}}
 <div class="category-pills">
-    <button class="cat-pill active" onclick="setCat(this,'semua')">🏷️ Semua</button>
-    <button class="cat-pill" onclick="setCat(this,'elektronik')">⚡ Elektronik</button>
-    <button class="cat-pill" onclick="setCat(this,'fotografi')">📷 Fotografi</button>
-    <button class="cat-pill" onclick="setCat(this,'drone')">🚁 Drone</button>
-    <button class="cat-pill" onclick="setCat(this,'olahraga')">⛺ Outdoor</button>
-    <button class="cat-pill" onclick="setCat(this,'gaming')">🎮 Gaming</button>
-    <button class="cat-pill" onclick="setCat(this,'audio')">🔊 Audio</button>
-    <button class="cat-pill" onclick="setCat(this,'kendaraan')">🚗 Kendaraan</button>
+    <button class="cat-pill {{ $kategori == 'semua' ? 'active' : '' }}" onclick="setCat('semua')">🏷️ Semua</button>
+    <button class="cat-pill {{ $kategori == 'elektronik' ? 'active' : '' }}" onclick="setCat('elektronik')">⚡ Elektronik</button>
+    <button class="cat-pill {{ $kategori == 'fotografi' ? 'active' : '' }}" onclick="setCat('fotografi')">📷 Fotografi</button>
+    <button class="cat-pill {{ $kategori == 'drone' ? 'active' : '' }}" onclick="setCat('drone')">🚁 Drone</button>
+    <button class="cat-pill {{ $kategori == 'olahraga' ? 'active' : '' }}" onclick="setCat('olahraga')">⛺ Outdoor</button>
+    <button class="cat-pill {{ $kategori == 'gaming' ? 'active' : '' }}" onclick="setCat('gaming')">🎮 Gaming</button>
+    <button class="cat-pill {{ $kategori == 'audio' ? 'active' : '' }}" onclick="setCat('audio')">🔊 Audio</button>
+    <button class="cat-pill {{ $kategori == 'kendaraan' ? 'active' : '' }}" onclick="setCat('kendaraan')">🚗 Kendaraan</button>
 </div>
 
 {{-- Result Bar --}}
 <div class="result-bar">
-    <span class="result-count" id="result-count">Menampilkan <strong>16</strong> barang</span>
-    <select class="sort-select">
-        <option>Urutkan: Terpopuler</option>
-        <option>Harga Terendah</option>
-        <option>Harga Tertinggi</option>
-        <option>Rating Tertinggi</option>
-        <option>Terbaru</option>
-    </select>
+    <span class="result-count" id="result-count">Menampilkan <strong>{{ count($items) }}</strong> barang</span>
 </div>
 
 {{-- Product Grid --}}
@@ -311,30 +297,63 @@
 
 
     @forelse($items as $p)
+    @php
+        $primaryPhoto = $p->fotos ? $p->fotos->where('is_primary', true)->first() : null;
+        if (!$primaryPhoto && $p->fotos) $primaryPhoto = $p->fotos->first();
+    @endphp
     <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}">
-        <div class="product-img" style="background: #F1F5F9; padding:0; overflow:hidden;">
-            @if($p->fotos && $p->fotos->first())
-                <img src="{{ asset('storage/' . $p->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
+        <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden; display:block; text-decoration:none;">
+            @if($primaryPhoto)
+                <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
-                📷
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;">
+                    <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
             @endif
-            <button class="wishlist-btn" onclick="toggleWishlist(this, '{{ $p->nama }}')" title="Tambah ke wishlist">
-                ♥
-            </button>
-        </div>
-        <div class="product-body">
-            <div class="product-name">{{ $p->nama }}</div>
-            <div class="product-seller">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                {{ $p->user->name ?? 'Unknown' }} · {{ $p->kota }}
+            
+            <div class="product-badge-corner" style="background: {{ $p->status == 'active' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }}">
+                {{ $p->status == 'active' ? 'Tersedia' : 'Disewa' }}
             </div>
-            <div class="product-footer">
-                <div class="product-price">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
-                <div class="product-rating">⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0x)</span></div>
+        </a>
+        <div class="product-body" style="padding: 1.2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-name" style="font-size: 1.05rem; line-height: 1.3; white-space: normal; height: 2.6em; overflow: hidden; color: #1e293b; text-decoration: none;">
+                    {{ $p->nama }}
+                </a>
             </div>
-            <button class="btn-sewa-mini" onclick="showToast('🛒 Permintaan sewa dikirim untuk <strong>{{ $p->nama }}</strong>!')">
-                Sewa Sekarang
-            </button>
+            
+            <div class="product-rating" style="margin-bottom: 0.5rem;">
+                ⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0 Ulasan)</span>
+            </div>
+
+            <div class="product-seller" style="font-size: 0.8rem; display: flex; align-items: center; color: #64748b; margin-bottom: 1rem;">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                {{ $p->kota }}
+            </div>
+            
+            <div class="product-footer" style="flex-direction: column; align-items: flex-start; border-top: 1px solid #f1f5f9; padding-top: 0.8rem;">
+                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.2rem;">Mulai dari</div>
+                <div class="product-price" style="font-size: 1.15rem; color: #0f172a;">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span style="font-size:0.8rem; color:#64748b;"> /hari</span></div>
+            </div>
+            
+            @if(auth()->id() == $p->user_id)
+                <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; cursor:not-allowed; width:100%; margin-top:0.85rem;">
+                    Barang Anda Sendiri
+                </button>
+            @elseif($p->status != 'active')
+                <button type="button" class="btn-sewa-mini" disabled style="background:#94a3b8; width:100%; margin-top:0.85rem;">
+                    Tidak Tersedia
+                </button>
+            @else
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.85rem;">
+                    <button type="button" class="btn-sewa-mini" style="margin-top:0; background:white; color:var(--color-penyewa); border:1px solid var(--color-penyewa);" onclick="openSewaModal('{{ $p->id }}', '{{ addslashes($p->nama) }}', 'keranjang')">
+                        + Keranjang
+                    </button>
+                    <button type="button" class="btn-sewa-mini" style="margin-top:0;" onclick="openSewaModal('{{ $p->id }}', '{{ addslashes($p->nama) }}', 'sewa')">
+                        Sewa
+                    </button>
+                </div>
+            @endif
         </div>
     </div>
     @empty
@@ -349,54 +368,67 @@
 {{-- Toast --}}
 <div class="toast-notify" id="toast" role="alert"></div>
 
+{{-- Sewa Modal --}}
+<div id="sewaModal" style="display:none; position:fixed; inset:0; background:rgba(15,32,68,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
+    <div style="background:white; border-radius:var(--radius-lg); width:90%; max-width:400px; padding:1.5rem; position:relative; box-shadow:var(--shadow-lg);">
+        <button type="button" onclick="closeSewaModal()" style="position:absolute; top:1rem; right:1.2rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        <h3 id="modalTitle" style="margin-bottom:0.25rem; font-family:var(--font-heading); font-size:1.2rem; color:var(--text);">Pilih Tanggal Sewa</h3>
+        <p id="modalItemName" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem;"></p>
+        
+        <form action="{{ route('penyewa.keranjang.tambah') }}" method="POST">
+            @csrf
+            <input type="hidden" name="barang_id" id="modalBarangId">
+            <input type="hidden" name="action_type" id="modalActionType">
+            
+            {{-- Error message di dalam modal --}}
+            <div id="modal-error" style="display:none; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:0.65rem 1rem; margin-bottom:1rem; font-size:0.83rem; color:#DC2626; font-weight:500;"></div>
+            
+            <div style="margin-bottom:1rem;">
+                <label style="display:block; font-size:0.85rem; margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">Tanggal Pengambilan</label>
+                <input type="text" id="tanggal_mulai_modal" name="tanggal_mulai" required placeholder="Pilih Tanggal Pengambilan..." style="width:100%; padding:0.65rem; border:1.5px solid var(--card-border); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; background:white;">
+            </div>
+            <div style="margin-bottom:1.5rem;">
+                <label style="display:block; font-size:0.85rem; margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">Tanggal Pengembalian</label>
+                <input type="text" id="tanggal_selesai_modal" name="tanggal_selesai" required placeholder="Pilih Tanggal Pengembalian..." style="width:100%; padding:0.65rem; border:1.5px solid var(--card-border); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; background:white;">
+            </div>
+            
+            <button type="submit" class="btn-sewa-mini" id="modalSubmitBtn" style="width:100%; margin:0; padding:0.75rem; font-size:0.9rem;">Lanjut</button>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
-    var currentCat = 'semua';
-
-    function setCat(btn, cat) {
-        document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('active'));
-        btn.classList.add('active');
-        currentCat = cat;
-        filterProducts();
+    function setCat(cat) {
+        document.getElementById('kategori-input').value = cat;
+        document.getElementById('search-form').submit();
     }
 
-    function filterProducts() {
-        var q = document.getElementById('main-search').value.toLowerCase();
-        var c = document.getElementById('city-search').value.toLowerCase();
-        var cards = document.querySelectorAll('#product-grid .product-card');
-        var count = 0;
+    // Validasi client-side pada form modal sebelum submit
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalForm = document.querySelector('#sewaModal form');
+        if (modalForm) {
+            modalForm.addEventListener('submit', function(e) {
+                var mulai   = document.getElementById('tanggal_mulai_modal').value;
+                var selesai = document.getElementById('tanggal_selesai_modal').value;
+                var errorEl = document.getElementById('modal-error');
+                var errors  = [];
 
-        cards.forEach(function(card) {
-            var cat  = card.dataset.cat;
-            var name = card.dataset.name;
-            var city = card.dataset.city;
-            var catMatch  = (currentCat === 'semua' || cat === currentCat);
-            var nameMatch = (q === '' || name.includes(q));
-            var cityMatch = (c === '' || city.includes(c));
+                if (!mulai)   errors.push('Tanggal Pengambilan harus dipilih.');
+                if (!selesai) errors.push('Tanggal Pengembalian harus dipilih.');
 
-            if (catMatch && nameMatch && cityMatch) {
-                card.style.display = '';
-                count++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        document.getElementById('result-count').innerHTML =
-            'Menampilkan <strong>' + count + '</strong> barang';
-    }
-
-    function toggleWishlist(btn, name) {
-        event.stopPropagation();
-        btn.classList.toggle('liked');
-        if (btn.classList.contains('liked')) {
-            showToast('❤️ <strong>' + name + '</strong> ditambahkan ke Wishlist!');
-        } else {
-            showToast('💔 <strong>' + name + '</strong> dihapus dari Wishlist.');
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    errorEl.innerHTML = '⚠️ ' + errors.join('<br>⚠️ ');
+                    errorEl.style.display = 'block';
+                } else {
+                    errorEl.style.display = 'none';
+                }
+            });
         }
-    }
+    });
 
     function showToast(msg) {
         var toast = document.getElementById('toast');
@@ -407,5 +439,53 @@
             toast.classList.remove('show');
         }, 3000);
     }
+
+    function closeSewaModal() {
+        document.getElementById('sewaModal').style.display = 'none';
+    }
+
+    const allBookedDates = @json($bookedDates ?? []);
+    let startDatePicker, endDatePicker;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        startDatePicker = flatpickr("#tanggal_mulai_modal", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    endDatePicker.set('minDate', dateStr);
+                }
+            }
+        });
+
+        endDatePicker = flatpickr("#tanggal_selesai_modal", {
+            minDate: "today",
+            dateFormat: "Y-m-d"
+        });
+    });
+
+    function openSewaModal(id, name, actionType) {
+        document.getElementById('modalBarangId').value = id;
+        document.getElementById('modalActionType').value = actionType;
+        document.getElementById('modalItemName').innerText = name;
+        
+        if(actionType === 'sewa') {
+            document.getElementById('modalSubmitBtn').innerText = "Sewa Sekarang";
+        } else {
+            document.getElementById('modalSubmitBtn').innerText = "Masukkan Keranjang";
+        }
+        
+        // Update disabled dates untuk item ini
+        const itemDates = allBookedDates[id] || [];
+        const disabledRanges = itemDates.map(r => ({ from: r.from, to: r.to }));
+        
+        startDatePicker.set('disable', disabledRanges);
+        endDatePicker.set('disable', disabledRanges);
+        startDatePicker.clear();
+        endDatePicker.clear();
+
+        document.getElementById('sewaModal').style.display = 'flex';
+    }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 @endpush

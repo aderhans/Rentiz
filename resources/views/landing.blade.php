@@ -29,6 +29,8 @@
             --border-focus: rgba(37, 99, 235, 0.3);
             --danger: #DC2626;
             --danger-bg: #FEF2F2;
+            --success: #059669;
+            --success-bg: #ECFDF5;
 
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
             --shadow-md: 0 8px 24px rgba(0,0,0,0.05);
@@ -49,16 +51,23 @@
             font-family: var(--font-body);
             background: var(--bg-cream);
             color: var(--text);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
-            overflow-x: hidden;
+            overflow: hidden;
         }
+
+        /* Sembunyikan scrollbar bawaan browser untuk UI yang lebih rapi */
+        ::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* ── Split Layout ── */
         .layout-left {
-            flex: 0 0 45%;
+            flex: 0 0 47%;
             position: relative;
-            background-image: url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1000');
+            background-image: url('{{ asset('images/bg-rentiz.jpg') }}');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -133,9 +142,10 @@
 
         .layout-right {
             flex: 1;
-            position: relative;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
+            position: relative;
             background: var(--bg-cream);
         }
 
@@ -336,8 +346,8 @@
 
         .form-check input[type="checkbox"] {
             appearance: none; -webkit-appearance: none;
-            width: 17px; height: 17px; min-width: 17px; margin-top: 1px;
-            border: 1px solid var(--border); border-radius: 4px;
+            width: 18px; height: 18px; min-width: 18px; margin-top: 1px;
+            border: 2px solid #94A3B8; border-radius: 4px;
             background: var(--white); cursor: pointer;
             transition: all 150ms; position: relative;
         }
@@ -408,6 +418,17 @@
 
         .alert-error svg { width: 18px; height: 18px; min-width: 18px; }
 
+        .alert-success {
+            background: var(--success-bg); border: 1px solid #A7F3D0;
+            border-radius: var(--radius); padding: 0.85rem 1.2rem;
+            margin-bottom: 1.25rem; display: flex; align-items: center;
+            gap: 0.75rem; font-size: 0.88rem; color: var(--success);
+            box-shadow: 0 2px 8px rgba(5,150,105,0.1);
+            transition: opacity 0.5s ease-out;
+        }
+
+        .alert-success svg { width: 18px; height: 18px; min-width: 18px; }
+
         /* Footer link */
         .auth-footer {
             text-align: center; margin-top: 1.25rem;
@@ -419,7 +440,8 @@
 
         /* ── Responsive ── */
         @media (max-width: 968px) {
-            body { flex-direction: column; }
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .layout-right { overflow-y: visible; }
             .layout-left {
                 flex: none; padding: 4rem 2rem; min-height: 280px;
                 text-align: center; align-items: center;
@@ -450,19 +472,19 @@
                     <div class="trust-icon">
                         <svg viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <div class="trust-text"><strong>Aman</strong>Transaksi terlindungi</div>
+                    <div class="trust-text"><strong>{{ number_format($totalTransaksi ?? 0, 0, ',', '.') }}+</strong>Transaksi aman</div>
                 </div>
                 <div class="trust-item">
                     <div class="trust-icon">
                         <svg viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
-                    <div class="trust-text"><strong>1.200+</strong>Pengguna aktif</div>
+                    <div class="trust-text"><strong>{{ number_format($activeUsers ?? 0, 0, ',', '.') }}+</strong>Pengguna aktif</div>
                 </div>
                 <div class="trust-item">
                     <div class="trust-icon">
                         <svg viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     </div>
-                    <div class="trust-text"><strong>4.8 ⭐</strong>Rating platform</div>
+                    <div class="trust-text"><strong>{{ $rating ?? '4.8' }} ⭐</strong>Rating platform</div>
                 </div>
             </div>
         </div>
@@ -512,6 +534,15 @@
                     <h2>Selamat Datang Kembali 👋</h2>
                     <p>Masukkan email dan password untuk melanjutkan</p>
                 </div>
+
+                @if (session('success'))
+                <div class="alert-success" id="success-alert">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+                @endif
 
                 @if ($activeTab === 'login' && $errors->any())
                 <div class="alert-error" id="login-alert">
@@ -572,9 +603,6 @@
                     </button>
                 </form>
 
-                <div class="auth-footer">
-                    Belum punya akun? <a href="#" onclick="switchTab('register'); return false;">Daftar sekarang</a>
-                </div>
             </div>
 
             {{-- ═════════════════════════════════
@@ -709,9 +737,6 @@
                     </button>
                 </form>
 
-                <div class="auth-footer">
-                    Sudah punya akun? <a href="#" onclick="switchTab('login'); return false;">Masuk di sini</a>
-                </div>
             </div>
         </div>
     </div>
@@ -805,6 +830,16 @@
                 if (btn) btn.classList.add('loading');
             });
         });
+        // Auto-hide success alert
+        var successAlert = document.getElementById('success-alert');
+        if (successAlert) {
+            setTimeout(function() {
+                successAlert.style.opacity = '0';
+                setTimeout(function() {
+                    successAlert.style.display = 'none';
+                }, 500); // Wait for transition
+            }, 4000); // Hide after 4 seconds
+        }
     </script>
 </body>
 </html>

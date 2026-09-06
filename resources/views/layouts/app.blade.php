@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <style>
         /* ═══════════════════════════════════════
            DESIGN TOKENS
@@ -767,19 +768,16 @@
 
             {{-- ── PENYEWA MENU ── --}}
             @if($activeMode === 'penyewa')
-            <div class="nav-group">
-                <div class="nav-group-label">Beranda</div>
-                <a href="{{ route('dashboard') }}" class="nav-item {{ $routeName === 'dashboard' ? 'active' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-                    Dashboard
-                </a>
-            </div>
 
             <div class="nav-group">
                 <div class="nav-group-label">Sewa Barang</div>
                 <a href="{{ route('penyewa.cari-barang') }}" class="nav-item {{ $routeName === 'penyewa.cari-barang' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     Cari Barang
+                </a>
+                <a href="{{ route('penyewa.keranjang') }}" class="nav-item {{ $routeName === 'penyewa.keranjang' ? 'active' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    Keranjang
                 </a>
                 <a href="{{ route('penyewa.penyewaan-aktif') }}" class="nav-item {{ $routeName === 'penyewa.penyewaan-aktif' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -788,10 +786,6 @@
                 <a href="{{ route('penyewa.riwayat-sewa') }}" class="nav-item {{ $routeName === 'penyewa.riwayat-sewa' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Riwayat Sewa
-                </a>
-                <a href="{{ route('penyewa.wishlist') }}" class="nav-item {{ $routeName === 'penyewa.wishlist' ? 'active' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    Wishlist
                 </a>
             </div>
 
@@ -810,13 +804,6 @@
 
             {{-- ── PENYEDIA MENU ── --}}
             @if($activeMode === 'penyedia')
-            <div class="nav-group">
-                <div class="nav-group-label">Beranda</div>
-                <a href="{{ route('dashboard') }}" class="nav-item {{ $routeName === 'dashboard' ? 'active' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-                    Dashboard
-                </a>
-            </div>
 
             <div class="nav-group">
                 <div class="nav-group-label">Toko Saya</div>
@@ -861,10 +848,12 @@
 
             {{-- ── ADMIN MENU ── --}}
             @if($isAdmin)
+            @php $pendingCount = \App\Models\Barang::where('status', 'pending')->count(); @endphp
+
             <div class="nav-group">
-                <div class="nav-group-label">Overview</div>
-                <a href="{{ route('dashboard') }}" class="nav-item {{ $routeName === 'dashboard' ? 'active' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                <div class="nav-group-label">Utama</div>
+                <a href="{{ route('admin.platform-analytics') }}" class="nav-item {{ $routeName === 'admin.platform-analytics' ? 'active' : '' }}">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     Dashboard
                 </a>
             </div>
@@ -875,9 +864,12 @@
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Manajemen User
                 </a>
-                <a href="{{ route('admin.semua-listing') }}" class="nav-item {{ $routeName === 'admin.semua-listing' ? 'active' : '' }}">
+                <a href="{{ route('admin.semua-listing') }}" class="nav-item {{ $routeName === 'admin.semua-listing' || $routeName === 'admin.detail-barang' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     Semua Listing
+                    @if($pendingCount > 0)
+                    <span style="margin-left:auto;min-width:19px;height:19px;background:#EF4444;color:white;border-radius:50px;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;line-height:1;">{{ $pendingCount > 99 ? '99+' : $pendingCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('admin.semua-transaksi') }}" class="nav-item {{ $routeName === 'admin.semua-transaksi' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
@@ -895,10 +887,6 @@
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     Pengaturan
                 </a>
-                <a href="{{ route('admin.platform-analytics') }}" class="nav-item {{ $routeName === 'admin.platform-analytics' ? 'active' : '' }}">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    Platform Analytics
-                </a>
             </div>
             @endif
         </nav>
@@ -911,7 +899,13 @@
                 $avatarColor = $avatarColors[$activeMode] ?? '#4F8EF7';
             @endphp
             <div class="sidebar-user">
-                <div class="user-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="user-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
                 <div class="user-info">
                     <div class="user-name">{{ Auth::user()->name }}</div>
                     <div class="user-role-tag">
@@ -961,12 +955,44 @@
                     <span class="notif-dot"></span>
                 </button>
 
-                <div class="header-avatar" style="background: {{ $avatarColor }};">{{ $initials }}</div>
+                <div class="header-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
+                    @if(Auth::user()->foto_profil)
+                        <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
             </div>
         </header>
 
         {{-- Page Content --}}
         <main class="page-content" id="page-main">
+            @if (session('success'))
+            <div id="dashboard-success-alert" style="background:var(--success-bg); border:1px solid #A7F3D0; border-radius:var(--radius-md); padding:0.85rem 1.2rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; font-size:0.88rem; color:var(--success); box-shadow:0 2px 8px rgba(5,150,105,0.1); transition:opacity 0.5s ease-out;">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ session('success') }}</span>
+            </div>
+            @endif
+
+            @if (session('error'))
+                <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+                    <strong style="font-weight: 700;">Gagal:</strong> {{ session('error') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+                    <strong style="font-weight: 700;">Terdapat kesalahan:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @yield('content')
         </main>
     </div>
@@ -992,6 +1018,17 @@
         });
 
         if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        // Auto-hide dashboard success alert
+        var dashAlert = document.getElementById('dashboard-success-alert');
+        if (dashAlert) {
+            setTimeout(function() {
+                dashAlert.style.opacity = '0';
+                setTimeout(function() {
+                    dashAlert.style.display = 'none';
+                }, 500);
+            }, 4000);
+        }
     </script>
     @stack('scripts')
 </body>
