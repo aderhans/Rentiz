@@ -190,12 +190,28 @@
                     </div>
                 </div>
                 <div class="fgroup">
-                    <label class="flabel">Ketentuan Jaminan</label>
-                    <textarea class="finput" name="ketentuan_jaminan" rows="3" placeholder="Contoh: Harus dikembalikan dalam kondisi sama, tanpa goresan atau kerusakan." ></textarea>
-                </div>
-                <div style="display:flex;align-items:center;gap:.75rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);">
-                    <input type="checkbox" id="delivery" style="width:16px;height:16px;accent-color:var(--color-penyedia);" checked>
-                    <label for="delivery" style="font-size:.84rem;font-weight:500;color:var(--text);cursor:pointer;">Layani pengiriman / delivery</label>
+                    <label class="flabel">🪪 Jaminan Identitas Penyewa</label>
+                    <p style="font-size:.74rem;color:var(--text-muted);margin:.2rem 0 .65rem;line-height:1.55;">Pilih dokumen identitas yang wajib diserahkan penyewa secara <strong>offline</strong> langsung kepada Anda saat bertemu.</p>
+                    <input type="hidden" name="ketentuan_jaminan" id="jaminan-value">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.6rem;" id="jaminan-checkboxes">
+                        <label style="display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;font-weight:500;transition:all 150ms;" class="jaminan-opt">
+                            <input type="checkbox" value="KTP" onchange="syncJaminan()" style="accent-color:var(--color-penyedia);width:15px;height:15px;"> 🪪 KTP
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;font-weight:500;transition:all 150ms;" class="jaminan-opt">
+                            <input type="checkbox" value="SIM" onchange="syncJaminan()" style="accent-color:var(--color-penyedia);width:15px;height:15px;"> 🚗 SIM
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;font-weight:500;transition:all 150ms;" class="jaminan-opt">
+                            <input type="checkbox" value="Paspor" onchange="syncJaminan()" style="accent-color:var(--color-penyedia);width:15px;height:15px;"> 📘 Paspor
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;font-weight:500;transition:all 150ms;" class="jaminan-opt">
+                            <input type="checkbox" value="Kartu Mahasiswa" onchange="syncJaminan()" style="accent-color:var(--color-penyedia);width:15px;height:15px;"> 🎓 Kartu Mahasiswa
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;font-weight:500;transition:all 150ms;" class="jaminan-opt">
+                            <input type="checkbox" value="Kartu Pelajar" onchange="syncJaminan()" style="accent-color:var(--color-penyedia);width:15px;height:15px;"> 📗 Kartu Pelajar
+                        </label>
+                    </div>
+                    <input type="text" id="jaminan-custom" class="finput" placeholder="Jaminan lain (opsional, contoh: NPWP, Akta Kelahiran...)" oninput="syncJaminan()" style="font-size:.82rem;">
+                    <p style="font-size:.72rem;color:var(--warning);margin-top:.45rem;">⚠️ Penyewa wajib menyerahkan jaminan secara offline saat bertemu langsung dengan Anda.</p>
                 </div>
             </div>
         </div>
@@ -207,7 +223,10 @@
         <div class="card" style="margin-bottom:1rem;">
             <div class="card-header"><span class="card-title">👁️ Preview Listing</span></div>
             <div class="card-body" style="padding:0;">
-                <div style="height:120px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:3rem;">📷</div>
+                <div style="height:120px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;font-size:3rem;overflow:hidden;position:relative;" id="preview-img-wrap">
+                    <span id="preview-img-placeholder" style="font-size:3rem;">📷</span>
+                    <img id="preview-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">
+                </div>
                 <div style="padding:1rem;">
                     <div id="preview-name" style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:4px;">Kamera Sony A7III + 2 Lensa</div>
                     <div style="font-size:.76rem;color:var(--text-muted);margin-bottom:.75rem;">
@@ -274,6 +293,42 @@
         e.preventDefault();
     }
     function removeTag(el) { el.parentElement.remove(); }
+    function syncJaminan() {
+        var checked = [];
+        document.querySelectorAll('#jaminan-checkboxes input[type="checkbox"]').forEach(function(cb) {
+            var label = cb.closest('label');
+            if (cb.checked) {
+                checked.push(cb.value);
+                label.style.borderColor = 'var(--color-penyedia)';
+                label.style.background  = '#EFF6FF';
+                label.style.color       = 'var(--color-penyedia)';
+            } else {
+                label.style.borderColor = 'var(--card-border)';
+                label.style.background  = '';
+                label.style.color       = '';
+            }
+        });
+        var custom = document.getElementById('jaminan-custom') ? document.getElementById('jaminan-custom').value.trim() : '';
+        if (custom) checked.push(custom);
+        document.getElementById('jaminan-value').value = checked.join(', ');
+    }
+    function updatePanelPreview() {
+        var imgEl = document.getElementById('preview-img');
+        var placeholder = document.getElementById('preview-img-placeholder');
+        if (selectedImages.length > 0) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                imgEl.src = e.target.result;
+                imgEl.style.display = 'block';
+                placeholder.style.display = 'none';
+            };
+            reader.readAsDataURL(selectedImages[0]);
+        } else {
+            imgEl.style.display = 'none';
+            imgEl.src = '';
+            placeholder.style.display = 'block';
+        }
+    }
     function previewImage(event) {
         var files = Array.from(event.target.files);
         if (!files.length) return;
@@ -290,6 +345,7 @@
 
         updateImageInput();
         renderImagePreview();
+        updatePanelPreview();
     }
     function updateImageInput() {
         var dataTransfer = new DataTransfer();
@@ -316,6 +372,7 @@
         selectedImages.splice(index, 1);
         updateImageInput();
         renderImagePreview();
+        updatePanelPreview();
     }
 </script>
 @endpush

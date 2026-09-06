@@ -222,7 +222,13 @@ class AuthController extends Controller
 
         session(['active_mode' => $newMode]);
 
-        return redirect()->back();
+        // Redirect ke halaman utama mode yang baru aktif,
+        // bukan back() yang mengarahkan ke halaman mode lama.
+        if ($newMode === 'penyedia') {
+            return redirect()->route('penyedia.daftar-barang');
+        }
+
+        return redirect()->route('penyewa.cari-barang');
     }
 
     /**

@@ -285,8 +285,29 @@
                     <input type="text" id="edit-address" name="alamat_pengambilan" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;">
                 </div>
                 <div style="margin-bottom:.85rem;">
-                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Ketentuan Jaminan</label>
-                    <textarea id="edit-guarantee" name="ketentuan_jaminan" style="width:100%;padding:.6rem .85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:.86rem;font-family:var(--font-body);outline:none;" rows="3"></textarea>
+                    <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">🪪 Jaminan Identitas Penyewa</label>
+                    <p style="font-size:.73rem;color:var(--text-muted);margin:.0 0 .5rem;line-height:1.5;">Pilih dokumen identitas yang wajib diserahkan penyewa secara <strong>offline</strong> saat bertemu.</p>
+                    <input type="hidden" name="ketentuan_jaminan" id="edit-jaminan-value">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;" id="edit-jaminan-checkboxes">
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="KTP" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 🪪 KTP
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="SIM" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 🚗 SIM
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="Paspor" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 📘 Paspor
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="Kartu Mahasiswa" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 🎓 Kartu Mahasiswa
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="Kartu Keluarga" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 📄 Kartu Keluarga
+                        </label>
+                        <label style="display:flex;align-items:center;gap:.5rem;padding:.5rem .65rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);cursor:pointer;font-size:.8rem;font-weight:500;transition:all 150ms;" class="edit-jaminan-opt">
+                            <input type="checkbox" value="BPKB" onchange="syncEditJaminan()" style="accent-color:var(--color-penyedia);width:14px;height:14px;"> 📑 BPKB
+                        </label>
+                    </div>
                 </div>
                 <div style="margin-bottom:.85rem;">
                     <label style="display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:.3rem;">Deskripsi</label>
@@ -366,7 +387,17 @@
         document.getElementById('edit-max-duration').value = maxDuration;
         document.getElementById('edit-city').value = city;
         document.getElementById('edit-address').value = address;
-        document.getElementById('edit-guarantee').value = guarantee;
+        // Pre-check jaminan checkboxes berdasarkan nilai tersimpan
+        var savedJaminan = guarantee ? guarantee.split(',').map(function(s){ return s.trim(); }) : [];
+        document.querySelectorAll('#edit-jaminan-checkboxes input[type="checkbox"]').forEach(function(cb) {
+            var isChecked = savedJaminan.includes(cb.value);
+            cb.checked = isChecked;
+            var label = cb.closest('label');
+            label.style.borderColor = isChecked ? 'var(--color-penyedia)' : 'var(--card-border)';
+            label.style.background  = isChecked ? '#EFF6FF' : '';
+            label.style.color       = isChecked ? 'var(--color-penyedia)' : '';
+        });
+        document.getElementById('edit-jaminan-value').value = guarantee;
         document.getElementById('edit-desc').value = desc;
         document.getElementById('delete-form').action = updateBaseUrl + '/' + itemId;
         resetEditImageInput();
@@ -516,6 +547,23 @@
             document.getElementById('edit-images').value = '';
         }
         renderEditImagePreview();
+    }
+    function syncEditJaminan() {
+        var checked = [];
+        document.querySelectorAll('#edit-jaminan-checkboxes input[type="checkbox"]').forEach(function(cb) {
+            var label = cb.closest('label');
+            if (cb.checked) {
+                checked.push(cb.value);
+                label.style.borderColor = 'var(--color-penyedia)';
+                label.style.background  = '#EFF6FF';
+                label.style.color       = 'var(--color-penyedia)';
+            } else {
+                label.style.borderColor = 'var(--card-border)';
+                label.style.background  = '';
+                label.style.color       = '';
+            }
+        });
+        document.getElementById('edit-jaminan-value').value = checked.join(', ');
     }
 
     function submitDelete() {

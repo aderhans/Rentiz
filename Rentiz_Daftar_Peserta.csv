@@ -1,0 +1,24 @@
+No,Nama,Aktor,Fitur Utama & Pendukung,Library & Framework,Tanggal Mulai,Tanggal Selesai,Durasi (Hari),Progres Implementasi,Progres Pengujian,Status
+1,Ade Erhans Nasution,Dev1,"1. DasborUtamaAdmin: Menampilkan ringkasan statistik sistem.
+2. VerifikasiBarang: Memvalidasi kelayakan barang yang diunggah penyedia sebelum tampil di katalog publik.
+3. ManajemenTransaksi & Escrow: Pemantauan status Midtrans.
+4. ManajemenKategoriBarang: Kelola kategori global.
+5. ManajemenBukti: Akses read-only log foto checklist pengguna jika terjadi konflik lapangan.",Laravel (PHP),PostgreSQL,Midtrans PHP Client,Bootstrap,2/3/2025,6/12/2025,129,4/7/2025,5/5/2025,Belum Selesai
+2,Cekra Andreas,Dev2,"1. RegistrasiDashboardPenyewa: Fitur pembuatan akun dan halaman profil khusus untuk penyewa.
+2. Katalog & Pencarian: Fitur mencari barang filter harga lokasi kota dan melihat detail barang.
+3. Checkout & Pembayaran: Fitur memilih tanggal sewa perhitungan total harga dan proses transfer ke Payment Gateway.
+4. RiwayatChecklistPenyewa: Fitur melihat status pesanan dan mengunggah foto kondisi barang saat diterima/dikembalikan.",Laravel (PHP),PostgreSQL,Bootstrap,2/3/2025,6/12/2025,129,4/7/2025,5/5/2025,Belum Selesai
+3,Irfan Daffayudha,Dev3,"1. RegistrasiDashboardPenyedia: Fitur pendaftaran toko dan halaman ringkasan pendapatan penyedia.
+2. ManajemenKatalog: Fitur menambah mengajukan dan menghapus barang sewaan beserta stok dan harganya.
+3. KelolaPesananMasuk: Fitur menerima/menolak pesanan dari penyewa dan melihat detail pesanan.
+4. PencairanDana & ChecklistPenyedia: Fitur validasi kondisi pengembalian barang dan penerusan dana (disbursement) dari sistem ke rekening penyedia.",Laravel (PHP),PostgreSQL,Bootstrap/TailwindCSS,2/3/2025,6/12/2025,129,4/7/2025,5/5/2025,Belum Selesai
+,,,,,,,,,,
+Keterangan,,,,,,,,,,,
+"ada tingkatan kurang, cukup dan lebih. bagi mahasiswa yang sanggup untuk mengerjakan tingkatan kurang dan tepat waktu maka lebih diuntungkan dibandingkan mengerjakan tugas yang sampai lebih, sesuai dokumen technical development & pembagian tugas google doc",,,,,,,,,,
+"Cara membaca dokumen pengembangan dengan metode waterfall (perhatikan baik-baik) dan setiap pengembang fokus pada Fase 4 & 5, pada Fase 1 - 3 sebagai fondasi yang disesuaikan dengan penugasan yang bisa dikerjakan oleh pengembang",,,,,,,,,,
+Fase 1 : Requirement Gathering berfungsi sebagai kebutuhan dalam pengembangan aplikasi,,,,,,,,,,
+Fase 2 : Requirement Analysis berfungsi sebagai analisis kebutuhan dalam pengembangan aplikasi,,,,,,,,,,
+Fase 3 : Design berfungsi mengetahui antarmuka dan software architecture yang harus dikerjakan dalam proses pengembangan aplikasi,,,,,,,,,,
+Fase 4 : Implementasi berfungsi sebagai implementasi dari fase 3 yang didasari oleh fase 2 dan 1,,,,,,,,,,
+Fase 5 : Testing berfungsi sebagai proses pengujian setiap implementasi yang sudah dikerjakan,,,,,,,,,,
+Fase 6 : Hasil dari Fase 1 - 5 dijalankan,,,,,,,,,,

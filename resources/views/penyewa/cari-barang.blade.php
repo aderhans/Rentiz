@@ -380,6 +380,9 @@
             <input type="hidden" name="barang_id" id="modalBarangId">
             <input type="hidden" name="action_type" id="modalActionType">
             
+            {{-- Error message di dalam modal --}}
+            <div id="modal-error" style="display:none; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:0.65rem 1rem; margin-bottom:1rem; font-size:0.83rem; color:#DC2626; font-weight:500;"></div>
+            
             <div style="margin-bottom:1rem;">
                 <label style="display:block; font-size:0.85rem; margin-bottom:0.4rem; font-weight:600; color:var(--text-secondary);">Tanggal Pengambilan</label>
                 <input type="text" id="tanggal_mulai_modal" name="tanggal_mulai" required placeholder="Pilih Tanggal Pengambilan..." style="width:100%; padding:0.65rem; border:1.5px solid var(--card-border); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; background:white;">
@@ -402,6 +405,30 @@
         document.getElementById('kategori-input').value = cat;
         document.getElementById('search-form').submit();
     }
+
+    // Validasi client-side pada form modal sebelum submit
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalForm = document.querySelector('#sewaModal form');
+        if (modalForm) {
+            modalForm.addEventListener('submit', function(e) {
+                var mulai   = document.getElementById('tanggal_mulai_modal').value;
+                var selesai = document.getElementById('tanggal_selesai_modal').value;
+                var errorEl = document.getElementById('modal-error');
+                var errors  = [];
+
+                if (!mulai)   errors.push('Tanggal Pengambilan harus dipilih.');
+                if (!selesai) errors.push('Tanggal Pengembalian harus dipilih.');
+
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    errorEl.innerHTML = '⚠️ ' + errors.join('<br>⚠️ ');
+                    errorEl.style.display = 'block';
+                } else {
+                    errorEl.style.display = 'none';
+                }
+            });
+        }
+    });
 
     function showToast(msg) {
         var toast = document.getElementById('toast');

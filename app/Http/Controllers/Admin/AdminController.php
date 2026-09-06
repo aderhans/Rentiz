@@ -124,7 +124,7 @@ class AdminController extends Controller
     {
         $item = \App\Models\Barang::findOrFail($id);
         $item->update(['status' => 'active']);
-        return redirect()->back()->with('success', 'Barang berhasil diverifikasi (Disetujui).');
+        return redirect()->route('admin.semua-listing')->with('success', 'Barang "' . $item->nama . '" berhasil diverifikasi dan dipublikasikan.');
     }
 
     public function rejectBarang(Request $request, $id)
