@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/wishlist',         [PenyewaController::class, 'wishlist'])->name('wishlist');
         Route::get('/profil',           [PenyewaController::class, 'profil'])->name('profil');
         Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
+        Route::post('/wishlist/toggle', [PenyewaController::class, 'toggleWishlist'])->name('wishlist.toggle');
+        Route::post('/proses-sewa',     [PenyewaController::class, 'prosesSewa'])->name('proses-sewa');
     });
 
     /* ------------------------------------------------
@@ -76,6 +78,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/semua-listing/{id}/reject',  [AdminController::class, 'rejectBarang'])->name('reject-barang');
         Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
         Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
+        Route::post('/laporan-dispute/{id}/take', [AdminController::class, 'takeCase'])->name('take-case');
+        Route::post('/laporan-dispute/{id}/resolve', [AdminController::class, 'resolveCase'])->name('resolve-case');
         Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
         Route::get('/platform-analytics',[AdminController::class, 'platformAnalytics'])->name('platform-analytics');
     });

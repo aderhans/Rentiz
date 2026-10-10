@@ -311,14 +311,30 @@
 
 
     @forelse($items as $p)
-    <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}">
+    @php
+        $prodData = [
+            'id' => $p->id,
+            'nama' => $p->nama,
+            'deskripsi' => $p->deskripsi,
+            'harga' => $p->harga_per_hari,
+            'kondisi' => $p->kondisi,
+            'kota' => $p->kota,
+            'seller' => $p->user->name ?? 'Unknown',
+            'min_durasi' => $p->min_durasi_sewa,
+            'max_durasi' => $p->max_durasi_sewa,
+            'foto' => ($p->fotos && $p->fotos->first()) ? asset('storage/' . $p->fotos->first()->path_foto) : null
+        ];
+    @endphp
+    <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}" onclick="openDetail(this)" style="cursor: pointer;">
+        <textarea class="product-json-data" style="display:none;">{{ json_encode($prodData) }}</textarea>
         <div class="product-img" style="background: #F1F5F9; padding:0; overflow:hidden;">
             @if($p->fotos && $p->fotos->first())
                 <img src="{{ asset('storage/' . $p->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
                 📷
             @endif
-            <button class="wishlist-btn" onclick="toggleWishlist(this, '{{ $p->nama }}')" title="Tambah ke wishlist">
+            @php $isWished = in_array($p->id, $user_wishlist); @endphp
+            <button class="wishlist-btn {{ $isWished ? 'liked' : '' }}" onclick="toggleWishlist(this, '{{ $p->id }}', '{{ addslashes($p->nama) }}')" title="Tambah ke wishlist">
                 ♥
             </button>
         </div>
@@ -332,7 +348,7 @@
                 <div class="product-price">Rp {{ number_format($p->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
                 <div class="product-rating">⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0x)</span></div>
             </div>
-            <button class="btn-sewa-mini" onclick="showToast('🛒 Permintaan sewa dikirim untuk <strong>{{ $p->nama }}</strong>!')">
+            <button class="btn-sewa-mini" onclick="event.stopPropagation(); openDetail(this.closest('.product-card'))">
                 Sewa Sekarang
             </button>
         </div>
@@ -345,6 +361,72 @@
     </div>
     @endforelse
 </div>
+
+{{-- Modal Detail Barang --}}
+<div class="modal" id="modal-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:white;width:90%;max-width:600px;border-radius:var(--radius-lg);overflow:hidden;animation:slideUp 0.3s ease;">
+        <div style="position:relative;height:250px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;" id="md-img-wrapper">
+            <img id="md-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <div id="md-img-fallback" style="font-size:4rem;">📷</div>
+            <button onclick="closeDetail()" style="position:absolute;top:15px;right:15px;background:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.2);">✕</button>
+        </div>
+        <div style="padding:1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+                <div>
+                    <h2 id="md-nama" style="font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;">Nama Barang</h2>
+                    <div style="font-size:0.85rem;color:var(--text-muted);">Dari: <span id="md-seller" style="font-weight:600;">Seller</span> • <span id="md-kota">Kota</span></div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="md-harga" style="font-family:var(--font-heading);font-size:1.4rem;font-weight:700;color:var(--color-penyewa);">Rp 0</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">/hari</div>
+                </div>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:#F8FAFC;border-radius:var(--radius-sm);border:1px solid #E2E8F0;">
+                <div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">Kondisi</div>
+                    <div id="md-kondisi" style="font-size:0.85rem;font-weight:600;">-</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">Batas Durasi Sewa</div>
+                    <div id="md-durasi" style="font-size:0.85rem;font-weight:600;">-</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+                <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:0.5rem;">Deskripsi Barang</h3>
+                <p id="md-deskripsi" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;max-height:100px;overflow-y:auto;"></p>
+            </div>
+
+            <form action="{{ route('penyewa.proses-sewa') }}" method="POST" id="form-sewa">
+                @csrf
+                <input type="hidden" name="barang_id" id="md-barang-id">
+                
+                <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.3rem;">Tanggal Mulai</label>
+                        <input type="date" name="tanggal_mulai" required style="width:100%;padding:0.6rem;border:1px solid var(--input-border);border-radius:var(--radius-sm);outline:none;font-family:var(--font-body);">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.3rem;">Tanggal Selesai</label>
+                        <input type="date" name="tanggal_selesai" required style="width:100%;padding:0.6rem;border:1px solid var(--input-border);border-radius:var(--radius-sm);outline:none;font-family:var(--font-body);">
+                    </div>
+                </div>
+
+                <button type="submit" style="width:100%;padding:0.8rem;background:var(--color-penyewa);color:white;border:none;border-radius:var(--radius-md);font-weight:600;font-size:1rem;cursor:pointer;transition:background 0.2s;">
+                    Lanjut ke Pembayaran
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
 
 {{-- Toast --}}
 <div class="toast-notify" id="toast" role="alert"></div>
@@ -388,14 +470,31 @@
             'Menampilkan <strong>' + count + '</strong> barang';
     }
 
-    function toggleWishlist(btn, name) {
+    function toggleWishlist(btn, id, name) {
         event.stopPropagation();
-        btn.classList.toggle('liked');
-        if (btn.classList.contains('liked')) {
-            showToast('❤️ <strong>' + name + '</strong> ditambahkan ke Wishlist!');
-        } else {
-            showToast('💔 <strong>' + name + '</strong> dihapus dari Wishlist.');
-        }
+        
+        fetch("{{ route('penyewa.wishlist.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ barang_id: id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'added') {
+                btn.classList.add('liked');
+                showToast('❤️ <strong>' + name + '</strong> ditambahkan ke Wishlist!');
+            } else if(data.status === 'removed') {
+                btn.classList.remove('liked');
+                showToast('💔 <strong>' + name + '</strong> dihapus dari Wishlist.');
+            }
+        })
+        .catch(err => {
+            showToast('⚠️ Gagal menambahkan ke wishlist, silakan login dulu.');
+            window.location.href = "{{ route('login') }}";
+        });
     }
 
     function showToast(msg) {
@@ -406,6 +505,49 @@
         window._toastTimer = setTimeout(function() {
             toast.classList.remove('show');
         }, 3000);
+    }
+    function openDetail(card) {
+        var jsonText = card.querySelector('.product-json-data').value;
+        var data = JSON.parse(jsonText);
+        openDetailModalByData(data);
+    }
+
+    function openDetailModalByData(data) {
+        document.getElementById('md-barang-id').value = data.id;
+        document.getElementById('md-nama').textContent = data.nama;
+        document.getElementById('md-seller').textContent = data.seller;
+        document.getElementById('md-kota').textContent = data.kota;
+        document.getElementById('md-harga').textContent = 'Rp ' + parseInt(data.harga).toLocaleString('id-ID');
+        document.getElementById('md-kondisi').textContent = data.kondisi ? (data.kondisi.charAt(0).toUpperCase() + data.kondisi.slice(1)) : '-';
+        document.getElementById('md-durasi').textContent = data.min_durasi + ' - ' + data.max_durasi + ' hari';
+        document.getElementById('md-deskripsi').textContent = data.deskripsi || 'Tidak ada deskripsi.';
+        
+        var img = document.getElementById('md-img');
+        var fallback = document.getElementById('md-img-fallback');
+        if (data.foto) {
+            img.src = data.foto;
+            img.style.display = 'block';
+            fallback.style.display = 'none';
+        } else {
+            img.src = '';
+            img.style.display = 'none';
+            fallback.style.display = 'block';
+        }
+
+        var modal = document.getElementById('modal-detail');
+        modal.style.display = 'flex';
+    }
+
+    function closeDetail() {
+        document.getElementById('modal-detail').style.display = 'none';
+    }
+
+    // Close modal on click outside
+    window.onclick = function(event) {
+        var modal = document.getElementById('modal-detail');
+        if (event.target == modal) {
+            closeDetail();
+        }
     }
 </script>
 @endpush

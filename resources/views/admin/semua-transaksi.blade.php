@@ -41,11 +41,11 @@
 </div>
 
 <div class="stat-row">
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">0</div><div class="sl">Total Transaksi</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);font-size:1rem;">Rp 0</div><div class="sl">Total GMV</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyedia);font-size:1rem;">Rp 0</div><div class="sl">Platform Fee (10%)</div></div>
-    <div class="scard"><div class="sv" style="color:var(--warning);">0</div><div class="sl">Bulan Ini</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">0</div><div class="sl">Dispute</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $transactions->count() }}</div><div class="sl">Total Transaksi</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);font-size:1rem;">Rp {{ number_format($transactions->where('status', 'completed')->sum('total_biaya'), 0, ',', '.') }}</div><div class="sl">Total GMV</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-penyedia);font-size:1rem;">Rp {{ number_format($transactions->where('status', 'completed')->sum('total_biaya') * 0.10, 0, ',', '.') }}</div><div class="sl">Platform Fee (10%)</div></div>
+    <div class="scard"><div class="sv" style="color:var(--warning);">{{ $transactions->filter(function($t) { return $t->created_at->isCurrentMonth(); })->count() }}</div><div class="sl">Bulan Ini</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ \App\Models\Dispute::count() }}</div><div class="sl">Dispute</div></div>
 </div>
 
 <div class="filter-row">
@@ -71,29 +71,41 @@
 
 <div class="card">
     <div id="trx-list">
-    @php
-    $transactions = [];
-    @endphp
 
     @forelse($transactions as $t)
-    <div class="trx-row" data-name="{{ strtolower($t['penyewa'].' '.$t['id']) }}" data-status="{{ $t['status'] }}">
-        <div style="flex-shrink:0;"><span class="trx-id">{{ $t['id'] }}</span></div>
+    @php
+        $item = $t->items->first();
+        $barangName = $item && $item->barang ? $item->barang->nama : 'Barang Terhapus';
+        $pemilikName = $item && $item->barang && $item->barang->user ? $item->barang->user->name : 'Penyedia';
+        
+        $fee = $t->total_biaya * 0.10;
+        
+        $statusMap = [
+            'pending_payment' => ['badge-neutral', 'Pending Payment'],
+            'paid' => ['badge-warning', 'Aktif'],
+            'confirmed' => ['badge-warning', 'Aktif'],
+            'active' => ['badge-warning', 'Aktif'],
+            'completed' => ['badge-success', 'Selesai'],
+            'cancelled' => ['badge-neutral', 'Dibatalkan'],
+            'rejected' => ['badge-danger', 'Ditolak'],
+        ];
+        $badgeClass = $statusMap[$t->status][0] ?? 'badge-neutral';
+        $statusLabel = $statusMap[$t->status][1] ?? ucfirst($t->status);
+    @endphp
+    <div class="trx-row" data-name="{{ strtolower($t->pemesan->name.' '.$t->id) }}" data-status="{{ $t->status }}">
+        <div style="flex-shrink:0;"><span class="trx-id">{{ substr($t->id, 0, 8) }}</span></div>
         <div class="trx-info">
-            <div class="trx-name">{{ $t['penyewa'] }} → {{ $t['penyedia'] }}</div>
-            <div class="trx-sub">{{ $t['item'] }} · {{ $t['date'] }}</div>
+            <div class="trx-name">{{ $t->pemesan->name }} → {{ $pemilikName }}</div>
+            <div class="trx-sub">{{ $barangName }} · {{ $t->created_at->format('d M Y') }}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-            <div style="font-weight:700;font-size:.88rem;color:var(--text);">Rp {{ $t['amount'] }}</div>
-            <div style="font-size:.7rem;color:var(--success);">Fee: +Rp {{ $t['fee'] }}</div>
+            <div style="font-weight:700;font-size:.88rem;color:var(--text);">Rp {{ number_format($t->total_biaya, 0, ',', '.') }}</div>
+            <div style="font-size:.7rem;color:var(--success);">Fee: +Rp {{ number_format($fee, 0, ',', '.') }}</div>
         </div>
         <div style="flex-shrink:0;min-width:70px;text-align:right;">
-            @if($t['status']==='selesai') <span class="badge badge-success" style="font-size:.65rem;">Selesai</span>
-            @elseif($t['status']==='aktif') <span class="badge badge-warning" style="font-size:.65rem;">Aktif</span>
-            @elseif($t['status']==='dispute') <span class="badge badge-danger" style="font-size:.65rem;">⚠ Dispute</span>
-            @else <span class="badge badge-neutral" style="font-size:.65rem;">Dibatalkan</span>
-            @endif
+            <span class="badge {{ $badgeClass }}" style="font-size:.65rem;">{{ $statusLabel }}</span>
         </div>
-        <button style="background:none;border:1px solid var(--card-border);border-radius:6px;padding:3px 9px;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--color-admin);font-family:var(--font-body);transition:all 150ms;flex-shrink:0;" onmouseover="this.style.background='var(--color-admin)';this.style.color='white'" onmouseout="this.style.background='none';this.style.color='var(--color-admin)'" onclick="showToast('🔍 Membuka detail transaksi {{ $t['id'] }}')">Detail</button>
+        <button style="background:none;border:1px solid var(--card-border);border-radius:6px;padding:3px 9px;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--color-admin);font-family:var(--font-body);transition:all 150ms;flex-shrink:0;" onmouseover="this.style.background='var(--color-admin)';this.style.color='white'" onmouseout="this.style.background='none';this.style.color='var(--color-admin)'" onclick="showToast('🔍 Membuka detail transaksi {{ substr($t->id, 0, 8) }}')">Detail</button>
     </div>
     @empty
     <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">

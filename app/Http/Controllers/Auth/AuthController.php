@@ -43,12 +43,18 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
 
-            // Jika login via form admin, pastikan user memang admin
             if ($isAdminLogin && !$user->isAdmin()) {
                 Auth::logout();
                 return back()
                     ->withInput($request->only('email', 'remember'))
-                    ->withErrors(['email' => 'Akun ini bukan akun administrator.']);
+                    ->withErrors(['email' => 'Hanya Untuk Admin.']);
+            }
+
+            if (!$isAdminLogin && $user->isAdmin()) {
+                Auth::logout();
+                return back()
+                    ->withInput($request->only('email', 'remember', '_form'))
+                    ->withErrors(['email' => 'Gunakan halaman admin untuk login.']);
             }
 
             $request->session()->regenerate();

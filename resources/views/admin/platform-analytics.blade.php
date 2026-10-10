@@ -60,27 +60,27 @@
 <div class="grid-4">
     <div class="kpi-card">
         <div class="kpi-bg">👥</div>
-        <div class="kpi-lbl">Total Pengguna Aktif</div>
-        <div class="kpi-val">12.482</div>
-        <div class="kpi-sub up">▲ +8.2% vs bulan lalu</div>
+        <div class="kpi-lbl">Total Pengguna Terdaftar</div>
+        <div class="kpi-val">{{ number_format($totalUsers, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">▲ Akun Aktif</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">📦</div>
         <div class="kpi-lbl">Total Transaksi</div>
-        <div class="kpi-val">4.829</div>
-        <div class="kpi-sub up">▲ +12.5% vs bulan lalu</div>
+        <div class="kpi-val">{{ number_format($totalTransactions, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">▲ Seluruh Waktu</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">💰</div>
         <div class="kpi-lbl">Gross Merchandise Value</div>
-        <div class="kpi-val" style="color:var(--success);">Rp 284M</div>
-        <div class="kpi-sub up">▲ +15.1% vs bulan lalu</div>
+        <div class="kpi-val" style="color:var(--success);">Rp {{ number_format($gmv, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">▲ Akumulasi Transaksi Berhasil</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">🏢</div>
-        <div class="kpi-lbl">Platform Revenue (Fee)</div>
-        <div class="kpi-val" style="color:var(--color-admin);">Rp 28.4M</div>
-        <div class="kpi-sub up">▲ +15.1% vs bulan lalu</div>
+        <div class="kpi-lbl">Platform Revenue (Est)</div>
+        <div class="kpi-val" style="color:var(--color-admin);">Rp {{ number_format($revenue, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">▲ Asumsi 10% Fee</div>
     </div>
 </div>
 
@@ -110,41 +110,54 @@
 
     {{-- Kategori Terpopuler --}}
     <div class="chart-box">
-        <div class="cb-header"><span class="cb-title">Kategori Terlaris</span></div>
+        <div class="cb-header"><span class="cb-title">Kategori Listing</span></div>
+        @php
+            $colors = ['#2563EB', '#0D9488', '#D97706', '#7C3AED', '#94A3B8'];
+            $totalKat = $kategoriCount->sum('total') ?: 1; // Prevent division by zero
+        @endphp
+        @forelse($kategoriCount as $i => $kat)
+        @php $pct = round(($kat->total / $totalKat) * 100); @endphp
         <div class="prog-row">
-            <div class="prog-top"><span>📷 Fotografi</span><span>42%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:42%;background:#2563EB;"></div></div>
+            <div class="prog-top"><span>{{ ucwords(str_replace('_', ' ', $kat->kategori_id ?? 'Tanpa Kategori')) }}</span><span>{{ $pct }}%</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:{{ $pct }}%;background:{{ $colors[$i % count($colors)] }};"></div></div>
         </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>⛺ Outdoor & Camp</span><span>24%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:24%;background:#0D9488;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>🎮 Console Game</span><span>18%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:18%;background:#D97706;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>🚁 Drone</span><span>10%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:10%;background:#7C3AED;"></div></div>
-        </div>
-        <div class="prog-row">
-            <div class="prog-top"><span>Lainnya</span><span>6%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:6%;background:#94A3B8;"></div></div>
-        </div>
+        @empty
+        <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:1rem;">Belum ada data kategori.</div>
+        @endforelse
     </div>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
     {{-- Peta Sebaran --}}
     <div class="chart-box">
-        <div class="cb-header"><span class="cb-title">Sebaran Transaksi (Simulasi Map)</span></div>
+        <div class="cb-header"><span class="cb-title">Sebaran Listing (Kota)</span></div>
         <div class="map-box">
             <div style="position:absolute;font-weight:700;color:var(--text-muted);font-size:2rem;opacity:.3;letter-spacing:5px;">INDONESIA</div>
-            <div class="map-pin" style="top:40%;left:30%;"><div class="pin-pulse"></div><div class="pin-dot"></div><div class="pin-lbl">Jabodetabek (65%)</div></div>
-            <div class="map-pin" style="top:55%;left:50%;"><div class="pin-pulse" style="animation-delay:.5s;"></div><div class="pin-dot"></div><div class="pin-lbl">Surabaya (15%)</div></div>
-            <div class="map-pin" style="top:65%;left:75%;"><div class="pin-pulse" style="animation-delay:1s;"></div><div class="pin-dot"></div><div class="pin-lbl">Bali (10%)</div></div>
-            <div class="map-pin" style="top:45%;left:40%;"><div class="pin-dot" style="width:8px;height:8px;"></div></div>
-            <div class="map-pin" style="top:30%;left:60%;"><div class="pin-dot" style="width:8px;height:8px;"></div></div>
+            
+            @php
+                $positions = [
+                    ['top'=>'40%', 'left'=>'30%', 'delay'=>'0s'],
+                    ['top'=>'55%', 'left'=>'50%', 'delay'=>'.5s'],
+                    ['top'=>'65%', 'left'=>'75%', 'delay'=>'1s'],
+                ];
+                $totalKota = $kotaCount->sum('total') ?: 1;
+            @endphp
+            
+            @foreach($kotaCount as $i => $k)
+            @php 
+                $pct = round(($k->total / $totalKota) * 100); 
+                $pos = $positions[$i % count($positions)];
+            @endphp
+            <div class="map-pin" style="top:{{ $pos['top'] }};left:{{ $pos['left'] }};">
+                <div class="pin-pulse" style="animation-delay:{{ $pos['delay'] }};"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-lbl">{{ $k->kota }} ({{ $pct }}%)</div>
+            </div>
+            @endforeach
+            
+            @if($kotaCount->isEmpty())
+                <div style="position:absolute;font-size:0.8rem;font-weight:600;color:var(--text-muted);">Belum ada data kota</div>
+            @endif
         </div>
     </div>
 

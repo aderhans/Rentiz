@@ -57,11 +57,11 @@
 </div>
 
 <div class="stat-row">
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">1.284</div><div class="sl">Total User</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyewa);">937</div><div class="sl">Penyewa</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyedia);">347</div><div class="sl">Penyedia</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);">+42</div><div class="sl">Minggu Ini</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">12</div><div class="sl">Suspended</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $users->count() }}</div><div class="sl">Total User</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-penyewa);">{{ $users->where('role', 'penyewa')->count() }}</div><div class="sl">Penyewa</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-penyedia);">{{ $users->where('role', 'penyedia')->count() }}</div><div class="sl">Penyedia</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);">+{{ $users->where('created_at', '>=', now()->subDays(7))->count() }}</div><div class="sl">Minggu Ini</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $users->whereIn('status', ['suspend', 'suspended'])->count() }}</div><div class="sl">Suspended</div></div>
 </div>
 
 <div class="toolbar">
@@ -70,14 +70,9 @@
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input type="text" class="si" id="user-search" placeholder="Cari nama / email..." oninput="filterUsers()">
         </div>
-        <select class="fi" id="user-role" onchange="filterUsers()">
-            <option value="semua">Semua Role</option>
-            <option value="penyewa">Penyewa</option>
-            <option value="penyedia">Penyedia</option>
-        </select>
         <select class="fi" id="user-status" onchange="filterUsers()">
             <option value="semua">Semua Status</option>
-            <option value="aktif">Aktif</option>
+            <option value="active">Aktif</option>
             <option value="suspend">Suspended</option>
         </select>
     </div>
@@ -89,45 +84,38 @@
 
 <div class="card">
     <div id="user-list">
-    @php
-    $users=[
-        ['init'=>'A','name'=>'Ahmad Fauzi','email'=>'ahmad@example.com','role'=>'penyewa','join'=>'25 Mei 2026','trx'=>12,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'B','name'=>'Budi Santoso','email'=>'budi@example.com','role'=>'penyedia','join'=>'24 Mei 2026','trx'=>45,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'S','name'=>'Siti Rahma','email'=>'siti@example.com','role'=>'penyewa','join'=>'23 Mei 2026','trx'=>3,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'D','name'=>'Dewi Rahayu','email'=>'dewi@example.com','role'=>'penyedia','join'=>'22 Mei 2026','trx'=>22,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'E','name'=>'Eko Prasetyo','email'=>'eko@example.com','role'=>'penyewa','join'=>'21 Mei 2026','trx'=>0,'status'=>'suspend','color'=>'#94A3B8'],
-        ['init'=>'F','name'=>'Fajar Nugraha','email'=>'fajar@example.com','role'=>'penyewa','join'=>'20 Mei 2026','trx'=>7,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'G','name'=>'Gita Maharani','email'=>'gita@example.com','role'=>'penyedia','join'=>'18 Mei 2026','trx'=>31,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'H','name'=>'Hadi Kurniawan','email'=>'hadi@example.com','role'=>'penyewa','join'=>'15 Mei 2026','trx'=>5,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'I','name'=>'Inda Pratiwi','email'=>'inda@example.com','role'=>'penyedia','join'=>'12 Mei 2026','trx'=>18,'status'=>'suspend','color'=>'#94A3B8'],
-        ['init'=>'J','name'=>'Joko Widodo','email'=>'joko@example.com','role'=>'penyewa','join'=>'10 Mei 2026','trx'=>2,'status'=>'aktif','color'=>'#0D9488'],
-    ];
-    @endphp
+
 
     @foreach($users as $u)
-    <div class="user-row" data-name="{{ strtolower($u['name'].' '.$u['email']) }}" data-role="{{ $u['role'] }}" data-status="{{ $u['status'] }}" id="urow-{{ $loop->index }}">
-        <div class="u-ava" style="background:{{ $u['color'] }};">{{ $u['init'] }}</div>
+    @php
+        $parts = explode(' ', $u->name);
+        $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+        $color = $u->role === 'admin' ? '#2563EB' : ($u->role === 'penyedia' ? '#0D9488' : '#7C3AED');
+        $trxCount = max($u->pesanan_sebagai_pemesan_count, $u->pesanan_sebagai_pemilik_count);
+    @endphp
+    <div class="user-row" data-name="{{ strtolower($u->name.' '.$u->email) }}" data-role="{{ $u->role }}" data-status="{{ $u->status }}" id="urow-{{ $loop->index }}">
+        <div class="u-ava" style="background:{{ $color }};">{{ $initials }}</div>
         <div class="u-info">
-            <div class="u-name">{{ $u['name'] }}</div>
-            <div class="u-email">{{ $u['email'] }} · Bergabung {{ $u['join'] }}</div>
+            <div class="u-name">{{ $u->name }}</div>
+            <div class="u-email">{{ $u->email }} · Bergabung {{ $u->created_at->format('d M Y') }}</div>
         </div>
         <div style="flex-shrink:0;min-width:70px;text-align:center;">
-            <span class="badge {{ $u['role']==='penyedia'?'badge-info':'badge-neutral' }}" style="font-size:.65rem;">{{ ucfirst($u['role']) }}</span>
+            <span class="badge {{ $u->role==='penyedia'?'badge-info':'badge-neutral' }}" style="font-size:.65rem;">{{ ucfirst($u->role) }}</span>
         </div>
-        <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $u['trx'] }}x</div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $trxCount }}x</div>
         <div class="u-right">
-            @if($u['status']==='aktif')
+            @if($u->status==='aktif' || $u->status==='active')
                 <span class="badge badge-success" style="font-size:.65rem;">Aktif</span>
-                <button class="action-btn edit" onclick="showToast('#7C3AED','✏️ Mengedit {{ $u['name'] }}...')">Edit</button>
-                <button class="action-btn suspend" onclick="suspendUser({{ $loop->index }},'{{ $u['name'] }}')">Suspend</button>
+                <button class="action-btn suspend" onclick="suspendUser({{ $loop->index }},'{{ $u->name }}')">Suspend</button>
             @else
                 <span class="badge badge-danger" style="font-size:.65rem;">Suspended</span>
-                <button class="action-btn activate" onclick="activateUser({{ $loop->index }},'{{ $u['name'] }}')">Aktifkan</button>
+                <button class="action-btn activate" onclick="activateUser({{ $loop->index }},'{{ $u->name }}')">Aktifkan</button>
             @endif
         </div>
     </div>
     @endforeach
     </div>
+    @if($users->count() > 10)
     <div class="pagination">
         <button class="pg">‹</button>
         <button class="pg active">1</button>
@@ -135,6 +123,7 @@
         <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
         <button class="pg">›</button>
     </div>
+    @endif
 </div>
 
 <div class="toast" id="admin-user-toast"></div>
@@ -144,11 +133,12 @@
 <script>
     function filterUsers() {
         var q = document.getElementById('user-search').value.toLowerCase();
-        var role = document.getElementById('user-role').value;
         var status = document.getElementById('user-status').value;
         document.querySelectorAll('#user-list .user-row').forEach(function(row) {
-            var nm = row.dataset.name; var r = row.dataset.role; var s = row.dataset.status;
-            row.style.display = (nm.includes(q) && (role==='semua'||r===role) && (status==='semua'||s===status)) ? '' : 'none';
+            var nm = row.dataset.name; var s = row.dataset.status;
+            // Handle if db stores 'aktif' instead of 'active' or vice versa
+            var normStatus = (s === 'aktif' || s === 'active') ? 'active' : 'suspend';
+            row.style.display = (nm.includes(q) && (status==='semua' || normStatus===status)) ? '' : 'none';
         });
     }
     function suspendUser(idx, name) {
@@ -165,7 +155,7 @@
         var right = row.querySelector('.u-right');
         row.querySelector('.u-ava').style.background='#0D9488';
         row.dataset.status = 'aktif';
-        right.innerHTML = '<span class="badge badge-success" style="font-size:.65rem;">Aktif</span><button class="action-btn edit" onclick="showToast(\'#7C3AED\',\'✏️ Mengedit '+name+'...\')">Edit</button><button class="action-btn suspend" onclick="suspendUser('+idx+',\''+name+'\')">Suspend</button>';
+        right.innerHTML = '<span class="badge badge-success" style="font-size:.65rem;">Aktif</span><button class="action-btn suspend" onclick="suspendUser('+idx+',\''+name+'\')">Suspend</button>';
         showToast('#059669','✅ Akun '+name+' berhasil diaktifkan!');
     }
     function showToast(bg, msg) {

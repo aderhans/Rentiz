@@ -105,8 +105,30 @@ class User extends Authenticatable
                 return 'Penyedia Barang';
             case 'penyewa':
                 return 'Penyewa Barang';
-            default:
                 return 'Unknown';
         }
+    }
+
+    public function pesananSebagaiPemesan()
+    {
+        return $this->hasMany(Pesanan::class, 'pemesan_id');
+    }
+
+    public function barangs()
+    {
+        return $this->hasMany(Barang::class, 'user_id');
+    }
+
+    public function pesananSebagaiPemilik()
+    {
+        // A user has many Barang. A Barang has many PesananItem. A PesananItem belongs to Pesanan.
+        // In eloquent, hasManyThrough is for (Final, Intermediate). Final = PesananItem, Intermediate = Barang.
+        // It's easiest to count PesananItem.
+        return $this->hasManyThrough(PesananItem::class, Barang::class, 'user_id', 'barang_id');
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class, 'user_id');
     }
 }

@@ -139,7 +139,7 @@
 
 <div class="wl-topbar">
     <div class="wl-count-chip">
-        ♥ <span id="wl-count">0</span> barang tersimpan
+        ♥ <span id="wl-count">{{ $wishlists->count() }}</span> barang tersimpan
     </div>
     <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
         <select style="padding:0.5rem 0.85rem;border:1.5px solid var(--card-border);border-radius:var(--radius-sm);font-size:0.82rem;font-family:var(--font-body);color:var(--text-secondary);background:white;outline:none;">
@@ -158,38 +158,51 @@
 </div>
 
 <div class="wishlist-grid" id="wl-grid">
+    @forelse($wishlists as $w)
     @php
-    $wishlist = [];
+        $barang = $w->barang;
+        $isAvailable = $barang->status === 'active';
+        // Random background color for placeholder image
+        $colors = ['#EEF2FF', '#F0F9FF', '#FFFBEB', '#F0FDF4', '#FFF7ED', '#FDF2F8'];
+        $bgColor = $colors[crc32($barang->id) % count($colors)];
+        
+        $emojiMap = [
+            'kamera' => '📷',
+            'kendaraan' => '🚗',
+            'elektronik' => '💻',
+            'outdoor' => '🏕️',
+            'pakaian' => '👗',
+        ];
+        $emoji = $emojiMap[$barang->kategori_id] ?? '📦';
     @endphp
-
-    @forelse($wishlist as $w)
-    <div class="wl-card" id="card-{{ $w['id'] }}">
-        <div class="wl-img" style="background:{{ $w['bg'] }};">
-            <button class="remove-wl" onclick="removeWishlist('{{ $w['id'] }}', '{{ $w['name'] }}')" title="Hapus dari wishlist">♥</button>
-            <span>{{ $w['emoji'] }}</span>
-            <div class="wl-avail-dot {{ $w['available'] ? 'dot-green' : 'dot-red' }}">
-                <div class="avail-indicator" style="background:{{ $w['available'] ? 'var(--success)' : 'var(--danger)' }};"></div>
-                {{ $w['available'] ? 'Tersedia' : 'Sedang Disewa' }}
+    <div class="wl-card" id="card-{{ $w->id }}">
+        <div class="wl-img" style="background:{{ $bgColor }};">
+            <button class="remove-wl" onclick="removeWishlist('{{ $w->id }}', '{{ addslashes($barang->nama) }}')" title="Hapus dari wishlist">♥</button>
+            <span>{{ $emoji }}</span>
+            <div class="wl-avail-dot {{ $isAvailable ? 'dot-green' : 'dot-red' }}">
+                <div class="avail-indicator" style="background:{{ $isAvailable ? 'var(--success)' : 'var(--danger)' }};"></div>
+                {{ $isAvailable ? 'Tersedia' : 'Sedang Disewa' }}
             </div>
         </div>
         <div class="wl-body">
-            <div class="wl-name">{{ $w['name'] }}</div>
+            <div class="wl-name">{{ $barang->nama }}</div>
             <div class="wl-seller">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                {{ $w['seller'] }}
+                {{ $barang->user->name }}
             </div>
             <div class="wl-footer">
-                <div class="wl-price">Rp {{ $w['price'] }}<span>/hari</span></div>
-                <div class="wl-rating">⭐ {{ $w['rating'] }}</div>
+                <div class="wl-price">Rp {{ number_format($barang->harga_per_hari, 0, ',', '.') }}<span>/hari</span></div>
+                <div class="wl-rating">⭐ 4.5</div>
             </div>
-            <button class="btn-sewa-wl {{ $w['available'] ? 'available' : 'unavailable' }}"
-                @if($w['available'])
-                    onclick="showToast('green', '🛒 Permintaan sewa untuk <strong>{{ $w['name'] }}</strong> dikirim!')"
-                @else
-                    onclick="showToast('red', '⚠️ Barang sedang tidak tersedia. Coba nanti!')"
-                @endif>
-                {{ $w['available'] ? 'Sewa Sekarang' : 'Tidak Tersedia' }}
-            </button>
+            @if($isAvailable)
+                <button class="btn-sewa-wl available" onclick="window.location.href='#'">
+                    Sewa Sekarang
+                </button>
+            @else
+                <button class="btn-sewa-wl unavailable" onclick="showToast('red', '⚠️ Barang sedang tidak tersedia. Coba nanti!')">
+                    Tidak Tersedia
+                </button>
+            @endif
         </div>
     </div>
     @empty
@@ -207,19 +220,35 @@
 
 @push('scripts')
 <script>
-    var wishlistCount = 7;
+    var wishlistCount = {{ $wishlists->count() }};
 
     function removeWishlist(id, name) {
-        var card = document.getElementById('card-' + id);
-        card.style.transform = 'scale(0.85)';
-        card.style.opacity = '0';
-        card.style.transition = 'all 300ms';
-        setTimeout(function() {
-            card.remove();
-            wishlistCount--;
-            document.getElementById('wl-count').textContent = wishlistCount;
-        }, 300);
-        showToast('red', '💔 <strong>' + name + '</strong> dihapus dari wishlist');
+        if(!confirm('Hapus ' + name + ' dari wishlist?')) return;
+        
+        fetch("{{ route('penyewa.wishlist.toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ barang_id: id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'removed') {
+                var card = document.getElementById('card-' + id);
+                card.style.transform = 'scale(0.85)';
+                card.style.opacity = '0';
+                card.style.transition = 'all 300ms';
+                setTimeout(function() {
+                    card.remove();
+                    wishlistCount--;
+                    document.getElementById('wl-count').textContent = wishlistCount;
+                    if(wishlistCount === 0) location.reload();
+                }, 300);
+                showToast('red', '💔 <strong>' + name + '</strong> dihapus dari wishlist');
+            }
+        });
     }
 
     function clearAll() {

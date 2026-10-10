@@ -215,22 +215,24 @@
         <div class="card" style="margin-bottom:1.25rem;">
             <div class="card-header">
                 <span class="card-title">⏳ Menunggu Pembayaran</span>
-                <span class="badge badge-warning">1 Tagihan</span>
+                <span class="badge badge-warning">{{ $pesananPending->count() }} Tagihan</span>
             </div>
             <div class="card-body">
+                @if($pesananPending->count() > 0)
+                @php $pending = $pesananPending->first(); $item = $pending->items->first(); @endphp
                 <div style="display:flex;align-items:flex-start;gap:1rem;padding:1rem;background:var(--warning-bg);border-radius:var(--radius-sm);border:1px dashed var(--warning);">
                     <div style="font-size:2rem;">🚁</div>
                     <div style="flex:1;">
-                        <div style="font-weight:700;font-size:0.92rem;color:var(--text);">DJI Mini 3 Pro Combo</div>
-                        <div style="font-size:0.77rem;color:var(--text-muted);margin-top:2px;">Dari: Drone Indo · 25–26 Mei 2026 · 1 hari</div>
-                        <div style="font-family:var(--font-heading);font-size:1.2rem;font-weight:700;color:var(--warning);margin-top:6px;">Rp 280.000</div>
+                        <div style="font-weight:700;font-size:0.92rem;color:var(--text);">{{ $item->barang->nama ?? 'Barang' }}</div>
+                        <div style="font-size:0.77rem;color:var(--text-muted);margin-top:2px;">Dari: {{ $item->barang->user->name ?? 'Penyedia' }} · {{ $pending->tanggal_mulai->format('d') }}–{{ $pending->tanggal_selesai->format('d M Y') }} · {{ $pending->tanggal_mulai->diffInDays($pending->tanggal_selesai) ?: 1 }} hari</div>
+                        <div style="font-family:var(--font-heading);font-size:1.2rem;font-weight:700;color:var(--warning);margin-top:6px;">Rp {{ number_format($pending->total_biaya, 0, ',', '.') }}</div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:6px;">Bayar sebelum:</div>
                         <div class="countdown" id="countdown" style="justify-content:flex-end;">
-                            <div class="countdown-item"><div class="countdown-val" id="cd-h">01</div><div class="countdown-label">Jam</div></div>
-                            <div class="countdown-item"><div class="countdown-val" id="cd-m">47</div><div class="countdown-label">Menit</div></div>
-                            <div class="countdown-item"><div class="countdown-val" id="cd-s">22</div><div class="countdown-label">Detik</div></div>
+                            <div class="countdown-item"><div class="countdown-val" id="cd-h">24</div><div class="countdown-label">Jam</div></div>
+                            <div class="countdown-item"><div class="countdown-val" id="cd-m">00</div><div class="countdown-label">Menit</div></div>
+                            <div class="countdown-item"><div class="countdown-val" id="cd-s">00</div><div class="countdown-label">Detik</div></div>
                         </div>
                     </div>
                 </div>
@@ -272,11 +274,20 @@
                         <div class="method-radio"></div>
                     </div>
 
-                    <button class="btn btn-primary-teal" style="width:100%;margin-top:0.5rem;justify-content:center;" onclick="showToast('✅ Konfirmasi pembayaran berhasil dikirim! Tim kami akan memverifikasi dalam 1x24 jam.')">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Konfirmasi Sudah Bayar
-                    </button>
+                    <form action="#" method="POST">
+                        @csrf
+                        <input type="hidden" name="pesanan_id" value="{{ $pending->id }}">
+                        <button type="submit" class="btn btn-primary-teal" style="width:100%;margin-top:0.5rem;justify-content:center;" onclick="showToast('✅ Membuka halaman pembayaran...')">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Bayar Sekarang
+                        </button>
+                    </form>
                 </div>
+                @else
+                <div style="padding:2rem;text-align:center;color:var(--text-muted);">
+                    Tidak ada tagihan yang menunggu pembayaran.
+                </div>
+                @endif
             </div>
         </div>
 
@@ -286,27 +297,21 @@
                 <span class="card-title">📄 Riwayat Pembayaran</span>
                 <a href="{{ route('penyewa.riwayat-sewa') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
             </div>
-            @php
-            $payments = [
-                ['icon'=>'📷','bg'=>'#EEF2FF','name'=>'Sony A7III + Lensa Kit','date'=>'21 Mei 2026','amount'=>'1.050.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'🎮','bg'=>'#F0F9FF','name'=>'PS5 + 2 Controller','date'=>'18 Mei 2026','amount'=>'240.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'⭐','bg'=>'#FFFBEB','name'=>'Cashback Promo Mei','date'=>'15 Mei 2026','amount'=>'25.000','type'=>'credit','status'=>'success','label'=>'Cashback'],
-                ['icon'=>'📽️','bg'=>'#FFF7ED','name'=>'Proyektor 4K Epson','date'=>'10 Mei 2026','amount'=>'200.000','type'=>'debit','status'=>'success','label'=>'Sukses'],
-                ['icon'=>'🚵','bg'=>'#F0FDF4','name'=>'Refund - Sepeda MTB','date'=>'6 Mei 2026','amount'=>'160.000','type'=>'credit','status'=>'success','label'=>'Refund'],
-            ];
-            @endphp
-            @foreach($payments as $p)
+            @forelse($riwayatPembayaran as $p)
+            @php $item = $p->items->first(); @endphp
             <div class="txn-row">
-                <div class="txn-icon" style="background:{{ $p['bg'] }};">{{ $p['icon'] }}</div>
+                <div class="txn-icon" style="background:#EEF2FF;">{{ $item->barang->kategori === 'kamera' ? '📷' : '📦' }}</div>
                 <div class="txn-info">
-                    <div class="txn-name">{{ $p['name'] }}</div>
-                    <div class="txn-date">{{ $p['date'] }} · <span class="badge badge-{{ $p['status'] }}" style="font-size:0.65rem;">{{ $p['label'] }}</span></div>
+                    <div class="txn-name">{{ $item->barang->nama ?? 'Barang' }}</div>
+                    <div class="txn-date">{{ $p->created_at->format('d M Y') }} · <span class="badge badge-success" style="font-size:0.65rem;">Lunas</span></div>
                 </div>
-                <div class="txn-amount" style="color:{{ $p['type'] === 'credit' ? 'var(--success)' : 'var(--text)' }};">
-                    {{ $p['type'] === 'credit' ? '+' : '-' }} Rp {{ $p['amount'] }}
+                <div class="txn-amount" style="color:var(--text);">
+                    - Rp {{ number_format($p->total_biaya, 0, ',', '.') }}
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div style="padding:1rem 1.25rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">Belum ada riwayat pembayaran</div>
+            @endforelse
         </div>
     </div>
 
@@ -316,7 +321,7 @@
         <div class="saldo-card">
             <div style="font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:2px;">RentizPay</div>
             <div class="saldo-label">Saldo Kamu</div>
-            <div class="saldo-amount">Rp 185.000</div>
+            <div class="saldo-amount">Rp 0</div>
             <div class="saldo-actions">
                 <button class="saldo-btn" onclick="showToast('🏧 Fitur top-up sedang dalam pengembangan!')">
                     + Top Up
@@ -335,10 +340,8 @@
             <div class="card-body">
                 @php
                 $summaryItems = [
-                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp 1.290.000', 'color'=>'var(--danger)', 'icon'=>'↓'],
-                    ['label'=>'Total Refund Diterima', 'value'=>'Rp 185.000', 'color'=>'var(--success)', 'icon'=>'↑'],
-                    ['label'=>'Cashback Terkumpul', 'value'=>'Rp 45.000', 'color'=>'var(--warning)', 'icon'=>'⭐'],
-                    ['label'=>'Transaksi Bulan Ini', 'value'=>'4 transaksi', 'color'=>'var(--info)', 'icon'=>'#'],
+                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp ' . number_format($totalBulanIni, 0, ',', '.'), 'color'=>'var(--danger)', 'icon'=>'↓'],
+                    ['label'=>'Transaksi Bulan Ini', 'value'=> $riwayatPembayaran->where('created_at', '>=', now()->startOfMonth())->count() . ' transaksi', 'color'=>'var(--info)', 'icon'=>'#'],
                 ];
                 @endphp
                 @foreach($summaryItems as $s)
@@ -357,21 +360,9 @@
                 <button class="btn btn-outline btn-sm" onclick="showToast('➕ Fitur tambah metode pembayaran segera hadir!')">+ Tambah</button>
             </div>
             <div class="card-body">
-                <div style="display:flex;align-items:center;gap:0.85rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);margin-bottom:0.75rem;">
-                    <div style="width:36px;height:36px;background:#EFF6FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏦</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:600;font-size:0.85rem;">BCA Virtual Account</div>
-                        <div style="font-size:0.74rem;color:var(--text-muted);">****3456 · Default</div>
-                    </div>
-                    <span class="badge badge-success" style="font-size:0.65rem;">Utama</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:0.85rem;padding:0.75rem;background:var(--content-bg);border-radius:var(--radius-sm);">
-                    <div style="width:36px;height:36px;background:#F0FDF4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📱</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:600;font-size:0.85rem;">GoPay</div>
-                        <div style="font-size:0.74rem;color:var(--text-muted);">+62 812-3456-7890</div>
-                    </div>
-                    <span class="badge badge-neutral" style="font-size:0.65rem;">Tersimpan</span>
+                <div style="padding:1.5rem;text-align:center;color:var(--text-muted);">
+                    <div style="font-size:2rem;margin-bottom:0.5rem;">💳</div>
+                    <div style="font-size:0.85rem;">Belum ada metode pembayaran tersimpan</div>
                 </div>
             </div>
         </div>

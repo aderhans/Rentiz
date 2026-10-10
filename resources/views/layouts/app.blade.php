@@ -906,7 +906,8 @@
         {{-- Sidebar Footer: User --}}
         <div class="sidebar-footer">
             @php
-                $initials = collect(explode(' ', Auth::user()->name))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
+                $parts = explode(' ', Auth::user()->name);
+                $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
                 $avatarColors = ['penyewa' => '#0D9488', 'penyedia' => '#2563EB', 'admin' => '#7C3AED'];
                 $avatarColor = $avatarColors[$activeMode] ?? '#4F8EF7';
             @endphp
@@ -967,6 +968,17 @@
 
         {{-- Page Content --}}
         <main class="page-content" id="page-main">
+            @if(session('success'))
+                <div style="background:var(--success);color:white;padding:1rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-weight:600;">
+                    ✅ {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background:var(--danger);color:white;padding:1rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-weight:600;">
+                    ❌ {{ session('error') }}
+                </div>
+            @endif
+
             @yield('content')
         </main>
     </div>

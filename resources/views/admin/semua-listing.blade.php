@@ -50,10 +50,10 @@
 </div>
 
 <div class="stat-row">
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">2.481</div><div class="sl">Total Listing</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);">2.214</div><div class="sl">Aktif</div></div>
-    <div class="scard"><div class="sv" style="color:var(--warning);">189</div><div class="sl">Pending Review</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">78</div><div class="sl">Dinonaktifkan</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $items->count() }}</div><div class="sl">Total Listing</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);">{{ $items->where('status', 'active')->count() }}</div><div class="sl">Aktif</div></div>
+    <div class="scard"><div class="sv" style="color:var(--warning);">{{ $items->where('status', 'pending')->count() }}</div><div class="sl">Pending Review</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $items->where('status', 'rejected')->count() }}</div><div class="sl">Ditolak</div></div>
 </div>
 
 <div class="toolbar">
@@ -64,16 +64,18 @@
         </div>
         <select class="fi" id="list-status" onchange="filterListings()">
             <option value="semua">Semua Status</option>
-            <option value="aktif">Aktif</option>
+            <option value="active">Aktif</option>
             <option value="pending">Pending</option>
-            <option value="nonaktif">Nonaktif</option>
+            <option value="rejected">Nonaktif/Ditolak</option>
         </select>
-        <select class="fi">
-            <option>Semua Kategori</option>
-            <option>Fotografi</option>
-            <option>Drone</option>
-            <option>Elektronik</option>
-            <option>Gaming</option>
+        <select class="fi" id="list-kategori" onchange="filterListings()">
+            <option value="semua">Semua Kategori</option>
+            @php
+                $kategoris = \App\Models\Barang::select('kategori_id')->distinct()->pluck('kategori_id');
+            @endphp
+            @foreach($kategoris as $k)
+                @if($k) <option value="{{ strtolower($k) }}">{{ ucwords(str_replace('_', ' ', $k)) }}</option> @endif
+            @endforeach
         </select>
     </div>
     <button class="btn btn-outline btn-sm" onclick="showToast('#7C3AED','📊 Mengunduh data listing...')">Export CSV</button>
@@ -84,7 +86,22 @@
 
 
     @forelse($items as $i=>$l)
-    <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $l->status }}" id="lrow-{{ $i }}">
+    @php
+        $prodData = [
+            'id' => $l->id,
+            'nama' => $l->nama,
+            'deskripsi' => $l->deskripsi,
+            'harga' => $l->harga_per_hari,
+            'kondisi' => $l->kondisi,
+            'kota' => $l->kota,
+            'seller' => $l->user->name ?? 'Unknown',
+            'min_durasi' => $l->min_durasi_sewa,
+            'max_durasi' => $l->max_durasi_sewa,
+            'foto' => ($l->fotos && $l->fotos->first()) ? asset('storage/' . $l->fotos->first()->path_foto) : null
+        ];
+    @endphp
+    <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $l->status }}" data-kategori="{{ strtolower($l->kategori_id ?? '') }}" id="lrow-{{ $i }}">
+        <textarea class="product-json-data" style="display:none;">{{ json_encode($prodData) }}</textarea>
         <div class="l-thumb" style="background:#F1F5F9; padding:0; overflow:hidden;">
             @if($l->fotos && $l->fotos->first())
                 <img src="{{ asset('storage/' . $l->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
@@ -114,7 +131,7 @@
                     <button type="submit" class="action-btn takedown">✕ Tolak</button>
                 </form>
             @else
-                <button class="action-btn view" onclick="showToast('#7C3AED','👁️ Melihat detail: {{ $l->nama }}')">Detail</button>
+                <button class="action-btn view" onclick="openDetail(this.closest('.listing-row'))">Detail</button>
                 <form action="{{ route('admin.reject-barang', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Takedown listing ini?');">
                     @csrf
                     <button type="submit" class="action-btn takedown">Takedown</button>
@@ -130,12 +147,54 @@
     </div>
     @endforelse
     </div>
+    </div>
+    @if($items->count() > 10)
     <div class="pagination">
         <button class="pg">‹</button>
         <button class="pg active">1</button>
         <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">2</button>
         <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
         <button class="pg">›</button>
+    </div>
+    @endif
+</div>
+
+{{-- Modal Detail --}}
+<div class="modal" id="modal-detail" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:white;width:90%;max-width:600px;border-radius:var(--radius-lg);overflow:hidden;">
+        <div style="position:relative;height:250px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;">
+            <img id="md-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <div id="md-img-fallback" style="font-size:4rem;">📷</div>
+            <button onclick="document.getElementById('modal-detail').style.display='none'" style="position:absolute;top:15px;right:15px;background:white;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.2);">✕</button>
+        </div>
+        <div style="padding:1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+                <div>
+                    <h2 id="md-nama" style="font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:0.25rem;">Nama Barang</h2>
+                    <div style="font-size:0.85rem;color:var(--text-muted);">Dari: <span id="md-seller" style="font-weight:600;">Seller</span> • <span id="md-kota">Kota</span></div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="md-harga" style="font-family:var(--font-heading);font-size:1.4rem;font-weight:700;color:var(--color-penyewa);">Rp 0</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">/hari</div>
+                </div>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;padding:1rem;background:#F8FAFC;border-radius:var(--radius-sm);border:1px solid #E2E8F0;">
+                <div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">Kondisi</div>
+                    <div id="md-kondisi" style="font-size:0.85rem;font-weight:600;">-</div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">Batas Durasi Sewa</div>
+                    <div id="md-durasi" style="font-size:0.85rem;font-weight:600;">-</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.5rem;">
+                <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:0.5rem;">Deskripsi Barang</h3>
+                <p id="md-deskripsi" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;max-height:100px;overflow-y:auto;"></p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -147,10 +206,38 @@
     function filterListings() {
         var q = document.getElementById('list-search').value.toLowerCase();
         var status = document.getElementById('list-status').value;
+        var kat = document.getElementById('list-kategori').value;
         document.querySelectorAll('#listing-list .listing-row').forEach(function(row) {
-            var nm = row.dataset.name; var s = row.dataset.status;
-            row.style.display = (nm.includes(q) && (status==='semua'||s===status)) ? '' : 'none';
+            var nm = row.dataset.name; var s = row.dataset.status; var k = row.dataset.kategori;
+            row.style.display = (nm.includes(q) && (status==='semua'||s===status) && (kat==='semua'||k===kat)) ? '' : 'none';
         });
+    }
+
+    function openDetail(row) {
+        var jsonText = row.querySelector('.product-json-data').value;
+        var data = JSON.parse(jsonText);
+        
+        document.getElementById('md-nama').textContent = data.nama;
+        document.getElementById('md-seller').textContent = data.seller;
+        document.getElementById('md-kota').textContent = data.kota;
+        document.getElementById('md-harga').textContent = 'Rp ' + parseInt(data.harga).toLocaleString('id-ID');
+        document.getElementById('md-kondisi').textContent = data.kondisi ? (data.kondisi.charAt(0).toUpperCase() + data.kondisi.slice(1)) : '-';
+        document.getElementById('md-durasi').textContent = data.min_durasi + ' - ' + data.max_durasi + ' hari';
+        document.getElementById('md-deskripsi').textContent = data.deskripsi || 'Tidak ada deskripsi.';
+        
+        var img = document.getElementById('md-img');
+        var fallback = document.getElementById('md-img-fallback');
+        if (data.foto) {
+            img.src = data.foto;
+            img.style.display = 'block';
+            fallback.style.display = 'none';
+        } else {
+            img.src = '';
+            img.style.display = 'none';
+            fallback.style.display = 'block';
+        }
+
+        document.getElementById('modal-detail').style.display = 'flex';
     }
 
     function showToast(bg, msg) {
