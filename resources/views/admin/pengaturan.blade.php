@@ -51,12 +51,62 @@
 <div class="set-layout">
     <div class="set-nav">
         <button class="set-tab active" onclick="switchTab('general',this)">🔧 Umum & Meta</button>
+        <button class="set-tab" onclick="switchTab('profil',this)">👤 Profil Saya</button>
         <button class="set-tab" onclick="switchTab('payment',this)">💳 Finansial & Fee</button>
         <button class="set-tab" onclick="switchTab('notif',this)">🔔 Email & Notifikasi</button>
         <button class="set-tab" onclick="switchTab('security',this)">🛡️ Keamanan & Akses</button>
     </div>
 
     <div>
+        {{-- Profil Tab --}}
+        <div class="set-pane" id="tab-profil">
+            <form action="{{ route('admin.update-profil') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="set-header">
+                    <span class="set-title">Profil Saya</span>
+                    <button type="submit" class="btn btn-primary-purple btn-sm">Simpan Profil</button>
+                </div>
+                <div class="set-body">
+                    <div class="fsec">Foto Profil Utama</div>
+                    
+                    @if(session('success'))
+                        <div style="background:var(--success-bg);color:var(--success);padding:.75rem 1rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-size:.85rem;font-weight:600;">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                    
+                    @error('foto_profil')
+                        <div style="background:var(--danger-bg);color:var(--danger);padding:.75rem 1rem;border-radius:var(--radius-sm);margin-bottom:1rem;font-size:.85rem;font-weight:600;">
+                            {{ $message }}
+                        </div>
+                    @enderror
+
+                    <div class="fg" style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;">
+                        <div style="width:80px;height:80px;border-radius:50%;background:var(--card-border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                            @if(Auth::user()->foto_profil)
+                                <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" style="width:100%;height:100%;object-fit:cover;" alt="Foto Profil">
+                            @else
+                                <span style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--text-secondary);">
+                                    {{ collect(explode(' ', Auth::user()->name))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('') }}
+                                </span>
+                            @endif
+                        </div>
+                        <div style="flex:1;">
+                            <label class="fl">Pilih Foto Baru</label>
+                            <input type="file" name="foto_profil" accept="image/*" class="fi" style="padding:0.4rem;">
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.4rem;">Format: JPG, PNG, GIF (Maks 2MB). Foto akan dipotong menjadi persegi 1:1.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="fsec">Informasi Akun (Read-Only)</div>
+                    <div class="frow">
+                        <div class="fg"><label class="fl">Nama Lengkap</label><input type="text" class="fi" value="{{ Auth::user()->name }}" readonly style="background:var(--content-bg);"></div>
+                        <div class="fg"><label class="fl">Alamat Email</label><input type="email" class="fi" value="{{ Auth::user()->email }}" readonly style="background:var(--content-bg);"></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         {{-- General Tab --}}
         <div class="set-pane active" id="tab-general">
             <div class="set-header">

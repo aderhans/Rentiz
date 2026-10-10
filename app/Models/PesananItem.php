@@ -10,6 +10,7 @@ class PesananItem extends Model
 {
     use HasFactory;
 
+<<<<<<< HEAD
     protected $table = 'pesanan_item';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -29,6 +30,10 @@ class PesananItem extends Model
         'tanggal_mulai' => 'datetime',
         'tanggal_selesai' => 'datetime',
     ];
+=======
+    public $incrementing = false;
+    protected $keyType = 'string';
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 
     protected static function booted()
     {
@@ -39,6 +44,20 @@ class PesananItem extends Model
         });
     }
 
+<<<<<<< HEAD
+=======
+    protected $table = 'pesanan_item';
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'harga_per_hari' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+    ];
+
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     public function pesanan()
     {
         return $this->belongsTo(Pesanan::class, 'pesanan_id');
@@ -48,4 +67,17 @@ class PesananItem extends Model
     {
         return $this->belongsTo(Barang::class, 'barang_id');
     }
+<<<<<<< HEAD
+=======
+
+    public function inventoryLock()
+    {
+        return $this->hasOne(InventoryLock::class);
+    }
+
+    public function checklistPengambilan()
+    {
+        return $this->hasOne(ChecklistSerahTerima::class)->where('tipe', 'pengambilan');
+    }
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 }

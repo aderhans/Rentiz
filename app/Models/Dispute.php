@@ -10,12 +10,30 @@ class Dispute extends Model
 {
     use HasFactory;
 
+<<<<<<< HEAD
     protected $table = 'dispute';
     protected $keyType = 'string';
     public $incrementing = false;
 
     protected $fillable = [
         'id',
+=======
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = (string) Str::uuid();
+            }
+        });
+    }
+
+    protected $table = 'dispute';
+
+    protected $fillable = [
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         'pelapor_id',
         'terlapor_id',
         'pesanan_id',
@@ -33,6 +51,7 @@ class Dispute extends Model
         'ditutup_at' => 'datetime',
     ];
 
+<<<<<<< HEAD
     protected static function booted()
     {
         static::creating(function ($model) {
@@ -42,6 +61,8 @@ class Dispute extends Model
         });
     }
 
+=======
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     public function pelapor()
     {
         return $this->belongsTo(User::class, 'pelapor_id');
@@ -56,9 +77,12 @@ class Dispute extends Model
     {
         return $this->belongsTo(Pesanan::class, 'pesanan_id');
     }
+<<<<<<< HEAD
 
     public function pesananItem()
     {
         return $this->belongsTo(PesananItem::class, 'pesanan_item_id');
     }
+=======
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 }

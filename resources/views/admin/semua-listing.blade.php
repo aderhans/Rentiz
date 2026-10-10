@@ -20,23 +20,18 @@
     .listing-row { display:flex;align-items:center;gap:.85rem;padding:.85rem 1.25rem;border-bottom:1px solid #F1F5F9;transition:background 150ms; }
     .listing-row:last-child { border-bottom:none; }
     .listing-row:hover { background:#FAFBFF; }
-    .l-thumb { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0; }
+    .l-thumb { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;overflow:hidden; }
     .l-info { flex:1;min-width:0; }
     .l-name { font-weight:600;font-size:.86rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
     .l-sub { font-size:.73rem;color:var(--text-muted);margin-top:1px; }
     .l-right { display:flex;align-items:center;gap:.6rem;flex-shrink:0;flex-wrap:wrap; }
-    .action-btn { background:none;border:1px solid var(--card-border);border-radius:6px;padding:3px 9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all 150ms; }
+    .action-btn { background:none;border:1px solid var(--card-border);border-radius:6px;padding:3px 9px;font-size:.73rem;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all 150ms;text-decoration:none;display:inline-flex;align-items:center;gap:3px; }
     .action-btn.view { color:var(--color-admin); }
     .action-btn.view:hover { background:var(--color-admin);color:white;border-color:var(--color-admin); }
     .action-btn.takedown { color:var(--danger); }
     .action-btn.takedown:hover { background:var(--danger);color:white;border-color:var(--danger); }
     .action-btn.approve { color:var(--success); }
     .action-btn.approve:hover { background:var(--success);color:white;border-color:var(--success); }
-
-    .pagination { display:flex;justify-content:center;gap:.4rem;padding:1.1rem;border-top:1px solid var(--card-border); }
-    .pg { width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--card-border);background:white;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-family:var(--font-body);transition:all 150ms; }
-    .pg:hover { border-color:var(--color-admin);color:var(--color-admin); }
-    .pg.active { background:var(--color-admin);border-color:var(--color-admin);color:white; }
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
@@ -50,12 +45,21 @@
 </div>
 
 <div class="stat-row">
+<<<<<<< HEAD
     <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $items->count() }}</div><div class="sl">Total Listing</div></div>
     <div class="scard"><div class="sv" style="color:var(--success);">{{ $items->where('status', 'active')->count() }}</div><div class="sl">Aktif</div></div>
     <div class="scard"><div class="sv" style="color:var(--warning);">{{ $items->where('status', 'pending')->count() }}</div><div class="sl">Pending Review</div></div>
     <div class="scard"><div class="sv" style="color:var(--danger);">{{ $items->where('status', 'rejected')->count() }}</div><div class="sl">Ditolak</div></div>
+=======
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $allItems->total ?? 0 }}</div><div class="sl">Total Listing</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);">{{ $allItems->aktif ?? 0 }}</div><div class="sl">Aktif</div></div>
+    <div class="scard"><div class="sv" style="color:var(--warning);">{{ $allItems->pending ?? 0 }}</div><div class="sl">Menunggu Persetujuan</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $allItems->lainnya ?? 0 }}</div><div class="sl">Ditolak / Nonaktif</div></div>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 </div>
 
+{{-- Filter Form — GET untuk dropdown, search dilakukan di sisi client --}}
+<form method="GET" action="{{ route('admin.semua-listing') }}" id="filter-form">
 <div class="toolbar">
     <div class="tbl">
         <div class="swrap">
@@ -68,6 +72,7 @@
             <option value="pending">Pending</option>
             <option value="rejected">Nonaktif/Ditolak</option>
         </select>
+<<<<<<< HEAD
         <select class="fi" id="list-kategori" onchange="filterListings()">
             <option value="semua">Semua Kategori</option>
             @php
@@ -75,15 +80,23 @@
             @endphp
             @foreach($kategoris as $k)
                 @if($k) <option value="{{ strtolower($k) }}">{{ ucwords(str_replace('_', ' ', $k)) }}</option> @endif
+=======
+        <select class="fi" name="kategori" id="list-kategori" onchange="document.getElementById('filter-form').submit()">
+            <option value="semua" {{ request('kategori', 'semua') === 'semua' ? 'selected' : '' }}>Semua Kategori</option>
+            @foreach($kategoris as $k)
+                <option value="{{ $k->id }}" {{ request('kategori') == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
             @endforeach
         </select>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="showToast('#7C3AED','📊 Mengunduh data listing...')">Export CSV</button>
+    <button type="button" class="btn btn-outline btn-sm" onclick="showToast('#7C3AED','📊 Mengunduh data listing...')">Export CSV</button>
 </div>
+</form>
 
 <div class="card">
     <div id="listing-list">
 
+<<<<<<< HEAD
 
     @forelse($items as $i=>$l)
     @php
@@ -103,6 +116,12 @@
     <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $l->status }}" data-kategori="{{ strtolower($l->kategori_id ?? '') }}" id="lrow-{{ $i }}">
         <textarea class="product-json-data" style="display:none;">{{ json_encode($prodData) }}</textarea>
         <div class="l-thumb" style="background:#F1F5F9; padding:0; overflow:hidden;">
+=======
+    @forelse($items as $l)
+    @php $rowStatus = in_array($l->status, ['rejected','suspended','unavailable']) ? 'nonaktif' : $l->status; @endphp
+    <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $rowStatus }}" data-kategori="{{ strtolower($l->kategori->nama ?? '') }}" id="lrow-{{ $l->id }}">
+        <div class="l-thumb" style="background:#F1F5F9;">
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
             @if($l->fotos && $l->fotos->first())
                 <img src="{{ asset('storage/' . $l->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
@@ -111,7 +130,11 @@
         </div>
         <div class="l-info">
             <div class="l-name">{{ $l->nama }}</div>
-            <div class="l-sub">{{ $l->user->name ?? 'Unknown' }} · {{ $l->kota }} · ⭐ 0.0 · 0x disewa</div>
+            <div class="l-sub">
+                {{ $l->user->name ?? 'Unknown' }}
+                · {{ $l->kota }}
+                @if($l->kategori) · {{ $l->kategori->nama }} @endif
+            </div>
         </div>
         <div style="font-weight:700;font-size:.86rem;color:var(--color-penyedia);flex-shrink:0;">Rp {{ number_format($l->harga_per_hari, 0, ',', '.') }}/hari</div>
         <div style="flex-shrink:0;">
@@ -121,6 +144,11 @@
             @endif
         </div>
         <div class="l-right">
+            {{-- Tombol Detail selalu ada, baik pending maupun aktif --}}
+            <a href="{{ route('admin.detail-barang', $l->id) }}" class="action-btn view">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                Detail
+            </a>
             @if($l->status==='pending')
                 <form action="{{ route('admin.approve-barang', $l->id) }}" method="POST" style="display:inline;">
                     @csrf
@@ -130,8 +158,12 @@
                     @csrf
                     <button type="submit" class="action-btn takedown">✕ Tolak</button>
                 </form>
+<<<<<<< HEAD
             @else
                 <button class="action-btn view" onclick="openDetail(this.closest('.listing-row'))">Detail</button>
+=======
+            @elseif($l->status==='active')
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 <form action="{{ route('admin.reject-barang', $l->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Takedown listing ini?');">
                     @csrf
                     <button type="submit" class="action-btn takedown">Takedown</button>
@@ -142,11 +174,13 @@
     @empty
     <div style="text-align:center; padding: 3rem 1rem; color: var(--text-muted);">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada listing barang</h3>
-        <p>Belum ada barang yang di-upload oleh penyedia.</p>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada listing ditemukan</h3>
+        <p>Coba ubah filter atau kata kunci pencarian.</p>
     </div>
     @endforelse
+
     </div>
+<<<<<<< HEAD
     </div>
     @if($items->count() > 10)
     <div class="pagination">
@@ -196,6 +230,14 @@
             </div>
         </div>
     </div>
+=======
+
+    @if($items->hasPages())
+    <div style="padding: 1rem; border-top: 1px solid var(--card-border);">
+        {{ $items->appends(request()->query())->links() }}
+    </div>
+    @endif
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 </div>
 
 <div class="toast" id="listing-toast"></div>
@@ -203,14 +245,30 @@
 
 @push('scripts')
 <script>
+    // Search + Status: client-side instant filter (tanpa reload halaman)
     function filterListings() {
-        var q = document.getElementById('list-search').value.toLowerCase();
+        var q      = document.getElementById('list-search').value.toLowerCase();
         var status = document.getElementById('list-status').value;
+<<<<<<< HEAD
         var kat = document.getElementById('list-kategori').value;
         document.querySelectorAll('#listing-list .listing-row').forEach(function(row) {
             var nm = row.dataset.name; var s = row.dataset.status; var k = row.dataset.kategori;
             row.style.display = (nm.includes(q) && (status==='semua'||s===status) && (kat==='semua'||k===kat)) ? '' : 'none';
+=======
+        var shown  = 0;
+        document.querySelectorAll('#listing-list .listing-row').forEach(function(row) {
+            var nm = row.dataset.name;
+            var st = row.dataset.status;  // 'active' | 'pending' | 'nonaktif'
+            var matchQ = nm.includes(q);
+            var matchS = (status === 'semua') || (st === status);
+            var show   = matchQ && matchS;
+            row.style.display = show ? '' : 'none';
+            if (show) shown++;
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         });
+        // Tampilkan pesan kosong jika tidak ada hasil
+        var emptyEl = document.getElementById('no-result');
+        if (emptyEl) emptyEl.style.display = shown === 0 ? '' : 'none';
     }
 
     function openDetail(row) {

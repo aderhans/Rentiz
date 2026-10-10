@@ -215,6 +215,7 @@
         <div class="card" style="margin-bottom:1.25rem;">
             <div class="card-header">
                 <span class="card-title">⏳ Menunggu Pembayaran</span>
+<<<<<<< HEAD
                 <span class="badge badge-warning">{{ $pesananPending->count() }} Tagihan</span>
             </div>
             <div class="card-body">
@@ -287,6 +288,41 @@
                 <div style="padding:2rem;text-align:center;color:var(--text-muted);">
                     Tidak ada tagihan yang menunggu pembayaran.
                 </div>
+=======
+                <span class="badge badge-neutral">{{ $tagihans->count() }} Tagihan</span>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                @if($tagihans->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+                        <p style="font-size: 0.9rem;">Tidak ada tagihan yang menunggu pembayaran.</p>
+                    </div>
+                @else
+                    @foreach($tagihans as $tagihan)
+                        <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border);">
+                            <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <div>
+                                    <span style="font-weight:600; font-size:0.95rem;">ID Pesanan: {{ substr($tagihan->pesanan_id, 0, 8) }}...</span>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan->expired_at)->format('d M Y H:i') }}</div>
+                                </div>
+                                <div style="font-weight:700; color:var(--color-penyewa); font-size:1.1rem;">
+                                    Rp {{ number_format($tagihan->jumlah, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <div style="font-size: 0.8rem; color:var(--text-secondary); margin-bottom: 0.8rem;">
+                                @foreach($tagihan->pesanan->items as $item)
+                                    <div>- {{ $item->barang->nama }} ({{ $item->durasi_hari }} Hari)</div>
+                                @endforeach
+                            </div>
+                            <form action="{{ route('penyewa.pembayaran.proses', $tagihan->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.5rem; font-size:0.85rem;" onclick="return confirm('Apakah Anda yakin ingin menyimulasikan pembayaran lunas untuk tagihan ini?')">
+                                    Bayar Sekarang (Simulasi)
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 @endif
             </div>
         </div>
@@ -297,6 +333,7 @@
                 <span class="card-title">📄 Riwayat Pembayaran</span>
                 <a href="{{ route('penyewa.riwayat-sewa') }}" class="btn btn-outline btn-sm">Lihat Semua</a>
             </div>
+<<<<<<< HEAD
             @forelse($riwayatPembayaran as $p)
             @php $item = $p->items->first(); @endphp
             <div class="txn-row">
@@ -312,6 +349,31 @@
             @empty
             <div style="padding:1rem 1.25rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">Belum ada riwayat pembayaran</div>
             @endforelse
+=======
+            <div style="padding: 0;">
+                @if($riwayats->isEmpty())
+                    <div style="text-align:center; padding: 2rem 1rem; color: var(--text-muted);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💸</div>
+                        <p style="font-size: 0.85rem;">Belum ada riwayat transaksi.</p>
+                    </div>
+                @else
+                    @foreach($riwayats as $riwayat)
+                        <div class="txn-row">
+                            <div class="txn-icon" style="background: {{ $riwayat->status == 'paid' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}; color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                @if($riwayat->status == 'paid') ✓ @else ✕ @endif
+                            </div>
+                            <div class="txn-info">
+                                <div class="txn-name">Pembayaran Pesanan</div>
+                                <div class="txn-date">{{ \Carbon\Carbon::parse($riwayat->updated_at)->format('d M Y H:i') }} • Status: {{ ucfirst($riwayat->status) }}</div>
+                            </div>
+                            <div class="txn-amount" style="color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                                {{ $riwayat->status == 'paid' ? '-' : '' }}Rp {{ number_format($riwayat->jumlah, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         </div>
     </div>
 
@@ -340,8 +402,15 @@
             <div class="card-body">
                 @php
                 $summaryItems = [
+<<<<<<< HEAD
                     ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp ' . number_format($totalBulanIni, 0, ',', '.'), 'color'=>'var(--danger)', 'icon'=>'↓'],
                     ['label'=>'Transaksi Bulan Ini', 'value'=> $riwayatPembayaran->where('created_at', '>=', now()->startOfMonth())->count() . ' transaksi', 'color'=>'var(--info)', 'icon'=>'#'],
+=======
+                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↓'],
+                    ['label'=>'Total Refund Diterima', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↑'],
+                    ['label'=>'Cashback Terkumpul', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'⭐'],
+                    ['label'=>'Transaksi Bulan Ini', 'value'=>'0 transaksi', 'color'=>'var(--text)', 'icon'=>'#'],
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 ];
                 @endphp
                 @foreach($summaryItems as $s)
@@ -360,9 +429,14 @@
                 <button class="btn btn-outline btn-sm" onclick="showToast('➕ Fitur tambah metode pembayaran segera hadir!')">+ Tambah</button>
             </div>
             <div class="card-body">
+<<<<<<< HEAD
                 <div style="padding:1.5rem;text-align:center;color:var(--text-muted);">
                     <div style="font-size:2rem;margin-bottom:0.5rem;">💳</div>
                     <div style="font-size:0.85rem;">Belum ada metode pembayaran tersimpan</div>
+=======
+                <div style="text-align:center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    Belum ada metode yang tersimpan.
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 </div>
             </div>
         </div>
@@ -375,40 +449,6 @@
 
 @push('scripts')
 <script>
-    // Countdown timer
-    var totalSecs = 6442; // ~1 jam 47 menit
-    function updateCountdown() {
-        if (totalSecs <= 0) {
-            document.getElementById('cd-h').textContent = '00';
-            document.getElementById('cd-m').textContent = '00';
-            document.getElementById('cd-s').textContent = '00';
-            return;
-        }
-        var h = Math.floor(totalSecs / 3600);
-        var m = Math.floor((totalSecs % 3600) / 60);
-        var s = totalSecs % 60;
-        document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
-        document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
-        document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
-        totalSecs--;
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    // Payment method selection
-    function selectMethod(method, el) {
-        document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-        // Toggle VA detail
-        var va = document.getElementById('va-bca');
-        va.classList.toggle('show', method === 'transfer');
-    }
-
-    function copyVA() {
-        navigator.clipboard.writeText('1234567890123456').catch(function() {});
-        showToast('📋 Nomor VA berhasil disalin!');
-    }
-
     function showToast(msg) {
         var toast = document.getElementById('pay-toast');
         toast.textContent = msg;

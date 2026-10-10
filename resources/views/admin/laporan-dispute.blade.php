@@ -47,19 +47,29 @@
         <h1 class="page-title">⚖️ Laporan & Dispute</h1>
         <p class="page-subtitle">Tangani keluhan, sengketa transaksi, dan laporan pelanggaran</p>
     </div>
-    <span class="badge badge-danger" style="font-size:.82rem;padding:6px 14px;">12 Kasus Aktif</span>
+    @if($kasusBaru > 0 || $kasusProses > 0)
+    <span class="badge badge-danger" style="font-size:.82rem;padding:6px 14px;">{{ $kasusBaru + $kasusProses }} Kasus Aktif</span>
+    @endif
 </div>
 
 <div class="dispute-tabs">
+<<<<<<< HEAD
     <button class="dispute-tab active" onclick="switchTab('semua',this)">Semua <span class="tb">{{ $cases->count() }}</span></button>
     <button class="dispute-tab" onclick="switchTab('open',this)">Kasus Baru <span class="tb">{{ $cases->where('status', 'open')->count() }}</span></button>
     <button class="dispute-tab" onclick="switchTab('under_review',this)">Dalam Proses <span class="tb">{{ $cases->where('status', 'under_review')->count() }}</span></button>
     <button class="dispute-tab" onclick="switchTab('closed',this)">Selesai <span class="tb">{{ $cases->where('status', 'closed')->count() }}</span></button>
+=======
+    <button class="dispute-tab active" onclick="switchTab('semua',this)">Semua <span class="tb">{{ $totalCases }}</span></button>
+    <button class="dispute-tab" onclick="switchTab('baru',this)">Kasus Baru <span class="tb">{{ $kasusBaru }}</span></button>
+    <button class="dispute-tab" onclick="switchTab('proses',this)">Dalam Proses <span class="tb">{{ $kasusProses }}</span></button>
+    <button class="dispute-tab" onclick="switchTab('selesai',this)">Selesai <span class="tb">{{ $kasusSelesai }}</span></button>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 </div>
 
 <div id="dispute-list">
     @forelse($cases as $c)
     @php
+<<<<<<< HEAD
         // Determine styling based on status
         if ($c->status === 'open') {
             $borderClass = 'border-l-new';
@@ -81,11 +91,28 @@
             <div class="d-title">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }} <span class="d-id">{{ strtoupper(substr($c->id, 0, 8)) }}</span></div>
             <div class="d-meta">
                 <span class="badge badge-neutral" style="font-size:.65rem;">Sengketa</span>
+=======
+        $statusMap = [
+            'open' => ['bg' => '#FEE2E2', 'icon' => '🚨', 'border' => 'baru', 'class' => 'baru', 'label' => 'Menunggu Review', 'badge' => 'danger'],
+            'under_review' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'class' => 'proses', 'label' => 'Sedang Diinvestigasi', 'badge' => 'warning'],
+            'pertimbangan_diberikan' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'class' => 'proses', 'label' => 'Menunggu Pihak Terkait', 'badge' => 'warning'],
+            'closed' => ['bg' => '#ECFDF5', 'icon' => '🧹', 'border' => 'done', 'class' => 'selesai', 'label' => 'Resolved', 'badge' => 'success']
+        ];
+        $meta = $statusMap[$c->status];
+    @endphp
+    <div class="dispute-card border-l-{{ $meta['border'] }}" data-status="{{ $meta['class'] }}" id="case-{{ $loop->index }}">
+        <div class="d-icon" style="background:{{ $meta['bg'] }};">{{ $meta['icon'] }}</div>
+        <div class="d-info">
+            <div class="d-title">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }} <span class="d-id">{{ substr($c->id, 0, 8) }}</span></div>
+            <div class="d-meta">
+                <span class="badge badge-neutral" style="font-size:.65rem;">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }}</span>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 <span>Dilaporkan: {{ $c->created_at->format('d M Y, H:i') }}</span>
             </div>
             <div class="d-desc">"{{ $c->deskripsi }}"</div>
             <div class="d-parties">
                 <div class="d-party">
+<<<<<<< HEAD
                     <div class="dp-ava" style="background:#0D9488">{{ substr($c->pelapor->name ?? 'P',0,1) }}</div>
                     <div><div class="dp-name">{{ $c->pelapor->name ?? 'Pelapor' }}</div><div class="dp-role">Penyewa</div></div>
                 </div>
@@ -93,12 +120,22 @@
                 <div class="d-party">
                     <div class="dp-ava" style="background:#2563EB">{{ substr($c->terlapor->name ?? 'T',0,1) }}</div>
                     <div><div class="dp-name">{{ $c->terlapor->name ?? 'Terlapor' }}</div><div class="dp-role">Penyedia</div></div>
+=======
+                    <div class="dp-ava" style="background:#0D9488">{{ substr($c->pelapor->name ?? '?', 0, 1) }}</div>
+                    <div><div class="dp-name">{{ $c->pelapor->name ?? 'Unknown' }}</div><div class="dp-role">Pelapor (Penyewa)</div></div>
+                </div>
+                <div style="font-size:.7rem;color:var(--text-muted);">vs</div>
+                <div class="d-party">
+                    <div class="dp-ava" style="background:#2563EB">{{ substr($c->terlapor->name ?? '?', 0, 1) }}</div>
+                    <div><div class="dp-name">{{ $c->terlapor->name ?? 'Unknown' }}</div><div class="dp-role">Terlapor (Penyedia)</div></div>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
                 </div>
             </div>
         </div>
         <div class="d-actions">
             @if($c->status === 'closed')
                 <div style="text-align:center;padding:.5rem;background:#ECFDF5;border-radius:var(--radius-sm);color:var(--success);font-weight:700;font-size:.78rem;">✓ Resolved</div>
+<<<<<<< HEAD
                 <button class="btn-action btn-secondary" onclick="showToast('#7C3AED','📄 Membuka log kasus {{ $c->id }}')">Lihat Log Resolusi</button>
             @else
                 <div style="text-align:center;margin-bottom:.3rem;">
@@ -117,14 +154,33 @@
                     @csrf
                     <button class="btn-action btn-secondary" type="submit">Tutup Kasus (Resolve)</button>
                 </form>
+=======
+                <button class="btn-action btn-secondary" onclick="showToast('#7C3AED','📄 Membuka log kasus {{ substr($c->id, 0, 8) }}')">Lihat Log Resolusi</button>
+            @else
+                <div style="text-align:center;margin-bottom:.3rem;">
+                    <span class="badge badge-{{ $meta['badge'] }}" style="font-size:.65rem;">{{ $meta['label'] }}</span>
+                </div>
+                <button class="btn-action btn-primary" onclick="showToast('#7C3AED','🔎 Membuka ruang mediasi {{ substr($c->id, 0, 8) }}')">Ruang Mediasi</button>
+                @if($c->status === 'open')
+                    <button class="btn-action btn-secondary" onclick="takeCase({{ $loop->index }}, '{{ substr($c->id, 0, 8) }}')">Ambil Kasus</button>
+                @endif
+                <button class="btn-action btn-secondary" onclick="resolveCase({{ $loop->index }}, '{{ substr($c->id, 0, 8) }}')">Tutup Kasus (Resolve)</button>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
             @endif
         </div>
     </div>
     @empty
+<<<<<<< HEAD
     <div style="text-align:center; padding: 3rem 1rem; color: var(--text-muted);">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada laporan</h3>
         <p>Belum ada sengketa atau laporan dispute.</p>
+=======
+    <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada laporan</h3>
+        <p>Belum ada sengketa atau laporan yang masuk.</p>
+>>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     </div>
     @endforelse
 </div>
