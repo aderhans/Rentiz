@@ -12,6 +12,8 @@ class PenyewaController extends Controller
      */
     public function cariBarang(Request $request)
     {
+        $this->cleanupExpiredOrders();
+
         $query = \App\Models\Barang::with('user', 'fotos')->where('status', 'active');
 
         if ($request->filled('q')) {
@@ -62,13 +64,16 @@ class PenyewaController extends Controller
 
         $cities = \App\Models\Barang::select('kota')->distinct()->whereNotNull('kota')->pluck('kota');
 
+        $user_wishlist = auth()->check() ? \App\Models\Wishlist::where('user_id', auth()->id())->pluck('barang_id')->toArray() : [];
+
         return view('penyewa.cari-barang', [
-            'items'       => $items,
-            'cities'      => $cities,
-            'query'       => $request->get('q', ''),
-            'kategori'    => $request->get('kategori', 'semua'),
-            'kota'        => $request->get('kota', ''),
-            'bookedDates' => $bookedDates,
+            'items'         => $items,
+            'cities'        => $cities,
+            'query'         => $request->get('q', ''),
+            'kategori'      => $request->get('kategori', 'semua'),
+            'kota'          => $request->get('kota', ''),
+            'user_wishlist' => $user_wishlist,
+            'bookedDates'   => $bookedDates,
         ]);
     }
 
@@ -105,14 +110,19 @@ class PenyewaController extends Controller
     {
         $request->validate([
             'fungsionalitas' => 'required|string',
-            'kelengkapan' => 'required|string',
-            'kondisi_fisik' => 'required|string',
-            'foto_bukti' => 'required|image|max:2048',
-            'catatan' => 'nullable|string'
+            'kelengkapan'    => 'required|string',
+            'kondisi_fisik'  => 'required|string',
+            'foto_bukti'     => 'required|image|max:2048',
+            'catatan'        => 'nullable|string'
         ]);
 
-        $item = \App\Models\PesananItem::findOrFail($id);
+        $item = \App\Models\PesananItem::with(['barang', 'pesanan'])->findOrFail($id);
         $user = \Illuminate\Support\Facades\Auth::user();
+
+        // Pastikan item milik penyewa ini
+        if ($item->pesanan->pemesan_id !== $user->id) {
+            return redirect()->route('penyewa.penyewaan-aktif')->with('error', 'Akses tidak diizinkan.');
+        }
 
         // Hindari double submit
         if (\App\Models\ChecklistSerahTerima::where('pesanan_item_id', $item->id)->where('tipe', 'pengambilan')->exists()) {
@@ -129,27 +139,48 @@ class PenyewaController extends Controller
 
             $kondisi = [
                 'fungsionalitas' => $request->fungsionalitas,
-                'kelengkapan' => $request->kelengkapan,
-                'kondisi_fisik' => $request->kondisi_fisik,
+                'kelengkapan'    => $request->kelengkapan,
+                'kondisi_fisik'  => $request->kondisi_fisik,
             ];
 
+            // 1. Simpan checklist pengambilan (diisi penyewa)
             \App\Models\ChecklistSerahTerima::create([
-                'pesanan_item_id' => $item->id,
-                'diisi_oleh' => $user->id,
-                'tipe' => 'pengambilan',
-                'kondisi_barang' => $kondisi,
-                'foto_bukti' => $fotoPath,
-                'catatan' => $request->catatan,
-                'status_verifikasi' => 'pending',
-                'dicatat_at' => now(),
+                'pesanan_item_id'   => $item->id,
+                'diisi_oleh'        => $user->id,
+                'tipe'              => 'pengambilan',
+                'kondisi_barang'    => $kondisi,
+                'foto_bukti'        => $fotoPath,
+                'catatan'           => $request->catatan,
+                'status_verifikasi' => 'verified',
+                'dicatat_at'        => now(),
             ]);
 
-            // Status TETAP 'confirmed' karena menunggu verifikasi penyedia.
-            // Branch lain yang akan mengubahnya menjadi 'active' melalui fungsi verifikasi.
+            // 2. Item status → 'active' (sewa aktif)
+            $item->update(['status' => 'active']);
+
+            // 3. Jika semua item dalam pesanan aktif, update pesanan induk juga
+            $pesanan = $item->pesanan;
+            $allActive = $pesanan->items()->where('status', '!=', 'active')->doesntExist();
+            if ($allActive) {
+                $pesanan->update(['status' => 'active']);
+            }
+
+            // 4. Notifikasi ke penyedia: barang telah diambil penyewa
+            \App\Models\Notifikasi::create([
+                'user_id'    => $pesanan->pemilik_id,
+                'pesanan_id' => $pesanan->id,
+                'untuk_role' => 'penyedia',
+                'tipe'       => 'pesanan_masuk',
+                'judul'      => '✅ Barang Telah Diambil!',
+                'pesan'      => 'Penyewa telah mengambil dan mengisi checklist untuk barang "' . ($item->barang->nama ?? 'Barang') . '". Masa sewa sekarang aktif. Silakan konfirmasi pengembalian saat barang dikembalikan.',
+                'channel'    => 'in_app',
+                'is_read'    => false,
+                'dikirim_at' => now(),
+            ]);
 
             \Illuminate\Support\Facades\DB::commit();
 
-            return redirect()->route('penyewa.penyewaan-aktif')->with('success', 'Checklist berhasil dikirim! Menunggu verifikasi dari penyedia.');
+            return redirect()->route('penyewa.penyewaan-aktif')->with('success', '✅ Checklist berhasil dikirim! Masa sewa aktif telah dimulai.');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -162,6 +193,42 @@ class PenyewaController extends Controller
     public function riwayatSewa()
     {
         return view('penyewa.riwayat-sewa');
+    }
+
+    /**
+     * Halaman Wishlist
+     */
+    public function wishlist()
+    {
+        $wishlists = \App\Models\Wishlist::with(['barang.user', 'barang.fotos'])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+            
+        return view('penyewa.wishlist', compact('wishlists'));
+    }
+
+    public function toggleWishlist(Request $request)
+    {
+        $request->validate([
+            'barang_id' => 'required|exists:barang,id'
+        ]);
+
+        $user_id = auth()->id();
+        $barang_id = $request->barang_id;
+
+        $wishlist = \App\Models\Wishlist::where('user_id', $user_id)->where('barang_id', $barang_id)->first();
+
+        if ($wishlist) {
+            $wishlist->delete();
+            return response()->json(['status' => 'removed', 'message' => 'Dihapus dari wishlist']);
+        } else {
+            \App\Models\Wishlist::create([
+                'user_id' => $user_id,
+                'barang_id' => $barang_id,
+            ]);
+            return response()->json(['status' => 'added', 'message' => 'Ditambahkan ke wishlist']);
+        }
     }
 
     /**
@@ -235,10 +302,45 @@ class PenyewaController extends Controller
     }
 
     /**
-     * Halaman Pembayaran (dummy)
+     * Membersihkan tagihan dan lock inventaris yang sudah melewati batas waktu (10 menit).
+     * Dijalankan secara otomatis (Lazy Expiration) untuk memastikan ketersediaan tanggal akurat secara real-time.
+     */
+    private function cleanupExpiredOrders()
+    {
+        $expiredPembayarans = \App\Models\Pembayaran::where('status', 'pending')
+            ->whereNotNull('expired_at')
+            ->where('expired_at', '<=', now())
+            ->with(['pesanan.items.inventoryLock'])
+            ->get();
+
+        foreach ($expiredPembayarans as $pembayaran) {
+            $pembayaran->update(['status' => 'expired']);
+
+            if ($pembayaran->pesanan) {
+                $pembayaran->pesanan->update(['status' => 'cancelled']);
+
+                foreach ($pembayaran->pesanan->items as $item) {
+                    $item->update(['status' => 'cancelled']);
+                    if ($item->inventoryLock) {
+                        $item->inventoryLock->update(['is_active' => false]);
+                    }
+                }
+            }
+        }
+
+        // Lepaskan juga inventory_lock yang berdiri sendiri jika sudah lewat expired_at
+        \App\Models\InventoryLock::where('is_active', true)
+            ->where('expired_at', '<=', now())
+            ->update(['is_active' => false]);
+    }
+
+    /**
+     * Halaman Pembayaran
      */
     public function pembayaran()
     {
+        $this->cleanupExpiredOrders();
+
         $user = \Illuminate\Support\Facades\Auth::user();
 
         $tagihans = \App\Models\Pembayaran::with(['pesanan.items.barang'])
@@ -257,17 +359,99 @@ class PenyewaController extends Controller
             ->latest()
             ->get();
 
-        return view('penyewa.pembayaran', compact('tagihans', 'riwayats'));
+        $totalBulanIni = $riwayats
+            ->where('status', 'paid')
+            ->where('updated_at', '>=', now()->startOfMonth())
+            ->sum('jumlah');
+
+        return view('penyewa.pembayaran', compact('tagihans', 'riwayats', 'totalBulanIni'));
     }
 
-    public function prosesBayar($id)
+    /**
+     * Halaman Payment Gateway Simulasi (mirip Midtrans Snap)
+     */
+    public function showPaymentGateway($id)
     {
+        $this->cleanupExpiredOrders();
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $pembayaran = \App\Models\Pembayaran::with(['pesanan.items.barang'])
+            ->whereHas('pesanan', function($q) use ($user) {
+                $q->where('pemesan_id', $user->id);
+            })
+            ->where('id', $id)
+            ->first();
+
+        // 1. Tagihan tidak ditemukan
+        if (!$pembayaran) {
+            return redirect()->route('penyewa.pembayaran')->with('error', 'Data tagihan pembayaran tidak ditemukan.');
+        }
+
+        // 2. Tagihan sudah lunas dibayar (cegah 404 jika halaman di-refresh)
+        if ($pembayaran->status === 'paid') {
+            return redirect()->route('penyewa.penyewaan-aktif')->with('info', 'Pembayaran untuk pesanan ini telah selesai. Anda dapat memantau status barang di menu Penyewaan Aktif.');
+        }
+
+        // 3. Status tidak pending (dibatalkan / kadaluwarsa)
+        if ($pembayaran->status !== 'pending') {
+            return redirect()->route('penyewa.pembayaran')->with('error', 'Tagihan pembayaran ini sudah tidak berlaku atau telah dibatalkan.');
+        }
+
+        // 4. Cek batas waktu kadaluwarsa
+        if ($pembayaran->expired_at && \Carbon\Carbon::parse($pembayaran->expired_at)->isPast()) {
+            return redirect()->route('penyewa.pembayaran')->with('error', 'Waktu pembayaran telah habis. Pesanan ini telah otomatis dibatalkan.');
+        }
+
+        return view('penyewa.payment-gateway', compact('pembayaran'));
+    }
+
+    public function prosesBayar(Request $request, $id)
+    {
+        $this->cleanupExpiredOrders();
+
         $pembayaran = \App\Models\Pembayaran::findOrFail($id);
+        $isAjax = $request->ajax() || $request->wantsJson();
+
+        if ($pembayaran->status !== 'pending' || ($pembayaran->expired_at && \Carbon\Carbon::parse($pembayaran->expired_at)->isPast())) {
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Waktu pembayaran telah habis (10 menit). Pesanan ini telah otomatis dibatalkan.'], 422);
+            }
+            return redirect()->back()->with('error', 'Waktu pembayaran telah habis (10 menit). Pesanan ini telah otomatis dibatalkan.');
+        }
+
+        // Ambil metode pembayaran dari request (dari payment gateway simulasi)
+        $metodeBayar = $request->input('metode_bayar');
+        $validMetode = ['bca_va', 'bni_va', 'mandiri_va', 'gopay', 'ovo', 'qris'];
+        $metodeKolom = null;
+        if (in_array($metodeBayar, $validMetode)) {
+            if (str_contains($metodeBayar, '_va')) {
+                $metodeKolom = 'virtual_account';
+            } else {
+                $metodeKolom = 'dompet_digital';
+            }
+        }
         
         try {
             \Illuminate\Support\Facades\DB::beginTransaction();
 
-            $pembayaran->update(['status' => 'paid', 'dibayar_at' => now()]);
+            // Simpan kode_bayar simulasi dan metode pembayaran
+            $updateData = ['status' => 'paid', 'dibayar_at' => now()];
+            if ($metodeKolom) {
+                $updateData['metode_bayar'] = $metodeKolom;
+                $updateData['kode_bayar'] = 'SIM-' . strtoupper(\Illuminate\Support\Str::random(8));
+                // Simpan data webhook simulasi
+                $updateData['webhook_data'] = json_encode([
+                    'transaction_status' => 'settlement',
+                    'payment_type' => $metodeBayar,
+                    'transaction_time' => now()->toDateTimeString(),
+                    'gross_amount' => $pembayaran->jumlah,
+                    'order_id' => $pembayaran->pesanan_id,
+                    'fraud_status' => 'accept',
+                    'simulated' => true,
+                ]);
+            }
+
+            $pembayaran->update($updateData);
             
             $pesanan = $pembayaran->pesanan;
             $pesanan->update(['status' => 'paid', 'payment_timestamp' => now()]);
@@ -282,12 +466,221 @@ class PenyewaController extends Controller
                 }
             }
 
+            // Logging transaksi pembayaran
+            \Illuminate\Support\Facades\DB::table('log')->insert([
+                'id' => \Illuminate\Support\Str::uuid(),
+                'user_id' => $pesanan->pemesan_id,
+                'aksi' => 'Pembayaran Berhasil',
+                'detail' => 'Pembayaran pesanan #' . substr($pesanan->id, 0, 8) . ' berhasil via ' . ($metodeBayar ?: 'simulasi') . '. Total: Rp ' . number_format($pembayaran->jumlah, 0, ',', '.'),
+                'ip_address' => $request->ip(),
+                'terjadi_at' => now(),
+            ]);
+
+            // Kirim notifikasi ke Penyedia (pemilik barang)
+            $firstItem = $pesanan->items->first();
+            $namaBarang = $firstItem && $firstItem->barang ? $firstItem->barang->nama : 'Barang';
+            $namaPenyewa = $pesanan->pemesan ? $pesanan->pemesan->name : 'Penyewa';
+
+            \App\Models\Notifikasi::create([
+                'user_id' => $pesanan->pemilik_id,
+                'pesanan_id' => $pesanan->id,
+                'untuk_role' => 'penyedia',
+                'tipe' => 'pesanan_masuk',
+                'judul' => '📦 Pesanan Baru Masuk!',
+                'pesan' => 'Barang "' . $namaBarang . '" telah disewa oleh ' . $namaPenyewa . '. Pembayaran telah lunas (Rp ' . number_format($pembayaran->jumlah, 0, ',', '.') . '). Silakan siapkan barang untuk serah terima.',
+                'channel' => 'in_app',
+                'is_read' => false,
+                'dikirim_at' => now(),
+            ]);
+
+            // Kirim notifikasi ke Penyewa (konfirmasi pembayaran)
+            \App\Models\Notifikasi::create([
+                'user_id' => $pesanan->pemesan_id,
+                'pesanan_id' => $pesanan->id,
+                'untuk_role' => 'penyewa',
+                'tipe' => 'pembayaran_berhasil',
+                'judul' => '🎉 Pembayaran Berhasil',
+                'pesan' => 'Pembayaran untuk pesanan #' . substr($pesanan->id, 0, 8) . ' berhasil diselesaikan. Silakan temui penyedia untuk serah terima barang.',
+                'channel' => 'in_app',
+                'is_read' => false,
+                'dikirim_at' => now(),
+            ]);
+
             \Illuminate\Support\Facades\DB::commit();
 
-            return redirect()->back()->with('success', 'Pembayaran berhasil disimulasikan!');
+            if ($isAjax) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pembayaran berhasil diselesaikan! Pesanan Anda telah terkonfirmasi.'
+                ]);
+            }
+
+            return redirect()->route('penyewa.pembayaran')->with('success', 'Pembayaran berhasil diselesaikan! Pesanan Anda telah terkonfirmasi.');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
+            if ($isAjax) {
+                return response()->json(['success' => false, 'message' => 'Gagal memproses pembayaran: ' . $e->getMessage()], 500);
+            }
             return redirect()->back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Membatalkan pesanan pending secara manual oleh penyewa
+     */
+    public function batalkanPesanan($id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $pembayaran = \App\Models\Pembayaran::where('id', $id)
+            ->whereHas('pesanan', function($q) use ($user) {
+                $q->where('pemesan_id', $user->id);
+            })
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $pembayaran->update(['status' => 'expired']);
+            if ($pembayaran->pesanan) {
+                $pembayaran->pesanan->update(['status' => 'cancelled']);
+                foreach ($pembayaran->pesanan->items as $item) {
+                    $item->update(['status' => 'cancelled']);
+                    if ($item->inventoryLock) {
+                        $item->inventoryLock->update(['is_active' => false]);
+                    }
+                }
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->back()->with('success', 'Pesanan berhasil dibatalkan dan jadwal booking barang telah dilepas.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal membatalkan pesanan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Proses Sewa Langsung (Direct Rent)
+     */
+    public function prosesSewa(Request $request)
+    {
+        $this->cleanupExpiredOrders();
+
+        $request->validate([
+            'barang_id' => 'required|exists:barang,id',
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+        ]);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $barang = \App\Models\Barang::findOrFail($request->barang_id);
+
+        if ($barang->user_id == $user->id) {
+            return back()->with('error', 'Anda tidak dapat menyewa barang milik Anda sendiri.');
+        }
+
+        if ($barang->status !== 'active') {
+            return back()->with('error', 'Barang tidak tersedia untuk disewa saat ini.');
+        }
+
+        // Cek apakah user yang sama sudah punya pesanan pending untuk barang ini
+        $existingPending = \App\Models\PesananItem::where('barang_id', $barang->id)
+            ->whereHas('pesanan', function($q) use ($user) {
+                $q->where('pemesan_id', $user->id)->where('status', 'pending_payment');
+            })
+            ->whereHas('inventoryLock', function($q) {
+                $q->where('is_active', true)->where('expired_at', '>', now());
+            })
+            ->first();
+
+        if ($existingPending) {
+            return redirect()->route('penyewa.pembayaran')->with('info', 'Anda sudah memiliki tagihan pending untuk barang ini. Silakan selesaikan pembayaran atau batalkan pesanan tersebut.');
+        }
+
+        $mulai = \Carbon\Carbon::parse($request->tanggal_mulai)->startOfDay();
+        $selesai = \Carbon\Carbon::parse($request->tanggal_selesai)->startOfDay();
+        $hari = $mulai->diffInDays($selesai);
+        if ($hari == 0) $hari = 1;
+
+        if ($hari < $barang->min_durasi_sewa || $hari > $barang->max_durasi_sewa) {
+            return back()->with('error', "Durasi sewa harus antara {$barang->min_durasi_sewa} - {$barang->max_durasi_sewa} hari.");
+        }
+
+        // Cek overlap ketersediaan inventory
+        $overlap = \Illuminate\Support\Facades\DB::table('inventory_lock')
+            ->join('pesanan_item', 'inventory_lock.pesanan_item_id', '=', 'pesanan_item.id')
+            ->where('inventory_lock.barang_id', $barang->id)
+            ->where('inventory_lock.is_active', true)
+            ->where('inventory_lock.expired_at', '>', now())
+            ->where(function ($query) use ($mulai, $selesai) {
+                $query->whereBetween('pesanan_item.tanggal_mulai', [$mulai, $selesai])
+                      ->orWhereBetween('pesanan_item.tanggal_selesai', [$mulai, $selesai])
+                      ->orWhere(function($q) use ($mulai, $selesai) {
+                          $q->where('pesanan_item.tanggal_mulai', '<=', $mulai)
+                            ->where('pesanan_item.tanggal_selesai', '>=', $selesai);
+                      });
+            })->exists();
+
+        if ($overlap) {
+            return back()->with('error', 'Maaf, tanggal yang dipilih sedang dibooking/dikunci oleh penyewa lain.');
+        }
+
+        $subtotal = $hari * $barang->harga_per_hari;
+        $biayaLayanan = 2000;
+        $total_biaya = $subtotal + $biayaLayanan;
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $pesanan = \App\Models\Pesanan::create([
+                'pemesan_id' => $user->id,
+                'pemilik_id' => $barang->user_id,
+                'total_biaya' => $total_biaya,
+                'status' => 'pending_payment',
+            ]);
+
+            $item = \App\Models\PesananItem::create([
+                'pesanan_id' => $pesanan->id,
+                'barang_id' => $barang->id,
+                'durasi_hari' => $hari,
+                'harga_per_hari' => $barang->harga_per_hari,
+                'subtotal' => $subtotal,
+                'tanggal_mulai' => $mulai,
+                'tanggal_selesai' => $selesai,
+                'status' => 'pending',
+            ]);
+
+            // TTL 10 Menit untuk kunci inventaris
+            \App\Models\InventoryLock::create([
+                'barang_id' => $barang->id,
+                'pesanan_item_id' => $item->id,
+                'user_id' => $user->id,
+                'expired_at' => now()->addMinutes(10),
+                'is_active' => true,
+            ]);
+
+            // TTL 10 Menit untuk tagihan pembayaran
+            $pembayaran = \App\Models\Pembayaran::create([
+                'pesanan_id' => $pesanan->id,
+                'jumlah' => $total_biaya,
+                'status' => 'pending',
+                'expired_at' => now()->addMinutes(10),
+            ]);
+
+            \App\Models\Transaksi::create([
+                'pesanan_id' => $pesanan->id,
+                'pembayaran_id' => $pembayaran->id,
+                'status_escrow' => 'ditahan',
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->route('penyewa.pembayaran')->with('success', 'Booking berhasil! Anda memiliki waktu 10 menit untuk menyelesaikan pembayaran.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return back()->with('error', 'Gagal memproses sewa: ' . $e->getMessage());
         }
     }
 
@@ -297,6 +690,8 @@ class PenyewaController extends Controller
 
     public function keranjang()
     {
+        $this->cleanupExpiredOrders();
+
         $user = \Illuminate\Support\Facades\Auth::user();
         $keranjangs = \App\Models\Keranjang::with(['barang.user', 'barang.fotos'])
             ->where('user_id', $user->id)
@@ -474,6 +869,8 @@ class PenyewaController extends Controller
 
     public function detailBarang($id)
     {
+        $this->cleanupExpiredOrders();
+
         $barang = \App\Models\Barang::with(['user', 'fotos'])->findOrFail($id);
         
         $locks = \Illuminate\Support\Facades\DB::table('inventory_lock')
@@ -497,6 +894,8 @@ class PenyewaController extends Controller
 
     public function prosesCheckout(Request $request)
     {
+        $this->cleanupExpiredOrders();
+
         $request->validate([
             'keranjang_ids' => 'required|array',
             'keranjang_ids.*' => 'exists:keranjangs,id'
@@ -536,7 +935,7 @@ class PenyewaController extends Controller
                     })->exists();
 
                 if ($overlap) {
-                    throw new \Exception("Maaf, barang '{$k->barang->nama}' sudah dipesan/dikunci pada rentang tanggal tersebut oleh orang lain.");
+                    throw new \Exception("Maaf, barang '{$k->barang->nama}' sedang dibooking/dikunci pada rentang tanggal tersebut oleh penyewa lain.");
                 }
 
                 $durasi = $mulai->diffInDays($selesai);
@@ -555,7 +954,7 @@ class PenyewaController extends Controller
                 'status' => 'pending_payment'
             ]);
 
-            // 3. Buat Items & Lock
+            // 3. Buat Items & Lock (TTL 10 Menit)
             foreach ($keranjangs as $k) {
                 $mulai = \Carbon\Carbon::parse($k->tanggal_mulai)->startOfDay();
                 $selesai = \Carbon\Carbon::parse($k->tanggal_selesai)->startOfDay();
@@ -579,17 +978,17 @@ class PenyewaController extends Controller
                     'barang_id' => $k->barang_id,
                     'pesanan_item_id' => $item->id,
                     'user_id' => $user->id,
-                    'expired_at' => now()->addHours(24),
+                    'expired_at' => now()->addMinutes(10),
                     'is_active' => true
                 ]);
             }
 
-            // 4. Buat Pembayaran
+            // 4. Buat Pembayaran (TTL 10 Menit)
             $pembayaran = \App\Models\Pembayaran::create([
                 'pesanan_id' => $pesanan->id,
                 'jumlah' => $totalPembayaran,
                 'status' => 'pending',
-                'expired_at' => now()->addHours(24)
+                'expired_at' => now()->addMinutes(10)
             ]);
 
             // 5. Buat Transaksi Escrow

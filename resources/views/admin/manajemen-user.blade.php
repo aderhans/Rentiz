@@ -94,6 +94,7 @@
 
 <div class="card">
     <div id="user-list">
+
     @if($users->isEmpty())
         <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
             Tidak ada data pengguna.
@@ -101,21 +102,21 @@
     @else
         @foreach($users as $u)
         @php
-            $roleLabel = 'Pengguna';
-            $badgeClass = 'badge-info';
+            $parts = explode(' ', $u->name);
+            $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+            $roleColor = $u->role === 'penyedia' ? 'badge-info' : 'badge-neutral';
             $statusBadge = $u->status === 'active' ? 'badge-success' : 'badge-danger';
             $statusText = $u->status === 'active' ? 'Aktif' : 'Suspended';
-            $initial = strtoupper(substr($u->name, 0, 1));
-            $color = $u->status === 'active' ? '#0D9488' : '#94A3B8';
+            $avaColor = $u->status === 'active' ? ($u->role === 'penyedia' ? '#2563EB' : '#0D9488') : '#94A3B8';
         @endphp
         <div class="user-row" data-name="{{ strtolower($u->name.' '.$u->email) }}" data-status="{{ $u->status }}" id="urow-{{ $u->id }}">
-            <div class="u-ava" style="background:{{ $color }};">{{ $initial }}</div>
+            <div class="u-ava" style="background:{{ $avaColor }};">{{ $initials }}</div>
             <div class="u-info">
                 <div class="u-name">{{ $u->name }}</div>
                 <div class="u-email">{{ $u->email }} · Bergabung {{ $u->created_at->translatedFormat('d M Y') }}</div>
             </div>
             <div style="flex-shrink:0;min-width:70px;text-align:center;">
-                <span class="badge {{ $badgeClass }}" style="font-size:.65rem;">{{ $roleLabel }}</span>
+                <span class="badge {{ $roleColor }}" style="font-size:.65rem;">{{ ucfirst($u->role) }}</span>
             </div>
             <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $u->trx }}x</div>
             <div class="u-right">
@@ -173,7 +174,8 @@
         var status = document.getElementById('user-status').value;
         document.querySelectorAll('#user-list .user-row').forEach(function(row) {
             var nm = row.dataset.name; var s = row.dataset.status;
-            row.style.display = (nm.includes(q) && (status==='semua'||s===status)) ? '' : 'none';
+            var normStatus = (s === 'aktif' || s === 'active') ? 'active' : 'suspended';
+            row.style.display = (nm.includes(q) && (status==='semua' || normStatus===status)) ? '' : 'none';
         });
     }
     function showToast(bg, msg) {

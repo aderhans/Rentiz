@@ -71,17 +71,21 @@
 
 <div class="card">
     <div id="trx-list">
+
     @forelse($transactions as $t)
     @php
-        $itemName = $t->items->first()->barang->nama ?? 'Unknown Item';
+        $firstItem = $t->items ? $t->items->first() : null;
+        $barangName = $firstItem && $firstItem->barang ? $firstItem->barang->nama : 'Barang Terhapus';
+        $pemesanName = $t->pemesan->name ?? 'User';
+        $pemilikName = $t->pemilik->name ?? ($firstItem && $firstItem->barang && $firstItem->barang->user ? $firstItem->barang->user->name : 'Penyedia');
         $itemTotal = $t->total_biaya;
-        $fee = $itemTotal * 0.1;
+        $fee = $itemTotal * 0.10;
     @endphp
-    <div class="trx-row" data-name="{{ strtolower(($t->pemesan->name ?? '') . ' ' . $t->id) }}" data-status="{{ $t->status }}">
+    <div class="trx-row" data-name="{{ strtolower($pemesanName . ' ' . $t->id) }}" data-status="{{ $t->status }}">
         <div style="flex-shrink:0;"><span class="trx-id">{{ substr($t->id, 0, 8) }}</span></div>
         <div class="trx-info">
-            <div class="trx-name">{{ $t->pemesan->name ?? 'Unknown' }} → {{ $t->pemilik->name ?? 'Unknown' }}</div>
-            <div class="trx-sub">{{ $itemName }} · {{ $t->created_at->format('d M Y, H:i') }}</div>
+            <div class="trx-name">{{ $pemesanName }} → {{ $pemilikName }}</div>
+            <div class="trx-sub">{{ $barangName }} · {{ $t->created_at->format('d M Y, H:i') }}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
             <div style="font-weight:700;font-size:.88rem;color:var(--text);">Rp {{ number_format($itemTotal, 0, ',', '.') }}</div>

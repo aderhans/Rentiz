@@ -365,16 +365,132 @@
         .header-btn:hover { background: var(--content-bg); color: var(--text); }
         .header-btn svg { width: 18px; height: 18px; }
 
-        .notif-dot {
+        /* Notification Dropdown */
+        .notif-dropdown-wrapper { position: relative; }
+        .notif-badge-count {
             position: absolute;
-            top: 6px;
-            right: 6px;
+            top: -3px;
+            right: -3px;
+            min-width: 17px;
+            height: 17px;
+            background: #EF4444;
+            color: white;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            border: 2px solid white;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        }
+        .notif-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 340px;
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 12px 35px rgba(15, 32, 68, 0.15);
+            z-index: 500;
+            overflow: hidden;
+            animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .notif-dropdown-menu.show { display: block; }
+        .notif-dropdown-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #FAFBFE;
+        }
+        .notif-dropdown-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .notif-mark-all-btn {
+            background: none;
+            border: none;
+            color: var(--color-penyedia);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .notif-mark-all-btn:hover { text-decoration: underline; }
+        .notif-dropdown-body {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #F1F5F9;
+            cursor: pointer;
+            transition: background 150ms;
+            position: relative;
+            text-decoration: none;
+        }
+        .notif-item:hover { background: #F8FAFC; }
+        .notif-item.unread { background: #F0FDF4; }
+        .notif-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #E0F2FE;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .notif-item.unread .notif-item-icon {
+            background: #DCFCE7;
+        }
+        .notif-item-content { flex: 1; min-width: 0; }
+        .notif-item-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .notif-item-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .notif-item-time {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .notif-item-dot {
             width: 7px;
             height: 7px;
-            background: #EF4444;
+            background: #059669;
             border-radius: 50%;
-            border: 1.5px solid white;
+            margin-top: 5px;
+            flex-shrink: 0;
         }
+        .notif-empty {
+            padding: 2.5rem 1rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .notif-empty span { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
 
         .header-avatar {
             width: 34px;
@@ -743,6 +859,32 @@
             $isAdmin = Auth::user()->isAdmin();
             $activeMode = $isAdmin ? 'admin' : session('active_mode', 'penyewa');
             $routeName = request()->route() ? request()->route()->getName() : '';
+
+            $user = Auth::user();
+            $unreadNotifCount = 0;
+            $recentNotifications = collect();
+            $providerPendingCount = 0;
+
+            if ($user) {
+                // Notifikasi unread untuk role aktif
+                $unreadNotifCount = \App\Models\Notifikasi::where('user_id', $user->id)
+                    ->where('untuk_role', $activeMode)
+                    ->where('is_read', false)
+                    ->count();
+
+                $recentNotifications = \App\Models\Notifikasi::where('user_id', $user->id)
+                    ->where('untuk_role', $activeMode)
+                    ->orderBy('dikirim_at', 'desc')
+                    ->take(6)
+                    ->get();
+
+                // Hitung pesanan masuk yang menunggu serah terima bagi penyedia
+                if ($activeMode === 'penyedia') {
+                    $providerPendingCount = \App\Models\PesananItem::whereHas('pesanan', function($q) use ($user) {
+                        $q->where('pemilik_id', $user->id)->where('status', 'paid');
+                    })->where('status', 'confirmed')->count();
+                }
+            }
         @endphp
 
         @if(!$isAdmin)
@@ -818,6 +960,9 @@
                 <a href="{{ route('penyedia.request-sewa') }}" class="nav-item {{ $routeName === 'penyedia.request-sewa' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     Request Sewa
+                    @if(isset($providerPendingCount) && $providerPendingCount > 0)
+                    <span style="margin-left:auto;min-width:19px;height:19px;background:#EF4444;color:white;border-radius:50px;font-size:.68rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;line-height:1;">{{ $providerPendingCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('penyedia.riwayat-transaksi') }}" class="nav-item {{ $routeName === 'penyedia.riwayat-transaksi' ? 'active' : '' }}">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -894,7 +1039,8 @@
         {{-- Sidebar Footer: User --}}
         <div class="sidebar-footer">
             @php
-                $initials = collect(explode(' ', Auth::user()->name))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
+                $parts = explode(' ', Auth::user()->name);
+                $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
                 $avatarColors = ['penyewa' => '#0D9488', 'penyedia' => '#2563EB', 'admin' => '#7C3AED'];
                 $avatarColor = $avatarColors[$activeMode] ?? '#4F8EF7';
             @endphp
@@ -948,12 +1094,59 @@
             </div>
 
             <div class="header-actions">
-                <button class="header-btn" title="Notifikasi">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    <span class="notif-dot"></span>
-                </button>
+                {{-- Interactive Notification Bell & Dropdown --}}
+                <div class="notif-dropdown-wrapper" id="notif-wrapper">
+                    <button class="header-btn" id="notif-bell-btn" onclick="toggleNotifDropdown(event)" title="Notifikasi">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        @if($unreadNotifCount > 0)
+                            <span class="notif-badge-count">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>
+                        @endif
+                    </button>
+
+                    {{-- Dropdown Menu --}}
+                    <div class="notif-dropdown-menu" id="notif-dropdown-menu">
+                        <div class="notif-dropdown-header">
+                            <span class="notif-dropdown-title">🔔 Notifikasi</span>
+                            @if($unreadNotifCount > 0)
+                                <form method="POST" action="{{ route('notifikasi.baca-semua') }}" style="margin:0;">
+                                    @csrf
+                                    <button type="submit" class="notif-mark-all-btn">Tandai semua dibaca</button>
+                                </form>
+                            @endif
+                        </div>
+                        <div class="notif-dropdown-body">
+                            @forelse($recentNotifications as $notif)
+                                <form method="POST" action="{{ route('notifikasi.baca', $notif->id) }}" id="notif-form-{{ $notif->id }}" style="margin:0;">
+                                    @csrf
+                                    <div class="notif-item {{ $notif->is_read ? 'read' : 'unread' }}" onclick="document.getElementById('notif-form-{{ $notif->id }}').submit();">
+                                        <div class="notif-item-icon">
+                                            @if(str_contains($notif->tipe, 'pesanan')) 📦
+                                            @elseif(str_contains($notif->tipe, 'pembayaran')) 💳
+                                            @elseif(str_contains($notif->tipe, 'checklist')) 📋
+                                            @else 🔔
+                                            @endif
+                                        </div>
+                                        <div class="notif-item-content">
+                                            <div class="notif-item-title">{{ $notif->judul }}</div>
+                                            <div class="notif-item-desc">{{ $notif->pesan }}</div>
+                                            <div class="notif-item-time">{{ \Carbon\Carbon::parse($notif->dikirim_at)->diffForHumans() }}</div>
+                                        </div>
+                                        @if(!$notif->is_read)
+                                            <div class="notif-item-dot"></div>
+                                        @endif
+                                    </div>
+                                </form>
+                            @empty
+                                <div class="notif-empty">
+                                    <span>📭</span>
+                                    <div>Belum ada notifikasi baru</div>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 <div class="header-avatar" style="background: {{ $avatarColor }}; overflow: hidden;">
                     @if(Auth::user()->foto_profil)
@@ -1029,6 +1222,23 @@
                 }, 500);
             }, 4000);
         }
+
+        // Notification Dropdown Toggle
+        function toggleNotifDropdown(e) {
+            e.stopPropagation();
+            var menu = document.getElementById('notif-dropdown-menu');
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            var wrapper = document.getElementById('notif-wrapper');
+            var menu = document.getElementById('notif-dropdown-menu');
+            if (wrapper && menu && !wrapper.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
     </script>
     @stack('scripts')
 </body>

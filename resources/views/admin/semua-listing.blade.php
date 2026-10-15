@@ -63,7 +63,7 @@
             <option value="semua">Semua Status</option>
             <option value="active">Aktif</option>
             <option value="pending">Pending</option>
-            <option value="nonaktif">Nonaktif</option>
+            <option value="nonaktif">Nonaktif/Ditolak</option>
         </select>
         <select class="fi" name="kategori" id="list-kategori" onchange="document.getElementById('filter-form').submit()">
             <option value="semua" {{ request('kategori', 'semua') === 'semua' ? 'selected' : '' }}>Semua Kategori</option>
@@ -80,9 +80,11 @@
     <div id="listing-list">
 
     @forelse($items as $l)
-    @php $rowStatus = in_array($l->status, ['rejected','suspended','unavailable']) ? 'nonaktif' : $l->status; @endphp
+    @php
+        $rowStatus = in_array($l->status, ['rejected','suspended','unavailable']) ? 'nonaktif' : $l->status;
+    @endphp
     <div class="listing-row" data-name="{{ strtolower($l->nama) }}" data-status="{{ $rowStatus }}" data-kategori="{{ strtolower($l->kategori->nama ?? '') }}" id="lrow-{{ $l->id }}">
-        <div class="l-thumb" style="background:#F1F5F9;">
+        <div class="l-thumb" style="background:#F1F5F9; padding:0; overflow:hidden;">
             @if($l->fotos && $l->fotos->first())
                 <img src="{{ asset('storage/' . $l->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
             @else
@@ -105,7 +107,7 @@
             @endif
         </div>
         <div class="l-right">
-            {{-- Tombol Detail selalu ada, baik pending maupun aktif --}}
+            {{-- Tombol Detail Halaman Penuh --}}
             <a href="{{ route('admin.detail-barang', $l->id) }}" class="action-btn view">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 Detail
@@ -144,6 +146,7 @@
     @endif
 </div>
 
+
 <div class="toast" id="listing-toast"></div>
 @endsection
 
@@ -163,10 +166,11 @@
             row.style.display = show ? '' : 'none';
             if (show) shown++;
         });
-        // Tampilkan pesan kosong jika tidak ada hasil
         var emptyEl = document.getElementById('no-result');
         if (emptyEl) emptyEl.style.display = shown === 0 ? '' : 'none';
     }
+
+
 
     function showToast(bg, msg) {
         var t = document.getElementById('listing-toast');

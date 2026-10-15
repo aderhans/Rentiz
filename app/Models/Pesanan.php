@@ -10,8 +10,17 @@ class Pesanan extends Model
 {
     use HasFactory;
 
+    protected $table = 'pesanan';
     public $incrementing = false;
     protected $keyType = 'string';
+    protected $guarded = [];
+
+    protected $casts = [
+        'payment_timestamp' => 'datetime',
+        'total_biaya'       => 'decimal:2',
+        'tanggal_mulai'     => 'datetime',
+        'tanggal_selesai'   => 'datetime',
+    ];
 
     protected static function booted()
     {
@@ -21,14 +30,6 @@ class Pesanan extends Model
             }
         });
     }
-
-    protected $table = 'pesanan';
-    protected $guarded = [];
-
-    protected $casts = [
-        'payment_timestamp' => 'datetime',
-        'total_biaya' => 'decimal:2',
-    ];
 
     public function pemesan()
     {
@@ -50,3 +51,4 @@ class Pesanan extends Model
         return $this->hasOne(Pembayaran::class);
     }
 }
+
