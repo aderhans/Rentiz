@@ -11,10 +11,6 @@ class AdminController extends Controller
 {
     public function manajemenUser()
     {
-<<<<<<< HEAD
-        $users = \App\Models\User::where('role', '!=', 'admin')->withCount(['pesananSebagaiPemesan', 'pesananSebagaiPemilik'])->orderBy('created_at', 'desc')->get();
-        return view('admin.manajemen-user', compact('users'));
-=======
         $usersQuery = \App\Models\User::where('role', '!=', 'admin')->orderBy('created_at', 'desc');
         $users = $usersQuery->paginate(10);
         
@@ -42,7 +38,6 @@ class AdminController extends Controller
         }
         
         return view('admin.manajemen-user', compact('users', 'totalUser', 'totalAktif', 'totalSuspended', 'mingguIni'));
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     }
 
     public function suspendUser($id)
@@ -149,10 +144,6 @@ class AdminController extends Controller
 
     public function semuaTransaksi()
     {
-<<<<<<< HEAD
-        $transactions = \App\Models\Pesanan::with(['pemesan', 'items.barang'])->orderBy('created_at', 'desc')->get();
-        return view('admin.semua-transaksi', compact('transactions'));
-=======
         $transactions = \App\Models\Pesanan::with(['pemesan', 'pemilik', 'items.barang'])->orderBy('created_at', 'desc')->paginate(10);
 
         $totalTrx = \App\Models\Pesanan::count();
@@ -162,14 +153,17 @@ class AdminController extends Controller
         $trxDispute = \App\Models\Pesanan::where('status', 'disputed')->count();
 
         return view('admin.semua-transaksi', compact('transactions', 'totalTrx', 'totalGMV', 'platformFee', 'trxBulanIni', 'trxDispute'));
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     }
 
     public function laporanDispute()
     {
         $cases = \App\Models\Dispute::with(['pelapor', 'terlapor'])->orderBy('created_at', 'desc')->get();
-<<<<<<< HEAD
-        return view('admin.laporan-dispute', compact('cases'));
+        $totalCases = $cases->count();
+        $kasusBaru = $cases->where('status', 'open')->count();
+        $kasusProses = $cases->whereIn('status', ['under_review', 'pertimbangan_diberikan'])->count();
+        $kasusSelesai = $cases->where('status', 'closed')->count();
+
+        return view('admin.laporan-dispute', compact('cases', 'totalCases', 'kasusBaru', 'kasusProses', 'kasusSelesai'));
     }
 
     public function takeCase(Request $request, $id)
@@ -184,14 +178,6 @@ class AdminController extends Controller
         $dispute = \App\Models\Dispute::findOrFail($id);
         $dispute->update(['status' => 'closed', 'ditutup_at' => now()]);
         return back()->with('success', 'Kasus berhasil diselesaikan.');
-=======
-        $totalCases = $cases->count();
-        $kasusBaru = $cases->where('status', 'open')->count();
-        $kasusProses = $cases->whereIn('status', ['under_review', 'pertimbangan_diberikan'])->count();
-        $kasusSelesai = $cases->where('status', 'closed')->count();
-
-        return view('admin.laporan-dispute', compact('cases', 'totalCases', 'kasusBaru', 'kasusProses', 'kasusSelesai'));
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     }
 
     public function pengaturan()
@@ -201,27 +187,6 @@ class AdminController extends Controller
 
     public function updateProfil(Request $request)
     {
-<<<<<<< HEAD
-        $totalUsers = \App\Models\User::count();
-        $totalTransactions = \App\Models\Pesanan::count();
-        
-        $gmv = \App\Models\Pesanan::where('status', '!=', 'pending_payment')->sum('total_biaya');
-        $revenue = $gmv * 0.10; // Asumsi komisi platform 10%
-        
-        $kategoriCount = \App\Models\Barang::select('kategori_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
-            ->groupBy('kategori_id')
-            ->orderByDesc('total')
-            ->take(5)
-            ->get();
-
-        $kotaCount = \App\Models\Barang::select('kota', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
-            ->groupBy('kota')
-            ->orderByDesc('total')
-            ->take(3)
-            ->get();
-
-        return view('admin.platform-analytics', compact('totalUsers', 'totalTransactions', 'gmv', 'revenue', 'kategoriCount', 'kotaCount'));
-=======
         $request->validate([
             'foto_profil' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
@@ -316,13 +281,21 @@ class AdminController extends Controller
             ->get()
             ->keyBy('status');
 
+        // 4. Sebaran Listing (Kota)
+        $kotaCount = \App\Models\Barang::select('kota', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->whereNotNull('kota')
+            ->where('kota', '!=', '')
+            ->groupBy('kota')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
         return view('admin.platform-analytics', compact(
             'totalUsers', 'totalTransaksi', 'gmv', 'platformFee', 
             'penyewaCount', 'penyediaCount', 'adminCount',
             'trenLabels', 'trenData',
             'kategoriTerlaris', 'totalTerjualAll',
-            'statusTransaksi', 'filter'
+            'statusTransaksi', 'kotaCount', 'filter'
         ));
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     }
 }

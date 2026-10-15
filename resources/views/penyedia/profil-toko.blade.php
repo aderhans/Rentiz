@@ -193,7 +193,4 @@
     }
 </script>
 @endpush
-        clearTimeout(window._sht); window._sht = setTimeout(function(){ t.classList.remove('show'); }, 3000);
-    }
-</script>
-@endpush
+

@@ -141,7 +141,29 @@
         background: rgba(0,0,0,0.6);
         color: white;
         backdrop-filter: blur(4px);
-    }    .product-body { padding: 1rem 1.1rem; }
+    }
+    .wishlist-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1rem;
+        color: #94A3B8;
+        z-index: 5;
+        transition: all 180ms;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .wishlist-btn:hover { transform: scale(1.1); color: #EF4444; }
+    .wishlist-btn.liked { color: #EF4444; background: white; }
+    .product-body { padding: 1rem 1.1rem; }
     .product-name {
         font-weight: 700;
         font-size: 0.9rem;
@@ -298,7 +320,9 @@
 
     @forelse($items as $p)
     @php
-<<<<<<< HEAD
+        $primaryPhoto = $p->fotos ? $p->fotos->where('is_primary', true)->first() : null;
+        if (!$primaryPhoto && $p->fotos) $primaryPhoto = $p->fotos->first();
+        $isWished = in_array($p->id, $user_wishlist ?? []);
         $prodData = [
             'id' => $p->id,
             'nama' => $p->nama,
@@ -309,57 +333,35 @@
             'seller' => $p->user->name ?? 'Unknown',
             'min_durasi' => $p->min_durasi_sewa,
             'max_durasi' => $p->max_durasi_sewa,
-            'foto' => ($p->fotos && $p->fotos->first()) ? asset('storage/' . $p->fotos->first()->path_foto) : null
+            'foto' => $primaryPhoto ? asset('storage/' . $primaryPhoto->path_foto) : null
         ];
     @endphp
-    <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}" onclick="openDetail(this)" style="cursor: pointer;">
-        <textarea class="product-json-data" style="display:none;">{{ json_encode($prodData) }}</textarea>
-        <div class="product-img" style="background: #F1F5F9; padding:0; overflow:hidden;">
-            @if($p->fotos && $p->fotos->first())
-                <img src="{{ asset('storage/' . $p->fotos->first()->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
-=======
-        $primaryPhoto = $p->fotos ? $p->fotos->where('is_primary', true)->first() : null;
-        if (!$primaryPhoto && $p->fotos) $primaryPhoto = $p->fotos->first();
-    @endphp
     <div class="product-card" data-cat="{{ strtolower($p->kategori_id ?? '') }}" data-name="{{ strtolower($p->nama) }}" data-city="{{ strtolower($p->kota) }}" data-price="{{ $p->harga_per_hari }}">
-        <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden; display:block; text-decoration:none;">
-            @if($primaryPhoto)
-                <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" style="width:100%;height:100%;object-fit:cover;">
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
-            @else
-                <div style="display:flex;align-items:center;justify-content:center;height:100%;">
-                    <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <textarea class="product-json-data" style="display:none;">{{ json_encode($prodData) }}</textarea>
+        <div style="position:relative;">
+            <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-img" style="background: #E2E8F0; padding:0; overflow:hidden; display:block; text-decoration:none;">
+                @if($primaryPhoto)
+                    <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ $p->nama }}">
+                @else
+                    <div style="display:flex;align-items:center;justify-content:center;height:100%;">
+                        <svg style="width: 40px; height: 40px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                @endif
+                
+                <div class="product-badge-corner" style="background: {{ $p->status == 'active' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }}">
+                    {{ $p->status == 'active' ? 'Tersedia' : 'Disewa' }}
                 </div>
-            @endif
-<<<<<<< HEAD
-            @php $isWished = in_array($p->id, $user_wishlist); @endphp
-            <button class="wishlist-btn {{ $isWished ? 'liked' : '' }}" onclick="toggleWishlist(this, '{{ $p->id }}', '{{ addslashes($p->nama) }}')" title="Tambah ke wishlist">
+            </a>
+            <button class="wishlist-btn {{ $isWished ? 'liked' : '' }}" onclick="event.preventDefault(); event.stopPropagation(); toggleWishlist(this, '{{ $p->id }}', '{{ addslashes($p->nama) }}')" title="Tambah ke wishlist">
                 ♥
             </button>
         </div>
-        <div class="product-body">
-            <div class="product-name">{{ $p->nama }}</div>
-            <div class="product-seller">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                {{ $p->user->name ?? 'Unknown' }} · {{ $p->kota }}
-=======
-            
-            <div class="product-badge-corner" style="background: {{ $p->status == 'active' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)' }}">
-                {{ $p->status == 'active' ? 'Tersedia' : 'Disewa' }}
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
-            </div>
-        </a>
         <div class="product-body" style="padding: 1.2rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                 <a href="{{ route('penyewa.barang.detail', $p->id) }}" class="product-name" style="font-size: 1.05rem; line-height: 1.3; white-space: normal; height: 2.6em; overflow: hidden; color: #1e293b; text-decoration: none;">
                     {{ $p->nama }}
                 </a>
             </div>
-<<<<<<< HEAD
-            <button class="btn-sewa-mini" onclick="event.stopPropagation(); openDetail(this.closest('.product-card'))">
-                Sewa Sekarang
-            </button>
-=======
             
             <div class="product-rating" style="margin-bottom: 0.5rem;">
                 ⭐ 0.0 <span style="color:var(--text-muted);font-weight:400;">(0 Ulasan)</span>
@@ -393,7 +395,6 @@
                     </button>
                 </div>
             @endif
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         </div>
     </div>
     @empty
@@ -522,25 +523,18 @@
                 var errorEl = document.getElementById('modal-error');
                 var errors  = [];
 
-                if (!mulai)   errors.push('Tanggal Pengambilan harus dipilih.');
-                if (!selesai) errors.push('Tanggal Pengembalian harus dipilih.');
-
-<<<<<<< HEAD
-            if (catMatch && nameMatch && cityMatch) {
-                card.style.display = '';
-                count++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        document.getElementById('result-count').innerHTML =
-            'Menampilkan <strong>' + count + '</strong> barang';
-    }
+                if (errors.length > 0) {
+                    e.preventDefault();
+                    errorEl.innerHTML = '⚠️ ' + errors.join('<br>⚠️ ');
+                    errorEl.style.display = 'block';
+                } else {
+                    errorEl.style.display = 'none';
+                }
+            });
+        }
+    });
 
     function toggleWishlist(btn, id, name) {
-        event.stopPropagation();
-        
         fetch("{{ route('penyewa.wishlist.toggle') }}", {
             method: 'POST',
             headers: {
@@ -564,18 +558,6 @@
             window.location.href = "{{ route('login') }}";
         });
     }
-=======
-                if (errors.length > 0) {
-                    e.preventDefault();
-                    errorEl.innerHTML = '⚠️ ' + errors.join('<br>⚠️ ');
-                    errorEl.style.display = 'block';
-                } else {
-                    errorEl.style.display = 'none';
-                }
-            });
-        }
-    });
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 
     function showToast(msg) {
         var toast = document.getElementById('toast');
@@ -586,10 +568,11 @@
             toast.classList.remove('show');
         }, 3000);
     }
-<<<<<<< HEAD
+
     function openDetail(card) {
-        var jsonText = card.querySelector('.product-json-data').value;
-        var data = JSON.parse(jsonText);
+        var jsonEl = card.querySelector('.product-json-data');
+        if (!jsonEl) return;
+        var data = JSON.parse(jsonEl.value);
         openDetailModalByData(data);
     }
 
@@ -616,20 +599,24 @@
         }
 
         var modal = document.getElementById('modal-detail');
-        modal.style.display = 'flex';
+        if (modal) modal.style.display = 'flex';
     }
 
     function closeDetail() {
-        document.getElementById('modal-detail').style.display = 'none';
+        var modal = document.getElementById('modal-detail');
+        if (modal) modal.style.display = 'none';
     }
 
-    // Close modal on click outside
     window.onclick = function(event) {
         var modal = document.getElementById('modal-detail');
         if (event.target == modal) {
             closeDetail();
         }
-=======
+        var sewaModal = document.getElementById('sewaModal');
+        if (event.target == sewaModal) {
+            closeSewaModal();
+        }
+    };
 
     function closeSewaModal() {
         document.getElementById('sewaModal').style.display = 'none';
@@ -676,7 +663,6 @@
         endDatePicker.clear();
 
         document.getElementById('sewaModal').style.display = 'flex';
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

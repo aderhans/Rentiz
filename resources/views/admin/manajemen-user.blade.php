@@ -68,18 +68,10 @@
 </div>
 
 <div class="stat-row">
-<<<<<<< HEAD
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $users->count() }}</div><div class="sl">Total User</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyewa);">{{ $users->where('role', 'penyewa')->count() }}</div><div class="sl">Penyewa</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyedia);">{{ $users->where('role', 'penyedia')->count() }}</div><div class="sl">Penyedia</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);">+{{ $users->where('created_at', '>=', now()->subDays(7))->count() }}</div><div class="sl">Minggu Ini</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $users->whereIn('status', ['suspend', 'suspended'])->count() }}</div><div class="sl">Suspended</div></div>
-=======
     <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $totalUser }}</div><div class="sl">Total User</div></div>
     <div class="scard"><div class="sv" style="color:var(--color-penyewa);">{{ $totalAktif }}</div><div class="sl">Aktif</div></div>
     <div class="scard"><div class="sv" style="color:var(--danger);">{{ $totalSuspended }}</div><div class="sl">Suspended</div></div>
     <div class="scard"><div class="sv" style="color:var(--success);">+{{ $mingguIni }}</div><div class="sl">Baru Minggu Ini</div></div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 </div>
 
 <div class="toolbar">
@@ -91,11 +83,7 @@
         <select class="fi" id="user-status" onchange="filterUsers()">
             <option value="semua">Semua Status</option>
             <option value="active">Aktif</option>
-<<<<<<< HEAD
-            <option value="suspend">Suspended</option>
-=======
             <option value="suspended">Suspended</option>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         </select>
     </div>
     <button class="btn btn-outline btn-sm" onclick="showToast('#7C3AED','📊 Mengunduh laporan user...')">
@@ -106,46 +94,7 @@
 
 <div class="card">
     <div id="user-list">
-<<<<<<< HEAD
 
-
-    @foreach($users as $u)
-    @php
-        $parts = explode(' ', $u->name);
-        $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
-        $color = $u->role === 'admin' ? '#2563EB' : ($u->role === 'penyedia' ? '#0D9488' : '#7C3AED');
-        $trxCount = max($u->pesanan_sebagai_pemesan_count, $u->pesanan_sebagai_pemilik_count);
-    @endphp
-    <div class="user-row" data-name="{{ strtolower($u->name.' '.$u->email) }}" data-role="{{ $u->role }}" data-status="{{ $u->status }}" id="urow-{{ $loop->index }}">
-        <div class="u-ava" style="background:{{ $color }};">{{ $initials }}</div>
-        <div class="u-info">
-            <div class="u-name">{{ $u->name }}</div>
-            <div class="u-email">{{ $u->email }} · Bergabung {{ $u->created_at->format('d M Y') }}</div>
-        </div>
-        <div style="flex-shrink:0;min-width:70px;text-align:center;">
-            <span class="badge {{ $u->role==='penyedia'?'badge-info':'badge-neutral' }}" style="font-size:.65rem;">{{ ucfirst($u->role) }}</span>
-        </div>
-        <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $trxCount }}x</div>
-        <div class="u-right">
-            @if($u->status==='aktif' || $u->status==='active')
-                <span class="badge badge-success" style="font-size:.65rem;">Aktif</span>
-                <button class="action-btn suspend" onclick="suspendUser({{ $loop->index }},'{{ $u->name }}')">Suspend</button>
-            @else
-                <span class="badge badge-danger" style="font-size:.65rem;">Suspended</span>
-                <button class="action-btn activate" onclick="activateUser({{ $loop->index }},'{{ $u->name }}')">Aktifkan</button>
-            @endif
-        </div>
-    </div>
-    @endforeach
-    </div>
-    @if($users->count() > 10)
-    <div class="pagination">
-        <button class="pg">‹</button>
-        <button class="pg active">1</button>
-        <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">2</button>
-        <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
-        <button class="pg">›</button>
-=======
     @if($users->isEmpty())
         <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
             Tidak ada data pengguna.
@@ -153,21 +102,21 @@
     @else
         @foreach($users as $u)
         @php
-            $roleLabel = 'Pengguna';
-            $badgeClass = 'badge-info';
+            $parts = explode(' ', $u->name);
+            $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+            $roleColor = $u->role === 'penyedia' ? 'badge-info' : 'badge-neutral';
             $statusBadge = $u->status === 'active' ? 'badge-success' : 'badge-danger';
             $statusText = $u->status === 'active' ? 'Aktif' : 'Suspended';
-            $initial = strtoupper(substr($u->name, 0, 1));
-            $color = $u->status === 'active' ? '#0D9488' : '#94A3B8';
+            $avaColor = $u->status === 'active' ? ($u->role === 'penyedia' ? '#2563EB' : '#0D9488') : '#94A3B8';
         @endphp
         <div class="user-row" data-name="{{ strtolower($u->name.' '.$u->email) }}" data-status="{{ $u->status }}" id="urow-{{ $u->id }}">
-            <div class="u-ava" style="background:{{ $color }};">{{ $initial }}</div>
+            <div class="u-ava" style="background:{{ $avaColor }};">{{ $initials }}</div>
             <div class="u-info">
                 <div class="u-name">{{ $u->name }}</div>
                 <div class="u-email">{{ $u->email }} · Bergabung {{ $u->created_at->translatedFormat('d M Y') }}</div>
             </div>
             <div style="flex-shrink:0;min-width:70px;text-align:center;">
-                <span class="badge {{ $badgeClass }}" style="font-size:.65rem;">{{ $roleLabel }}</span>
+                <span class="badge {{ $roleColor }}" style="font-size:.65rem;">{{ ucfirst($u->role) }}</span>
             </div>
             <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $u->trx }}x</div>
             <div class="u-right">
@@ -212,9 +161,7 @@
             <button class="c-modal-btn c-btn-cancel" onclick="closeConfirm()">Batal</button>
             <button class="c-modal-btn c-btn-confirm" onclick="doConfirm()">Ya, Lanjutkan</button>
         </div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     </div>
-    @endif
 </div>
 
 <div class="toast" id="admin-user-toast"></div>
@@ -227,34 +174,10 @@
         var status = document.getElementById('user-status').value;
         document.querySelectorAll('#user-list .user-row').forEach(function(row) {
             var nm = row.dataset.name; var s = row.dataset.status;
-<<<<<<< HEAD
-            // Handle if db stores 'aktif' instead of 'active' or vice versa
-            var normStatus = (s === 'aktif' || s === 'active') ? 'active' : 'suspend';
+            var normStatus = (s === 'aktif' || s === 'active') ? 'active' : 'suspended';
             row.style.display = (nm.includes(q) && (status==='semua' || normStatus===status)) ? '' : 'none';
         });
     }
-    function suspendUser(idx, name) {
-        if (!confirm('Suspend akun '+name+'?')) return;
-        var row = document.getElementById('urow-'+idx);
-        var right = row.querySelector('.u-right');
-        row.querySelector('.u-ava').style.background='#94A3B8';
-        row.dataset.status = 'suspend';
-        right.innerHTML = '<span class="badge badge-danger" style="font-size:.65rem;">Suspended</span><button class="action-btn activate" onclick="activateUser('+idx+',\''+name+'\')">Aktifkan</button>';
-        showToast('#DC2626','🚫 Akun '+name+' berhasil di-suspend!');
-    }
-    function activateUser(idx, name) {
-        var row = document.getElementById('urow-'+idx);
-        var right = row.querySelector('.u-right');
-        row.querySelector('.u-ava').style.background='#0D9488';
-        row.dataset.status = 'aktif';
-        right.innerHTML = '<span class="badge badge-success" style="font-size:.65rem;">Aktif</span><button class="action-btn suspend" onclick="suspendUser('+idx+',\''+name+'\')">Suspend</button>';
-        showToast('#059669','✅ Akun '+name+' berhasil diaktifkan!');
-    }
-=======
-            row.style.display = (nm.includes(q) && (status==='semua'||s===status)) ? '' : 'none';
-        });
-    }
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     function showToast(bg, msg) {
         var t = document.getElementById('admin-user-toast');
         t.style.background = bg; t.textContent = msg; t.classList.add('show');

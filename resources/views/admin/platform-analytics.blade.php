@@ -79,48 +79,27 @@
 <div class="grid-4">
     <div class="kpi-card">
         <div class="kpi-bg">👥</div>
-<<<<<<< HEAD
         <div class="kpi-lbl">Total Pengguna Terdaftar</div>
         <div class="kpi-val">{{ number_format($totalUsers, 0, ',', '.') }}</div>
-        <div class="kpi-sub up">▲ Akun Aktif</div>
-=======
-        <div class="kpi-lbl">Total Pengguna Aktif</div>
-        <div class="kpi-val">{{ number_format($totalUsers) }}</div>
-        <div class="kpi-sub up">Total user terdaftar</div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
+        <div class="kpi-sub up">▲ Akun Aktif Terdaftar</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">📦</div>
         <div class="kpi-lbl">Total Transaksi</div>
-<<<<<<< HEAD
-        <div class="kpi-val">{{ number_format($totalTransactions, 0, ',', '.') }}</div>
-        <div class="kpi-sub up">▲ Seluruh Waktu</div>
-=======
-        <div class="kpi-val">{{ number_format($totalTransaksi) }}</div>
-        <div class="kpi-sub up">Total seluruh pesanan</div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
+        <div class="kpi-val">{{ number_format($totalTransaksi, 0, ',', '.') }}</div>
+        <div class="kpi-sub up">▲ Total Seluruh Pesanan</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">💰</div>
         <div class="kpi-lbl">Gross Merchandise Value</div>
         <div class="kpi-val" style="color:var(--success);">Rp {{ number_format($gmv, 0, ',', '.') }}</div>
-<<<<<<< HEAD
-        <div class="kpi-sub up">▲ Akumulasi Transaksi Berhasil</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-bg">🏢</div>
-        <div class="kpi-lbl">Platform Revenue (Est)</div>
-        <div class="kpi-val" style="color:var(--color-admin);">Rp {{ number_format($revenue, 0, ',', '.') }}</div>
-        <div class="kpi-sub up">▲ Asumsi 10% Fee</div>
-=======
-        <div class="kpi-sub up">Total nilai transaksi sukses</div>
+        <div class="kpi-sub up">▲ Total Nilai Transaksi Sukses</div>
     </div>
     <div class="kpi-card">
         <div class="kpi-bg">🏢</div>
         <div class="kpi-lbl">Platform Revenue (Fee)</div>
         <div class="kpi-val" style="color:var(--color-admin);">Rp {{ number_format($platformFee, 0, ',', '.') }}</div>
-        <div class="kpi-sub up">Total 10% potongan platform</div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
+        <div class="kpi-sub up">▲ Total 10% Potongan Platform</div>
     </div>
 </div>
 
@@ -156,22 +135,6 @@
 
     {{-- Kategori Terpopuler --}}
     <div class="chart-box">
-<<<<<<< HEAD
-        <div class="cb-header"><span class="cb-title">Kategori Listing</span></div>
-        @php
-            $colors = ['#2563EB', '#0D9488', '#D97706', '#7C3AED', '#94A3B8'];
-            $totalKat = $kategoriCount->sum('total') ?: 1; // Prevent division by zero
-        @endphp
-        @forelse($kategoriCount as $i => $kat)
-        @php $pct = round(($kat->total / $totalKat) * 100); @endphp
-        <div class="prog-row">
-            <div class="prog-top"><span>{{ ucwords(str_replace('_', ' ', $kat->kategori_id ?? 'Tanpa Kategori')) }}</span><span>{{ $pct }}%</span></div>
-            <div class="prog-bar"><div class="prog-fill" style="width:{{ $pct }}%;background:{{ $colors[$i % count($colors)] }};"></div></div>
-        </div>
-        @empty
-        <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:1rem;">Belum ada data kategori.</div>
-        @endforelse
-=======
         <div class="cb-header"><span class="cb-title">Kategori Terlaris</span></div>
         @if($kategoriTerlaris->isEmpty())
              <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding: 2rem 0;">Belum ada data penjualan.</div>
@@ -188,42 +151,12 @@
                 </div>
             @endforeach
         @endif
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
     {{-- Status Transaksi Keseluruhan --}}
     <div class="chart-box">
-<<<<<<< HEAD
-        <div class="cb-header"><span class="cb-title">Sebaran Listing (Kota)</span></div>
-        <div class="map-box">
-            <div style="position:absolute;font-weight:700;color:var(--text-muted);font-size:2rem;opacity:.3;letter-spacing:5px;">INDONESIA</div>
-            
-            @php
-                $positions = [
-                    ['top'=>'40%', 'left'=>'30%', 'delay'=>'0s'],
-                    ['top'=>'55%', 'left'=>'50%', 'delay'=>'.5s'],
-                    ['top'=>'65%', 'left'=>'75%', 'delay'=>'1s'],
-                ];
-                $totalKota = $kotaCount->sum('total') ?: 1;
-            @endphp
-            
-            @foreach($kotaCount as $i => $k)
-            @php 
-                $pct = round(($k->total / $totalKota) * 100); 
-                $pos = $positions[$i % count($positions)];
-            @endphp
-            <div class="map-pin" style="top:{{ $pos['top'] }};left:{{ $pos['left'] }};">
-                <div class="pin-pulse" style="animation-delay:{{ $pos['delay'] }};"></div>
-                <div class="pin-dot"></div>
-                <div class="pin-lbl">{{ $k->kota }} ({{ $pct }}%)</div>
-            </div>
-            @endforeach
-            
-            @if($kotaCount->isEmpty())
-                <div style="position:absolute;font-size:0.8rem;font-weight:600;color:var(--text-muted);">Belum ada data kota</div>
-=======
         <div class="cb-header"><span class="cb-title">Status Transaksi Keseluruhan</span></div>
         <div style="padding-top:1rem;">
             @php
@@ -261,29 +194,64 @@
                         <div class="prog-bar"><div class="prog-fill" style="width:{{ $pct }}%;background:{{ $s['color'] }};"></div></div>
                     </div>
                 @endforeach
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
             @endif
         </div>
     </div>
 
-    {{-- User Retention --}}
+    {{-- Sebaran Listing (Kota) --}}
     <div class="chart-box">
-        <div class="cb-header"><span class="cb-title">Distribusi Pengguna</span></div>
-        <div style="display: flex; gap: 1rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyewa);">{{ number_format($penyewaCount) }}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Penyewa</div>
+        <div class="cb-header"><span class="cb-title">Sebaran Listing (Kota)</span></div>
+        <div class="map-box">
+            <div style="position:absolute;font-weight:700;color:var(--text-muted);font-size:2rem;opacity:.3;letter-spacing:5px;">INDONESIA</div>
+            
+            @php
+                $positions = [
+                    ['top'=>'40%', 'left'=>'30%', 'delay'=>'0s'],
+                    ['top'=>'55%', 'left'=>'50%', 'delay'=>'.5s'],
+                    ['top'=>'65%', 'left'=>'75%', 'delay'=>'1s'],
+                    ['top'=>'35%', 'left'=>'65%', 'delay'=>'1.2s'],
+                    ['top'=>'50%', 'left'=>'20%', 'delay'=>'1.5s'],
+                ];
+                $kotaList = $kotaCount ?? collect();
+                $totalKota = $kotaList->sum('total') ?: 1;
+            @endphp
+            
+            @foreach($kotaList as $i => $k)
+            @php 
+                $pct = round(($k->total / $totalKota) * 100); 
+                $pos = $positions[$i % count($positions)];
+            @endphp
+            <div class="map-pin" style="top:{{ $pos['top'] }};left:{{ $pos['left'] }};">
+                <div class="pin-pulse" style="animation-delay:{{ $pos['delay'] }};"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-lbl">{{ $k->kota }} ({{ $pct }}%)</div>
             </div>
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyedia);">{{ number_format($penyediaCount) }}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Penyedia</div>
-            </div>
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-admin);">{{ number_format($adminCount) }}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">Admin</div>
-            </div>
+            @endforeach
+            
+            @if($kotaList->isEmpty())
+                <div style="position:absolute;font-size:0.8rem;font-weight:600;color:var(--text-muted);">Belum ada data kota</div>
+            @endif
         </div>
     </div>
+</div>
+
+{{-- User Retention / Distribusi Pengguna --}}
+<div class="chart-box">
+    <div class="cb-header"><span class="cb-title">Distribusi Pengguna</span></div>
+    <div style="display: flex; gap: 1rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+        <div style="flex: 1; text-align: center;">
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyewa);">{{ number_format($penyewaCount) }}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Penyewa</div>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-penyedia);">{{ number_format($penyediaCount) }}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Penyedia</div>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <div style="font-size: 1.1rem; font-weight: 700; color: var(--color-admin);">{{ number_format($adminCount) }}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Admin</div>
+        </div>
     </div>
+</div>
 </div>
 @endsection

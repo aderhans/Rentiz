@@ -271,4 +271,44 @@ class AuthController extends Controller
 
         return redirect()->route('penyewa.cari-barang');
     }
+
+    /**
+     * Tandai satu notifikasi sebagai sudah dibaca
+     */
+    public function bacaNotifikasi($id)
+    {
+        $notif = \App\Models\Notifikasi::where('user_id', Auth::id())->findOrFail($id);
+        $notif->update(['is_read' => true, 'dibaca_at' => now()]);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        if ($notif->untuk_role === 'penyedia') {
+            return redirect()->route('penyedia.request-sewa');
+        }
+
+        return redirect()->route('penyewa.penyewaan-aktif');
+    }
+
+    /**
+     * Tandai semua notifikasi pada mode aktif sebagai sudah dibaca
+     */
+    public function bacaSemuaNotifikasi()
+    {
+        $isAdmin = Auth::user()->isAdmin();
+        $mode = $isAdmin ? 'admin' : session('active_mode', 'penyewa');
+
+        \App\Models\Notifikasi::where('user_id', Auth::id())
+            ->where('untuk_role', $mode)
+            ->where('is_read', false)
+            ->update(['is_read' => true, 'dibaca_at' => now()]);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back();
+    }
 }
+

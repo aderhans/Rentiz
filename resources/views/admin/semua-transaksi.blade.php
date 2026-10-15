@@ -41,19 +41,11 @@
 </div>
 
 <div class="stat-row">
-<<<<<<< HEAD
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ $transactions->count() }}</div><div class="sl">Total Transaksi</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);font-size:1rem;">Rp {{ number_format($transactions->where('status', 'completed')->sum('total_biaya'), 0, ',', '.') }}</div><div class="sl">Total GMV</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyedia);font-size:1rem;">Rp {{ number_format($transactions->where('status', 'completed')->sum('total_biaya') * 0.10, 0, ',', '.') }}</div><div class="sl">Platform Fee (10%)</div></div>
-    <div class="scard"><div class="sv" style="color:var(--warning);">{{ $transactions->filter(function($t) { return $t->created_at->isCurrentMonth(); })->count() }}</div><div class="sl">Bulan Ini</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">{{ \App\Models\Dispute::count() }}</div><div class="sl">Dispute</div></div>
-=======
     <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ number_format($totalTrx) }}</div><div class="sl">Total Transaksi</div></div>
     <div class="scard"><div class="sv" style="color:var(--success);font-size:1rem;">Rp {{ number_format($totalGMV, 0, ',', '.') }}</div><div class="sl">Total GMV</div></div>
     <div class="scard"><div class="sv" style="color:var(--color-penyedia);font-size:1rem;">Rp {{ number_format($platformFee, 0, ',', '.') }}</div><div class="sl">Platform Fee (10%)</div></div>
     <div class="scard"><div class="sv" style="color:var(--warning);">{{ number_format($trxBulanIni) }}</div><div class="sl">Bulan Ini</div></div>
     <div class="scard"><div class="sv" style="color:var(--danger);">{{ number_format($trxDispute) }}</div><div class="sl">Dispute</div></div>
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
 </div>
 
 <div class="filter-row">
@@ -79,52 +71,21 @@
 
 <div class="card">
     <div id="trx-list">
-<<<<<<< HEAD
 
     @forelse($transactions as $t)
     @php
-        $item = $t->items->first();
-        $barangName = $item && $item->barang ? $item->barang->nama : 'Barang Terhapus';
-        $pemilikName = $item && $item->barang && $item->barang->user ? $item->barang->user->name : 'Penyedia';
-        
-        $fee = $t->total_biaya * 0.10;
-        
-        $statusMap = [
-            'pending_payment' => ['badge-neutral', 'Pending Payment'],
-            'paid' => ['badge-warning', 'Aktif'],
-            'confirmed' => ['badge-warning', 'Aktif'],
-            'active' => ['badge-warning', 'Aktif'],
-            'completed' => ['badge-success', 'Selesai'],
-            'cancelled' => ['badge-neutral', 'Dibatalkan'],
-            'rejected' => ['badge-danger', 'Ditolak'],
-        ];
-        $badgeClass = $statusMap[$t->status][0] ?? 'badge-neutral';
-        $statusLabel = $statusMap[$t->status][1] ?? ucfirst($t->status);
-    @endphp
-    <div class="trx-row" data-name="{{ strtolower($t->pemesan->name.' '.$t->id) }}" data-status="{{ $t->status }}">
-        <div style="flex-shrink:0;"><span class="trx-id">{{ substr($t->id, 0, 8) }}</span></div>
-        <div class="trx-info">
-            <div class="trx-name">{{ $t->pemesan->name }} → {{ $pemilikName }}</div>
-            <div class="trx-sub">{{ $barangName }} · {{ $t->created_at->format('d M Y') }}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-            <div style="font-weight:700;font-size:.88rem;color:var(--text);">Rp {{ number_format($t->total_biaya, 0, ',', '.') }}</div>
-            <div style="font-size:.7rem;color:var(--success);">Fee: +Rp {{ number_format($fee, 0, ',', '.') }}</div>
-        </div>
-        <div style="flex-shrink:0;min-width:70px;text-align:right;">
-            <span class="badge {{ $badgeClass }}" style="font-size:.65rem;">{{ $statusLabel }}</span>
-=======
-    @forelse($transactions as $t)
-    @php
-        $itemName = $t->items->first()->barang->nama ?? 'Unknown Item';
+        $firstItem = $t->items ? $t->items->first() : null;
+        $barangName = $firstItem && $firstItem->barang ? $firstItem->barang->nama : 'Barang Terhapus';
+        $pemesanName = $t->pemesan->name ?? 'User';
+        $pemilikName = $t->pemilik->name ?? ($firstItem && $firstItem->barang && $firstItem->barang->user ? $firstItem->barang->user->name : 'Penyedia');
         $itemTotal = $t->total_biaya;
-        $fee = $itemTotal * 0.1;
+        $fee = $itemTotal * 0.10;
     @endphp
-    <div class="trx-row" data-name="{{ strtolower(($t->pemesan->name ?? '') . ' ' . $t->id) }}" data-status="{{ $t->status }}">
+    <div class="trx-row" data-name="{{ strtolower($pemesanName . ' ' . $t->id) }}" data-status="{{ $t->status }}">
         <div style="flex-shrink:0;"><span class="trx-id">{{ substr($t->id, 0, 8) }}</span></div>
         <div class="trx-info">
-            <div class="trx-name">{{ $t->pemesan->name ?? 'Unknown' }} → {{ $t->pemilik->name ?? 'Unknown' }}</div>
-            <div class="trx-sub">{{ $itemName }} · {{ $t->created_at->format('d M Y, H:i') }}</div>
+            <div class="trx-name">{{ $pemesanName }} → {{ $pemilikName }}</div>
+            <div class="trx-sub">{{ $barangName }} · {{ $t->created_at->format('d M Y, H:i') }}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
             <div style="font-weight:700;font-size:.88rem;color:var(--text);">Rp {{ number_format($itemTotal, 0, ',', '.') }}</div>
@@ -136,7 +97,6 @@
             @elseif($t->status === 'disputed') <span class="badge badge-danger" style="font-size:.65rem;">⚠ Dispute</span>
             @else <span class="badge badge-neutral" style="font-size:.65rem;">{{ ucfirst(str_replace('_', ' ', $t->status)) }}</span>
             @endif
->>>>>>> 9b97ebf48e4c35675c2ebcafdd0b258b0ffdae31
         </div>
         <button style="background:none;border:1px solid var(--card-border);border-radius:6px;padding:3px 9px;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--color-admin);font-family:var(--font-body);transition:all 150ms;flex-shrink:0;" onmouseover="this.style.background='var(--color-admin)';this.style.color='white'" onmouseout="this.style.background='none';this.style.color='var(--color-admin)'" onclick="showToast('🔍 Membuka detail transaksi {{ substr($t->id, 0, 8) }}')">Detail</button>
     </div>
