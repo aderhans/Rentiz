@@ -95,47 +95,7 @@
     }
     .copy-btn:hover { background: var(--color-penyewa); color: white; border-color: var(--color-penyewa); }
 
-    /* Saldo card */
-    .saldo-card {
-        background: linear-gradient(135deg, #0D9488 0%, #065f52 100%);
-        border-radius: var(--radius-xl);
-        padding: 1.5rem 1.4rem;
-        color: white;
-        margin-bottom: 1.25rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .saldo-card::before {
-        content:'';
-        position:absolute;
-        top:-30px; right:-30px;
-        width:130px; height:130px;
-        border-radius:50%;
-        background:rgba(255,255,255,0.06);
-        pointer-events:none;
-    }
-    .saldo-label { font-size:0.8rem; color:rgba(255,255,255,0.7); margin-bottom:4px; }
-    .saldo-amount {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.85rem;
-    }
-    .saldo-actions { display: flex; gap: 0.6rem; }
-    .saldo-btn {
-        flex: 1;
-        padding: 0.5rem;
-        border-radius: var(--radius-sm);
-        border: 1.5px solid rgba(255,255,255,0.3);
-        background: rgba(255,255,255,0.1);
-        color: white;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: var(--font-body);
-        transition: background 150ms;
-    }
-    .saldo-btn:hover { background: rgba(255,255,255,0.2); }
+
 
     /* Transaction list */
     .txn-row {
@@ -215,7 +175,7 @@
         <div class="card" style="margin-bottom:1.25rem;">
             <div class="card-header">
                 <span class="card-title">⏳ Menunggu Pembayaran</span>
-                <span class="badge badge-neutral">{{ $tagihans->count() }} Tagihan</span>
+                <span class="badge badge-warning">{{ $tagihans->count() }} Tagihan</span>
             </div>
             <div class="card-body" style="padding: 0;">
                 @if($tagihans->isEmpty())
@@ -225,27 +185,43 @@
                     </div>
                 @else
                     @foreach($tagihans as $tagihan)
-                        <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--card-border);">
-                            <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="padding: 1.25rem; border-bottom: 1px solid var(--card-border);">
+                            <div style="display:flex; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap:wrap; gap:0.5rem; align-items:flex-start;">
                                 <div>
-                                    <span style="font-weight:600; font-size:0.95rem;">ID Pesanan: {{ substr($tagihan->pesanan_id, 0, 8) }}...</span>
-                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan->expired_at)->format('d M Y H:i') }}</div>
+                                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                        <span style="font-weight:700; font-size:0.95rem; color:var(--text);">Pesanan #{{ substr($tagihan->pesanan_id, 0, 8) }}</span>
+                                        <span class="countdown-badge" id="timer-{{ $tagihan->id }}" data-expired="{{ \Carbon\Carbon::parse($tagihan->expired_at)->toISOString() }}" style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:700; color:#DC2626; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:50px;">
+                                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="timer-text">Memuat waktu...</span>
+                                        </span>
+                                    </div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                                        Jatuh Tempo: {{ \Carbon\Carbon::parse($tagihan->expired_at)->format('d M Y, H:i') }} WIB
+                                    </div>
                                 </div>
-                                <div style="font-weight:700; color:var(--color-penyewa); font-size:1.1rem;">
+                                <div style="font-weight:700; color:var(--color-penyewa); font-size:1.15rem; text-align:right;">
                                     Rp {{ number_format($tagihan->jumlah, 0, ',', '.') }}
                                 </div>
                             </div>
-                            <div style="font-size: 0.8rem; color:var(--text-secondary); margin-bottom: 0.8rem;">
-                                @foreach($tagihan->pesanan->items as $item)
-                                    <div>- {{ $item->barang->nama }} ({{ $item->durasi_hari }} Hari)</div>
-                                @endforeach
+                            <div style="font-size: 0.82rem; color:var(--text-secondary); margin-bottom: 1rem; background:var(--content-bg); padding:0.6rem 0.85rem; border-radius:var(--radius-sm);">
+                                @if($tagihan->pesanan && $tagihan->pesanan->items)
+                                    @foreach($tagihan->pesanan->items as $item)
+                                        <div>📦 {{ $item->barang->nama ?? 'Barang' }} ({{ $item->durasi_hari }} Hari) · {{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}</div>
+                                    @endforeach
+                                @endif
                             </div>
-                            <form action="{{ route('penyewa.pembayaran.proses', $tagihan->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.5rem; font-size:0.85rem;" onclick="return confirm('Apakah Anda yakin ingin menyimulasikan pembayaran lunas untuk tagihan ini?')">
-                                    Bayar Sekarang (Simulasi)
-                                </button>
-                            </form>
+                            <div style="display:flex; gap:0.75rem; align-items:center;">
+                                <a href="{{ route('penyewa.pembayaran.gateway', $tagihan->id) }}" id="btn-pay-{{ $tagihan->id }}" class="btn btn-primary-teal" style="flex:2; width: 100%; justify-content:center; padding: 0.65rem; font-size:0.85rem; text-decoration:none; display:flex; align-items:center; gap:0.4rem;">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Bayar Sekarang
+                                </a>
+                                <form action="{{ route('penyewa.pembayaran.batalkan', $tagihan->id) }}" method="POST" style="flex:1;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline" style="width: 100%; justify-content:center; padding: 0.65rem; font-size:0.85rem; color:var(--danger); border-color:#FECACA; background:#FEF2F2;" onclick="return confirm('Yakin ingin membatalkan pesanan ini? Jadwal booking barang akan langsung dilepas.')">
+                                        ✕ Batalkan
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     @endforeach
                 @endif
@@ -266,15 +242,19 @@
                     </div>
                 @else
                     @foreach($riwayats as $riwayat)
+                        @php
+                            $firstItem = $riwayat->pesanan && $riwayat->pesanan->items ? $riwayat->pesanan->items->first() : null;
+                            $namaBarang = $firstItem && $firstItem->barang ? $firstItem->barang->nama : 'Pembayaran Pesanan';
+                        @endphp
                         <div class="txn-row">
                             <div class="txn-icon" style="background: {{ $riwayat->status == 'paid' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)' }}; color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
                                 @if($riwayat->status == 'paid') ✓ @else ✕ @endif
                             </div>
                             <div class="txn-info">
-                                <div class="txn-name">Pembayaran Pesanan</div>
-                                <div class="txn-date">{{ \Carbon\Carbon::parse($riwayat->updated_at)->format('d M Y H:i') }} • Status: {{ ucfirst($riwayat->status) }}</div>
+                                <div class="txn-name">{{ $namaBarang }}</div>
+                                <div class="txn-date">{{ \Carbon\Carbon::parse($riwayat->updated_at)->format('d M Y H:i') }} · <span class="badge {{ $riwayat->status == 'paid' ? 'badge-success' : 'badge-danger' }}" style="font-size:0.65rem;">{{ ucfirst($riwayat->status) }}</span></div>
                             </div>
-                            <div class="txn-amount" style="color: {{ $riwayat->status == 'paid' ? '#10B981' : '#EF4444' }};">
+                            <div class="txn-amount" style="color: {{ $riwayat->status == 'paid' ? 'var(--text)' : '#EF4444' }}; font-weight:700;">
                                 {{ $riwayat->status == 'paid' ? '-' : '' }}Rp {{ number_format($riwayat->jumlah, 0, ',', '.') }}
                             </div>
                         </div>
@@ -284,22 +264,8 @@
         </div>
     </div>
 
-    {{-- ── Kanan: Saldo & Ringkasan ── --}}
+    {{-- ── Kanan: Ringkasan ── --}}
     <div>
-        {{-- Saldo RentizPay --}}
-        <div class="saldo-card">
-            <div style="font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:2px;">RentizPay</div>
-            <div class="saldo-label">Saldo Kamu</div>
-            <div class="saldo-amount">Rp 0</div>
-            <div class="saldo-actions">
-                <button class="saldo-btn" onclick="showToast('🏧 Fitur top-up sedang dalam pengembangan!')">
-                    + Top Up
-                </button>
-                <button class="saldo-btn" onclick="showToast('↗️ Fitur tarik saldo segera hadir!')">
-                    ↗ Tarik
-                </button>
-            </div>
-        </div>
 
         {{-- Ringkasan Keuangan --}}
         <div class="card" style="margin-bottom:1.25rem;">
@@ -309,10 +275,10 @@
             <div class="card-body">
                 @php
                 $summaryItems = [
-                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↓'],
-                    ['label'=>'Total Refund Diterima', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'↑'],
+                    ['label'=>'Total Pengeluaran Bulan Ini', 'value'=>'Rp ' . number_format($totalBulanIni, 0, ',', '.'), 'color'=>'var(--danger)', 'icon'=>'↓'],
+                    ['label'=>'Transaksi Bulan Ini', 'value'=> $riwayats->where('status', 'paid')->where('updated_at', '>=', now()->startOfMonth())->count() . ' transaksi', 'color'=>'var(--info)', 'icon'=>'#'],
+                    ['label'=>'Total Refund Diterima', 'value'=>'Rp ' . number_format($riwayats->where('status', 'refunded')->sum('jumlah'), 0, ',', '.'), 'color'=>'var(--text)', 'icon'=>'↑'],
                     ['label'=>'Cashback Terkumpul', 'value'=>'Rp 0', 'color'=>'var(--text)', 'icon'=>'⭐'],
-                    ['label'=>'Transaksi Bulan Ini', 'value'=>'0 transaksi', 'color'=>'var(--text)', 'icon'=>'#'],
                 ];
                 @endphp
                 @foreach($summaryItems as $s)
@@ -324,15 +290,39 @@
             </div>
         </div>
 
-        {{-- Metode Tersimpan --}}
+        {{-- Jaminan Keamanan Sewa --}}
         <div class="card">
             <div class="card-header">
-                <span class="card-title">💾 Metode Tersimpan</span>
-                <button class="btn btn-outline btn-sm" onclick="showToast('➕ Fitur tambah metode pembayaran segera hadir!')">+ Tambah</button>
+                <span class="card-title">🛡️ Jaminan Keamanan Sewa</span>
             </div>
-            <div class="card-body">
-                <div style="text-align:center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
-                    Belum ada metode yang tersimpan.
+            <div class="card-body" style="padding:1.15rem;">
+                <div style="display:flex;align-items:flex-start;gap:0.7rem;margin-bottom:0.85rem;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#059669);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;color:white;">✓</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.82rem;color:var(--text);margin-bottom:2px;">Dana Ditahan Sistem</div>
+                        <div style="font-size:0.74rem;color:var(--text-muted);line-height:1.45;">Uang Anda tidak langsung diteruskan ke penyedia. Dana ditahan aman oleh RentizPay selama proses sewa berjalan.</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:0.7rem;margin-bottom:0.85rem;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#2563EB);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;color:white;">⚡</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.82rem;color:var(--text);margin-bottom:2px;">Verifikasi Otomatis & Instan</div>
+                        <div style="font-size:0.74rem;color:var(--text-muted);line-height:1.45;">Pembayaran via Virtual Account, QRIS, atau E-Wallet terverifikasi otomatis dalam hitungan detik.</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:0.7rem;margin-bottom:0.85rem;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;color:white;">⏱</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.82rem;color:var(--text);margin-bottom:2px;">Batas Waktu 10 Menit</div>
+                        <div style="font-size:0.74rem;color:var(--text-muted);line-height:1.45;">Setiap tagihan memiliki batas waktu 10 menit. Jika tidak dibayar tepat waktu, pesanan otomatis dibatalkan dan tanggal sewa kembali tersedia.</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:0.7rem;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;color:white;">🔒</div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.82rem;color:var(--text);margin-bottom:2px;">Dispute & Perlindungan</div>
+                        <div style="font-size:0.74rem;color:var(--text-muted);line-height:1.45;">Jika terjadi masalah dengan barang yang disewa, Anda dapat mengajukan dispute dan dana akan dikembalikan sesuai kebijakan Rentiz.</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -354,5 +344,47 @@
             toast.classList.remove('show');
         }, 3500);
     }
+
+    // Hitung mundur live (Live Countdown Timer 10 Menit)
+    function updateCountdowns() {
+        var timers = document.querySelectorAll('.countdown-badge');
+        timers.forEach(function(badge) {
+            var expiredIso = badge.dataset.expired;
+            if (!expiredIso) return;
+
+            var expiredTime = new Date(expiredIso).getTime();
+            var now = new Date().getTime();
+            var distance = expiredTime - now;
+
+            var textEl = badge.querySelector('.timer-text');
+            var tagihanId = badge.id.replace('timer-', '');
+            var payBtn = document.getElementById('btn-pay-' + tagihanId);
+
+            if (distance <= 0) {
+                textEl.textContent = 'Waktu Habis (Kadaluwarsa)';
+                badge.style.color = '#64748B';
+                badge.style.background = '#F1F5F9';
+                badge.style.borderColor = '#CBD5E1';
+                if (payBtn) {
+                    payBtn.style.opacity = '0.5';
+                    payBtn.style.cursor = 'not-allowed';
+                    payBtn.style.pointerEvents = 'none';
+                    payBtn.textContent = 'Pesanan Kadaluwarsa';
+                    payBtn.removeAttribute('href');
+                }
+            } else {
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                var minStr = minutes < 10 ? '0' + minutes : minutes;
+                var secStr = seconds < 10 ? '0' + seconds : seconds;
+                textEl.textContent = minStr + ':' + secStr + ' tersisa';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    });
 </script>
 @endpush

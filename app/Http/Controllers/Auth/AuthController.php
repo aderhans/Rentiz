@@ -50,12 +50,18 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
 
-            // Jika login via form admin, pastikan user memang admin
             if ($isAdminLogin && !$user->isAdmin()) {
                 Auth::logout();
                 return back()
                     ->withInput($request->only('email', 'remember'))
-                    ->withErrors(['email' => 'Akun ini bukan akun administrator.']);
+                    ->withErrors(['email' => 'Hanya Untuk Admin.']);
+            }
+
+            if (!$isAdminLogin && $user->isAdmin()) {
+                Auth::logout();
+                return back()
+                    ->withInput($request->only('email', 'remember', '_form'))
+                    ->withErrors(['email' => 'Gunakan halaman admin untuk login.']);
             }
 
             // Cek jika akun disuspend
@@ -265,4 +271,44 @@ class AuthController extends Controller
 
         return redirect()->route('penyewa.cari-barang');
     }
+
+    /**
+     * Tandai satu notifikasi sebagai sudah dibaca
+     */
+    public function bacaNotifikasi($id)
+    {
+        $notif = \App\Models\Notifikasi::where('user_id', Auth::id())->findOrFail($id);
+        $notif->update(['is_read' => true, 'dibaca_at' => now()]);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        if ($notif->untuk_role === 'penyedia') {
+            return redirect()->route('penyedia.request-sewa');
+        }
+
+        return redirect()->route('penyewa.penyewaan-aktif');
+    }
+
+    /**
+     * Tandai semua notifikasi pada mode aktif sebagai sudah dibaca
+     */
+    public function bacaSemuaNotifikasi()
+    {
+        $isAdmin = Auth::user()->isAdmin();
+        $mode = $isAdmin ? 'admin' : session('active_mode', 'penyewa');
+
+        \App\Models\Notifikasi::where('user_id', Auth::id())
+            ->where('untuk_role', $mode)
+            ->where('is_read', false)
+            ->update(['is_read' => true, 'dibaca_at' => now()]);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back();
+    }
 }
+

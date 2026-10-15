@@ -63,17 +63,19 @@
     @forelse($cases as $c)
     @php
         $statusMap = [
-            'open' => ['bg' => '#FEE2E2', 'icon' => '🚨', 'border' => 'baru', 'class' => 'baru', 'label' => 'Menunggu Review', 'badge' => 'danger'],
-            'under_review' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'class' => 'proses', 'label' => 'Sedang Diinvestigasi', 'badge' => 'warning'],
-            'pertimbangan_diberikan' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'class' => 'proses', 'label' => 'Menunggu Pihak Terkait', 'badge' => 'warning'],
-            'closed' => ['bg' => '#ECFDF5', 'icon' => '🧹', 'border' => 'done', 'class' => 'selesai', 'label' => 'Resolved', 'badge' => 'success']
+            'open' => ['bg' => '#FEE2E2', 'icon' => '🚨', 'border' => 'new', 'tab' => 'baru', 'label' => 'Menunggu Review', 'badge' => 'danger'],
+            'under_review' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'tab' => 'proses', 'label' => 'Sedang Diinvestigasi', 'badge' => 'warning'],
+            'pertimbangan_diberikan' => ['bg' => '#FEF3C7', 'icon' => '⏳', 'border' => 'proses', 'tab' => 'proses', 'label' => 'Menunggu Pihak Terkait', 'badge' => 'warning'],
+            'closed' => ['bg' => '#ECFDF5', 'icon' => '✓', 'border' => 'done', 'tab' => 'selesai', 'label' => 'Resolved', 'badge' => 'success']
         ];
-        $meta = $statusMap[$c->status];
+        $meta = $statusMap[$c->status] ?? [
+            'bg' => '#F1F5F9', 'icon' => '📋', 'border' => 'proses', 'tab' => 'proses', 'label' => ucfirst($c->status), 'badge' => 'neutral'
+        ];
     @endphp
-    <div class="dispute-card border-l-{{ $meta['border'] }}" data-status="{{ $meta['class'] }}" id="case-{{ $loop->index }}">
+    <div class="dispute-card border-l-{{ $meta['border'] }}" data-status="{{ $meta['tab'] }}" id="case-{{ $loop->index }}">
         <div class="d-icon" style="background:{{ $meta['bg'] }};">{{ $meta['icon'] }}</div>
         <div class="d-info">
-            <div class="d-title">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }} <span class="d-id">{{ substr($c->id, 0, 8) }}</span></div>
+            <div class="d-title">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }} <span class="d-id">{{ strtoupper(substr($c->id, 0, 8)) }}</span></div>
             <div class="d-meta">
                 <span class="badge badge-neutral" style="font-size:.65rem;">{{ ucwords(str_replace('_', ' ', $c->kategori_laporan)) }}</span>
                 <span>Dilaporkan: {{ $c->created_at->format('d M Y, H:i') }}</span>
@@ -81,13 +83,13 @@
             <div class="d-desc">"{{ $c->deskripsi }}"</div>
             <div class="d-parties">
                 <div class="d-party">
-                    <div class="dp-ava" style="background:#0D9488">{{ substr($c->pelapor->name ?? '?', 0, 1) }}</div>
-                    <div><div class="dp-name">{{ $c->pelapor->name ?? 'Unknown' }}</div><div class="dp-role">Pelapor (Penyewa)</div></div>
+                    <div class="dp-ava" style="background:#0D9488">{{ strtoupper(substr($c->pelapor->name ?? 'P', 0, 1)) }}</div>
+                    <div><div class="dp-name">{{ $c->pelapor->name ?? 'Pelapor' }}</div><div class="dp-role">Pelapor ({{ ucfirst($c->pelapor->role ?? 'Penyewa') }})</div></div>
                 </div>
-                <div style="font-size:.7rem;color:var(--text-muted);">vs</div>
+                <div style="font-size:.7rem;color:var(--text-muted);align-self:center;">vs</div>
                 <div class="d-party">
-                    <div class="dp-ava" style="background:#2563EB">{{ substr($c->terlapor->name ?? '?', 0, 1) }}</div>
-                    <div><div class="dp-name">{{ $c->terlapor->name ?? 'Unknown' }}</div><div class="dp-role">Terlapor (Penyedia)</div></div>
+                    <div class="dp-ava" style="background:#2563EB">{{ strtoupper(substr($c->terlapor->name ?? 'T', 0, 1)) }}</div>
+                    <div><div class="dp-name">{{ $c->terlapor->name ?? 'Terlapor' }}</div><div class="dp-role">Terlapor ({{ ucfirst($c->terlapor->role ?? 'Penyedia') }})</div></div>
                 </div>
             </div>
         </div>
@@ -100,10 +102,17 @@
                     <span class="badge badge-{{ $meta['badge'] }}" style="font-size:.65rem;">{{ $meta['label'] }}</span>
                 </div>
                 <button class="btn-action btn-primary" onclick="showToast('#7C3AED','🔎 Membuka ruang mediasi {{ substr($c->id, 0, 8) }}')">Ruang Mediasi</button>
+                
                 @if($c->status === 'open')
-                    <button class="btn-action btn-secondary" onclick="takeCase({{ $loop->index }}, '{{ substr($c->id, 0, 8) }}')">Ambil Kasus</button>
+                    <form action="{{ route('admin.take-case', $c->id) }}" method="POST" style="width:100%;">
+                        @csrf
+                        <button class="btn-action btn-secondary" type="submit" style="width:100%;">Ambil Kasus</button>
+                    </form>
                 @endif
-                <button class="btn-action btn-secondary" onclick="resolveCase({{ $loop->index }}, '{{ substr($c->id, 0, 8) }}')">Tutup Kasus (Resolve)</button>
+                <form action="{{ route('admin.resolve-case', $c->id) }}" method="POST" onsubmit="return confirm('Selesaikan kasus {{ substr($c->id, 0, 8) }} ini?')" style="width:100%;">
+                    @csrf
+                    <button class="btn-action btn-secondary" type="submit" style="width:100%;">Tutup Kasus (Resolve)</button>
+                </form>
             @endif
         </div>
     </div>
@@ -111,7 +120,7 @@
     <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">
         <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada laporan</h3>
-        <p>Belum ada sengketa atau laporan yang masuk.</p>
+        <p>Belum ada sengketa atau laporan dispute yang masuk.</p>
     </div>
     @endforelse
 </div>
@@ -127,21 +136,6 @@
         document.querySelectorAll('#dispute-list .dispute-card').forEach(function(c) {
             c.style.display = (status==='semua' || c.dataset.status===status) ? '' : 'none';
         });
-    }
-    function takeCase(idx, id) {
-        var card = document.getElementById('case-'+idx);
-        card.className = 'dispute-card border-l-proses';
-        card.dataset.status = 'proses';
-        card.querySelector('.d-actions').innerHTML = '<div style="text-align:center;margin-bottom:.3rem;"><span class="badge badge-warning" style="font-size:.65rem;">Sedang Diinvestigasi</span></div><button class="btn-action btn-primary" onclick="showToast(\'#7C3AED\',\'🔎 Membuka ruang mediasi '+id+'\')">Ruang Mediasi</button><button class="btn-action btn-secondary" onclick="resolveCase('+idx+', \''+id+'\')">Tutup Kasus (Resolve)</button>';
-        showToast('#D97706', '👀 Kamu mengambil alih kasus '+id);
-    }
-    function resolveCase(idx, id) {
-        if(!confirm('Tandai kasus '+id+' sebagai selesai (Resolved)?')) return;
-        var card = document.getElementById('case-'+idx);
-        card.className = 'dispute-card border-l-done';
-        card.dataset.status = 'selesai';
-        card.querySelector('.d-actions').innerHTML = '<div style="text-align:center;padding:.5rem;background:#ECFDF5;border-radius:var(--radius-sm);color:var(--success);font-weight:700;font-size:.78rem;">✓ Resolved</div><button class="btn-action btn-secondary" onclick="showToast(\'#7C3AED\',\'📄 Membuka log kasus '+id+'\')">Lihat Log Resolusi</button>';
-        showToast('#059669', '✅ Kasus '+id+' berhasil diselesaikan!');
     }
     function showToast(bg, msg) {
         var t = document.getElementById('dsp-toast');

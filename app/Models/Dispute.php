@@ -10,6 +10,7 @@ class Dispute extends Model
 {
     use HasFactory;
 
+    protected $table = 'dispute';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -22,9 +23,8 @@ class Dispute extends Model
         });
     }
 
-    protected $table = 'dispute';
-
     protected $fillable = [
+        'id',
         'pelapor_id',
         'terlapor_id',
         'pesanan_id',
@@ -56,4 +56,10 @@ class Dispute extends Model
     {
         return $this->belongsTo(Pesanan::class, 'pesanan_id');
     }
+
+    public function pesananItem()
+    {
+        return $this->belongsTo(PesananItem::class, 'pesanan_item_id');
+    }
 }
+

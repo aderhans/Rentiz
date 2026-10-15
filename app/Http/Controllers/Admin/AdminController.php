@@ -166,6 +166,20 @@ class AdminController extends Controller
         return view('admin.laporan-dispute', compact('cases', 'totalCases', 'kasusBaru', 'kasusProses', 'kasusSelesai'));
     }
 
+    public function takeCase(Request $request, $id)
+    {
+        $dispute = \App\Models\Dispute::findOrFail($id);
+        $dispute->update(['status' => 'under_review']);
+        return back()->with('success', 'Berhasil mengambil alih kasus.');
+    }
+
+    public function resolveCase(Request $request, $id)
+    {
+        $dispute = \App\Models\Dispute::findOrFail($id);
+        $dispute->update(['status' => 'closed', 'ditutup_at' => now()]);
+        return back()->with('success', 'Kasus berhasil diselesaikan.');
+    }
+
     public function pengaturan()
     {
         return view('admin.pengaturan');
@@ -267,12 +281,21 @@ class AdminController extends Controller
             ->get()
             ->keyBy('status');
 
+        // 4. Sebaran Listing (Kota)
+        $kotaCount = \App\Models\Barang::select('kota', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->whereNotNull('kota')
+            ->where('kota', '!=', '')
+            ->groupBy('kota')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get();
+
         return view('admin.platform-analytics', compact(
             'totalUsers', 'totalTransaksi', 'gmv', 'platformFee', 
             'penyewaCount', 'penyediaCount', 'adminCount',
             'trenLabels', 'trenData',
             'kategoriTerlaris', 'totalTerjualAll',
-            'statusTransaksi', 'filter'
+            'statusTransaksi', 'kotaCount', 'filter'
         ));
     }
 }

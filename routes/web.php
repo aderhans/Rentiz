@@ -51,6 +51,8 @@ Route::middleware(['auth', 'check.status'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/switch-mode', [AuthController::class, 'switchMode'])->name('switch-mode');
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+    Route::post('/notifikasi/{id}/baca', [AuthController::class, 'bacaNotifikasi'])->name('notifikasi.baca');
+    Route::post('/notifikasi/baca-semua', [AuthController::class, 'bacaSemuaNotifikasi'])->name('notifikasi.baca-semua');
 
     /* ------------------------------------------------
      * Penyewa Routes (dummy — UI interaktif)
@@ -65,7 +67,11 @@ Route::middleware(['auth', 'check.status'])->group(function () {
         Route::put('/profil',           [PenyewaController::class, 'updateProfil'])->name('profil.update');
         Route::put('/profil/password',  [PenyewaController::class, 'updatePassword'])->name('profil.password');
         Route::get('/pembayaran',       [PenyewaController::class, 'pembayaran'])->name('pembayaran');
+        Route::post('/wishlist/toggle', [PenyewaController::class, 'toggleWishlist'])->name('wishlist.toggle');
+        Route::post('/proses-sewa',     [PenyewaController::class, 'prosesSewa'])->name('proses-sewa');
         Route::post('/pembayaran/{id}/proses', [PenyewaController::class, 'prosesBayar'])->name('pembayaran.proses');
+        Route::get('/pembayaran/{id}/gateway', [PenyewaController::class, 'showPaymentGateway'])->name('pembayaran.gateway');
+        Route::post('/pembayaran/{id}/batalkan', [PenyewaController::class, 'batalkanPesanan'])->name('pembayaran.batalkan');
         
         // Keranjang Routes
         Route::get('/keranjang',        [PenyewaController::class, 'keranjang'])->name('keranjang');
@@ -89,9 +95,12 @@ Route::middleware(['auth', 'check.status'])->group(function () {
         Route::patch('/barang/{id}',    [PenyediaController::class, 'updateBarang'])->name('update-barang');
         Route::delete('/barang/{id}',   [PenyediaController::class, 'destroy'])->name('delete-barang');
         Route::get('/request-sewa',     [PenyediaController::class, 'requestSewa'])->name('request-sewa');
+        Route::get('/request-sewa/{id}/pengembalian', [PenyediaController::class, 'formChecklistPengembalian'])->name('request-sewa.pengembalian');
+        Route::post('/request-sewa/{id}/pengembalian', [PenyediaController::class, 'simpanChecklistPengembalian'])->name('request-sewa.pengembalian.simpan');
         Route::get('/riwayat-transaksi',[PenyediaController::class, 'riwayatTransaksi'])->name('riwayat-transaksi');
         Route::get('/analitik',         [PenyediaController::class, 'analitik'])->name('analitik');
         Route::get('/penarikan-dana',   [PenyediaController::class, 'penarikanDana'])->name('penarikan-dana');
+        Route::post('/penarikan-dana',  [PenyediaController::class, 'prosesPenarikanDana'])->name('penarikan-dana.proses');
         Route::get('/profil-toko',      [PenyediaController::class, 'profilToko'])->name('profil-toko');
     });
 
@@ -110,6 +119,8 @@ Route::middleware(['auth', 'check.status'])->group(function () {
         Route::post('/semua-listing/{id}/restore', [AdminController::class, 'restoreBarang'])->name('restore-barang');
         Route::get('/semua-transaksi',  [AdminController::class, 'semuaTransaksi'])->name('semua-transaksi');
         Route::get('/laporan-dispute',  [AdminController::class, 'laporanDispute'])->name('laporan-dispute');
+        Route::post('/laporan-dispute/{id}/take', [AdminController::class, 'takeCase'])->name('take-case');
+        Route::post('/laporan-dispute/{id}/resolve', [AdminController::class, 'resolveCase'])->name('resolve-case');
         Route::get('/pengaturan',       [AdminController::class, 'pengaturan'])->name('pengaturan');
         Route::post('/pengaturan/profil', [AdminController::class, 'updateProfil'])->name('update-profil');
         Route::get('/platform-analytics',[AdminController::class, 'platformAnalytics'])->name('platform-analytics');
