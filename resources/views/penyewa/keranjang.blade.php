@@ -164,6 +164,20 @@
         background: #94a3b8;
         cursor: not-allowed;
     }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .cart-item { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+        .item-img { width: 100%; height: 160px; }
+        .item-actions { width: 100%; justify-content: space-between; }
+        .store-footer-inner { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+        .btn-checkout { width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+        .item-name { font-size: 0.95rem; }
+        .item-price { font-size: 0.95rem; }
+    }
 </style>
 @endpush
 

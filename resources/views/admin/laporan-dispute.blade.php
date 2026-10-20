@@ -38,6 +38,18 @@
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start !important; gap: .75rem; }
+        .dispute-card { flex-direction: column; gap: 1rem; padding: 1rem; }
+        .d-actions { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; }
+        .d-actions > * { flex: 1 1 calc(50% - .25rem); }
+        .d-parties { flex-wrap: wrap; gap: .75rem; }
+    }
+    @media (max-width: 480px) {
+        .d-actions > * { flex: 1 1 100%; }
+        .dispute-tab { min-width: 90px; font-size: .75rem; padding: .4rem .6rem; }
+    }
 </style>
 @endpush
 

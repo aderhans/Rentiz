@@ -31,6 +31,18 @@
     .pg-btn { width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--card-border);background:white;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-family:var(--font-body);transition:all 150ms; }
     .pg-btn:hover { border-color:var(--color-penyedia);color:var(--color-penyedia); }
     .pg-btn.active { background:var(--color-penyedia);border-color:var(--color-penyedia);color:white; }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .trx-row { flex-wrap: wrap; gap: 0.5rem; padding: 0.85rem 1rem; }
+        .trx-right { text-align: left; width: 100%; display: flex; justify-content: space-between; }
+        .filter-row { flex-direction: column; }
+        .si { width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+        .trx-summary { grid-template-columns: repeat(2, 1fr); }
+    }
 </style>
 @endpush
 

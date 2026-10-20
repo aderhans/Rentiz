@@ -41,6 +41,18 @@
     .pin-pulse { position:absolute;width:12px;height:12px;background:var(--color-admin);border-radius:50%;animation:pulse 2s infinite; }
     .pin-lbl { background:white;font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:4px;box-shadow:0 2px 4px rgba(0,0,0,.1); }
     @keyframes pulse { 0%{transform:scale(1);opacity:.8;} 100%{transform:scale(3);opacity:0;} }
+
+    .analytics-2col-main { display:grid;grid-template-columns:2fr 1fr;gap:1.5rem; }
+    .analytics-2col-equal { display:grid;grid-template-columns:1fr 1fr;gap:1.5rem; }
+
+    @media (max-width: 900px) {
+        .analytics-2col-main, .analytics-2col-equal { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+        .grid-4 { grid-template-columns: 1fr; }
+        .page-header { flex-direction: column; align-items: flex-start !important; gap: .75rem; }
+        .line-chart { overflow-x: auto; min-width: 280px; }
+    }
 </style>
 @endpush
 
@@ -103,7 +115,7 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+<div class="analytics-2col-main" style="margin-bottom:1.5rem;">
     {{-- Main Chart --}}
     <div class="chart-box">
         <div class="cb-header">
@@ -154,7 +166,7 @@
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+<div class="analytics-2col-equal" style="margin-bottom:1.5rem;">
     {{-- Status Transaksi Keseluruhan --}}
     <div class="chart-box">
         <div class="cb-header"><span class="cb-title">Status Transaksi Keseluruhan</span></div>

@@ -31,6 +31,19 @@
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;background:var(--color-admin);color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    @media (max-width: 768px) {
+        .filter-row { flex-direction: column; align-items: stretch; }
+        .swrap, .si, .fi { width: 100% !important; }
+        .trx-row { flex-wrap: wrap; gap: .65rem; padding: .85rem 1rem; }
+        .trx-info { flex: 1 1 100%; }
+        .trx-row > div:nth-child(3) { text-align: left !important; margin-right: auto; }
+    }
+    @media (max-width: 480px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+        .scard { padding: .75rem .5rem; }
+        .scard .sv { font-size: 1.1rem; }
+    }
 </style>
 @endpush
 

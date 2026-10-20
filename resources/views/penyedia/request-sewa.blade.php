@@ -150,6 +150,22 @@
         border-radius: 20px;
         font-weight: 700;
     }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .req-card { flex-direction: column; gap: 0.75rem; }
+        .req-actions { flex-direction: row; width: 100%; align-items: center; }
+        .req-actions .btn, .req-actions .btn-handover { flex: 1; justify-content: center; text-align: center; }
+        .req-thumb { width: 52px; height: 52px; font-size: 1.4rem; }
+        .req-tabs { -webkit-overflow-scrolling: touch; }
+        .req-tab { min-width: 100px; font-size: 0.78rem; }
+    }
+
+    @media (max-width: 480px) {
+        .req-meta { flex-direction: column; gap: 0.3rem; }
+        .req-actions { flex-direction: column; }
+        .req-actions .btn, .req-actions .btn-handover { width: 100%; }
+    }
 </style>
 @endpush
 

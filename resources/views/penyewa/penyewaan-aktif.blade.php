@@ -212,6 +212,22 @@
     .tl-pending { background: #CBD5E1; }
     .tl-text { font-size: 0.83rem; font-weight: 600; color: var(--text); }
     .tl-date { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .rental-card { flex-direction: column; gap: 0.75rem; }
+        .rental-actions { flex-direction: row; align-items: center; width: 100%; }
+        .rental-actions .btn { flex: 1; justify-content: center; }
+        .rental-emoji { width: 48px; height: 48px; font-size: 1.5rem; }
+        .rental-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .rental-tab { min-width: 90px; font-size: 0.78rem; padding: 0.5rem 0.6rem; }
+    }
+
+    @media (max-width: 480px) {
+        .rental-meta { flex-direction: column; gap: 0.4rem; }
+        .rental-actions { flex-direction: column; }
+        .rental-actions .btn { width: 100%; }
+    }
 </style>
 @endpush
 

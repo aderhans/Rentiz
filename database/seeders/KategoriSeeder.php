@@ -74,14 +74,16 @@ class KategoriSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            DB::table('kategori')->insert([
-                'id' => Str::uuid(),
-                'nama' => $category['nama'],
-                'slug' => $category['slug'],
-                'deskripsi' => $category['deskripsi'],
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            if (!DB::table('kategori')->where('slug', $category['slug'])->exists()) {
+                DB::table('kategori')->insert([
+                    'id' => (string) Str::uuid(),
+                    'nama' => $category['nama'],
+                    'slug' => $category['slug'],
+                    'deskripsi' => $category['deskripsi'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
     }
 }

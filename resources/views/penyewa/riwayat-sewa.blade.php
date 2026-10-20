@@ -143,6 +143,19 @@
     }
     .page-btn:hover { border-color: var(--color-penyewa); color: var(--color-penyewa); }
     .page-btn.active { background: var(--color-penyewa); border-color: var(--color-penyewa); color: white; }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .history-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 1rem; }
+        .history-right { text-align: left; width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        .filter-bar { flex-direction: column; }
+        .filter-bar-input { min-width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+        .riwayat-stats { grid-template-columns: repeat(2, 1fr); }
+        .riwayat-stat .rs-val { font-size: 1.1rem; }
+    }
 </style>
 @endpush
 

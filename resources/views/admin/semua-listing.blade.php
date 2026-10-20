@@ -35,6 +35,18 @@
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .listing-row { flex-wrap: wrap; gap: 0.5rem; }
+        .l-right { width: 100%; }
+        .toolbar { flex-direction: column; align-items: stretch; }
+        .tbl { flex-direction: column; }
+        .si { width: 100%; }
+    }
+    @media (max-width: 480px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
 </style>
 @endpush
 

@@ -56,6 +56,19 @@
     .c-btn-cancel:hover { background:#E2E8F0; }
     .c-btn-confirm { background:var(--color-admin);color:white; }
     .c-btn-confirm:hover { filter:brightness(1.1); }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .user-row { flex-wrap: wrap; gap: 0.5rem; }
+        .u-right { width: 100%; justify-content: flex-start; }
+        .toolbar { flex-direction: column; align-items: stretch; }
+        .tbl { flex-direction: column; }
+        .si { width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
 </style>
 @endpush
 

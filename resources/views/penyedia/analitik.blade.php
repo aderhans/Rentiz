@@ -49,6 +49,22 @@
     .period-tabs { display:flex;gap:0;background:var(--content-bg);border-radius:var(--radius-sm);padding:3px; }
     .period-tab { flex:1;padding:.38rem .7rem;border-radius:calc(var(--radius-sm)-3px);border:none;background:transparent;font-size:.77rem;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);transition:all 200ms;white-space:nowrap; }
     .period-tab.active { background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.06); }
+
+    /* ── Responsive Mobile ── */
+    @media (max-width: 768px) {
+        .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+        .donut-wrap { flex-direction: column; align-items: center; }
+        .top-item-row { flex-wrap: wrap; gap: 0.4rem; }
+        .ti-bar { display: none; }
+        .ti-amount { min-width: auto; }
+        .bar-chart { height: 100px; }
+        .period-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    }
+
+    @media (max-width: 480px) {
+        .analytics-grid { grid-template-columns: 1fr; }
+        .an-val { font-size: 1.2rem; }
+    }
 </style>
 @endpush
 
