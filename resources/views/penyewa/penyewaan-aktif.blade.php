@@ -288,40 +288,7 @@
         });
     }
 
-    var modals = {
-        'sony': {
-            title: '📷 Sony A7III + Lensa Kit',
-            body: `<ul class="timeline">
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Permintaan Dikirim</div><div class="tl-date">24 Mei 2026, 08:00</div></li>
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Dikonfirmasi Penyedia</div><div class="tl-date">24 Mei 2026, 09:30</div></li>
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Pembayaran Diterima</div><div class="tl-date">24 Mei 2026, 10:15</div></li>
-                <li><div class="tl-dot tl-current">●</div><div class="tl-text">Barang Sedang Disewa</div><div class="tl-date">24 Mei – 27 Mei 2026</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Pengembalian</div><div class="tl-date">27 Mei 2026</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Selesai & Ulasan</div><div class="tl-date">-</div></li>
-            </ul>`
-        },
-        'dji': {
-            title: '🚁 DJI Mini 3 Pro Combo',
-            body: `<ul class="timeline">
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Permintaan Dikirim</div><div class="tl-date">25 Mei 2026, 10:00</div></li>
-                <li><div class="tl-dot tl-current">●</div><div class="tl-text">Menunggu Konfirmasi Penyedia</div><div class="tl-date">Estimasi: 1–2 jam</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Pembayaran</div><div class="tl-date">-</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Barang Dikirim / Diambil</div><div class="tl-date">-</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Selesai & Ulasan</div><div class="tl-date">-</div></li>
-            </ul>`
-        },
-        'tenda': {
-            title: '⛺ Tenda Dome Camping 4P',
-            body: `<ul class="timeline">
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Permintaan Dikirim</div><div class="tl-date">23 Mei 2026, 14:00</div></li>
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Dikonfirmasi Penyedia</div><div class="tl-date">23 Mei 2026, 15:00</div></li>
-                <li><div class="tl-dot tl-done">✓</div><div class="tl-text">Pembayaran Diterima</div><div class="tl-date">23 Mei 2026, 15:30</div></li>
-                <li><div class="tl-dot tl-current">●</div><div class="tl-text">Menunggu Hari H</div><div class="tl-date">Mulai 28 Mei 2026</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Barang Sedang Disewa</div><div class="tl-date">28–31 Mei 2026</div></li>
-                <li><div class="tl-dot tl-pending"></div><div class="tl-text">Selesai & Ulasan</div><div class="tl-date">-</div></li>
-            </ul>`
-        }
-    };
+    var modals = {};
 
     function openModal(key) {
         var data = modals[key];
