@@ -27,5 +27,10 @@ class AppServiceProvider extends ServiceProvider
         // Set Carbon locale ke Bahasa Indonesia
         Carbon::setLocale('id');
         setlocale(LC_ALL, 'id_ID.utf8', 'id_ID', 'id');
+
+        // Pastikan asset & routing menggunakan HTTPS saat diakses lewat tunnel / reverse proxy
+        if (request()->server->has('HTTP_X_FORWARDED_PROTO') && request()->server->get('HTTP_X_FORWARDED_PROTO') === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }
