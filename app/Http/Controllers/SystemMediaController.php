@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\PersistentFile;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use PDO;
 
 class SystemMediaController extends Controller
 {
     /**
-     * Endpoint ringan untuk Keep-Alive / Cron-job / UptimeRobot
-     * agar server cloud Render tidak masuk mode sleep (spin-down).
+     * Endpoint ringan untuk Keep-Alive / Health-Check.
      */
     public function ping(): JsonResponse
     {
@@ -22,9 +23,57 @@ class SystemMediaController extends Controller
     }
 
     /**
+     * One-Click Cloud Database Setup (untuk platform serverless seperti Vercel tanpa SSH).
+     * Otomatis membuat database target di TiDB Cloud, menjalankan migrate & seeder.
+     */
+    public function setupDatabase(): JsonResponse
+    {
+        try {
+            $host = config('database.connections.mysql.host');
+            $port = config('database.connections.mysql.port', '4000');
+            $user = config('database.connections.mysql.username');
+            $pass = config('database.connections.mysql.password');
+            $db   = config('database.connections.mysql.database', 'rentiz');
+            $opts = config('database.connections.mysql.options', []);
+
+            // 1. Pastikan database target (misal: rentiz) sudah terbuat di TiDB Cloud
+            $pdo = new PDO("mysql:host={$host};port={$port}", $user, $pass, $opts);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $safeDb = preg_replace('/[^a-zA-Z0-9_]/', '', $db) ?: 'rentiz';
+            $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$safeDb}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            // 2. Reconnect Laravel ke database target & jalankan migrasi + seeder
+            DB::purge('mysql');
+            DB::reconnect('mysql');
+
+            Artisan::call('migrate', ['--force' => true]);
+            $migrateOutput = trim(Artisan::output());
+
+            Artisan::call('db:seed', ['--force' => true]);
+            $seedOutput = trim(Artisan::output());
+
+            // 3. Pastikan tabel persistent_files siap
+            PersistentFile::syncAndRestoreAll();
+
+            return response()->json([
+                'status'   => 'success',
+                'message'  => 'Database cloud berhasil disiapkan! Semua tabel, 11 kategori, dan akun admin sudah aktif.',
+                'database' => $safeDb,
+                'migrate'  => $migrateOutput,
+                'seed'     => $seedOutput,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Self-Healing Storage Fallback:
-     * Jika file di public/storage/{path} hilang (karena container Render restart),
-     * otomatis pulihkan dari tabel persistent_files di database ke disk lokal,
+     * Jika file di public/storage/{path} hilang (karena container/serverless restart),
+     * otomatis pulihkan dari tabel persistent_files di database ke disk sementara,
      * lalu kirimkan gambar ke browser tanpa error.
      */
     public function serveStorage(string $path)
@@ -39,7 +88,6 @@ class SystemMediaController extends Controller
         // 1. Cek apakah file sudah ada di storage/app/public
         $localFullPath = storage_path('app/public/' . $cleanPath);
         if (is_file($localFullPath) && is_readable($localFullPath)) {
-            // Pastikan juga sudah ter-backup di database
             PersistentFile::storeFromPublicDisk($cleanPath);
 
             $mime = @mime_content_type($localFullPath) ?: 'image/jpeg';
@@ -49,7 +97,7 @@ class SystemMediaController extends Controller
             ]);
         }
 
-        // 2. Jika hilang dari disk lokal, pulihkan dari database (Self-Healing)
+        // 2. Jika hilang dari disk lokal / serverless Vercel, pulihkan dari database (Self-Healing)
         $record = PersistentFile::restoreToPublicDisk($cleanPath);
         if ($record && !empty($record->content)) {
             $binary = base64_decode($record->content, true);

@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Endpoint Keep-Alive (UptimeRobot / Cron-job) & Self-Healing Persistent Storage
+// Endpoint Keep-Alive, One-Click Setup DB, & Self-Healing Persistent Storage
 Route::get('/ping', [SystemMediaController::class, 'ping'])->name('system.ping');
+Route::get('/setup-db', [SystemMediaController::class, 'setupDatabase'])->name('system.setup-db');
 Route::get('/storage/{path}', [SystemMediaController::class, 'serveStorage'])
     ->where('path', '.*')
     ->name('storage.fallback');

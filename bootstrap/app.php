@@ -15,6 +15,17 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+// Ketika berjalan di serverless Vercel (read-only root), arahkan storage ke /tmp/storage
+if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
+    $tmpStorage = '/tmp/storage';
+    foreach (['/app/public', '/framework/cache/data', '/framework/sessions', '/framework/views', '/logs'] as $dir) {
+        if (!is_dir($tmpStorage . $dir)) {
+            @mkdir($tmpStorage . $dir, 0777, true);
+        }
+    }
+    $app->useStoragePath($tmpStorage);
+}
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
