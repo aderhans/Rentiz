@@ -34,13 +34,25 @@
     .action-btn.activate { color:var(--success); }
     .action-btn.activate:hover { background:var(--success);color:white;border-color:var(--success); }
 
-    .pagination { display:flex;justify-content:center;gap:.4rem;padding:1.1rem;border-top:1px solid var(--card-border); }
-    .pg { width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--card-border);background:white;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-family:var(--font-body);transition:all 150ms; }
-    .pg:hover { border-color:var(--color-admin);color:var(--color-admin); }
-    .pg.active { background:var(--color-admin);border-color:var(--color-admin);color:white; }
+    .pagination-wrap { display:flex;justify-content:center;gap:.4rem;padding:1.1rem;border-top:1px solid var(--card-border); }
+    .pagination-wrap .page-item .page-link { width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--card-border);background:white;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-family:var(--font-body);transition:all 150ms;text-decoration:none; }
+    .pagination-wrap .page-item.active .page-link { background:var(--color-admin);border-color:var(--color-admin);color:white; }
+    .pagination-wrap .page-item .page-link:hover { border-color:var(--color-admin);color:var(--color-admin); }
+    .pagination-wrap .page-item.disabled .page-link { opacity:.45;pointer-events:none; }
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    /* Avatar color palette berdasarkan huruf */
+    .ava-color-0 { background:#0D9488; }
+    .ava-color-1 { background:#2563EB; }
+    .ava-color-2 { background:#7C3AED; }
+    .ava-color-3 { background:#DB2777; }
+    .ava-color-4 { background:#D97706; }
+    .ava-color-5 { background:#059669; }
+    .ava-color-6 { background:#DC2626; }
+    .ava-color-7 { background:#0891B2; }
+    .ava-suspended { background:#94A3B8 !important; }
 </style>
 @endpush
 
@@ -56,29 +68,29 @@
     </button>
 </div>
 
+{{-- Flash message --}}
+@if(session('success'))
+    <div class="alert alert-success" style="margin-bottom:1rem;padding:.75rem 1rem;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:var(--radius-sm);color:#065F46;font-size:.85rem;font-weight:600;">
+        ✅ {{ session('success') }}
+    </div>
+@endif
+
 <div class="stat-row">
-    <div class="scard"><div class="sv" style="color:var(--color-admin);">1.284</div><div class="sl">Total User</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyewa);">937</div><div class="sl">Penyewa</div></div>
-    <div class="scard"><div class="sv" style="color:var(--color-penyedia);">347</div><div class="sl">Penyedia</div></div>
-    <div class="scard"><div class="sv" style="color:var(--success);">+42</div><div class="sl">Minggu Ini</div></div>
-    <div class="scard"><div class="sv" style="color:var(--danger);">12</div><div class="sl">Suspended</div></div>
+    <div class="scard"><div class="sv" style="color:var(--color-admin);">{{ number_format($totalUser) }}</div><div class="sl">Total User</div></div>
+    <div class="scard"><div class="sv" style="color:var(--success);">+{{ $userMingguIni }}</div><div class="sl">Minggu Ini</div></div>
+    <div class="scard"><div class="sv" style="color:var(--danger);">{{ $suspended }}</div><div class="sl">Suspended</div></div>
 </div>
 
 <div class="toolbar">
     <div class="tbl">
         <div class="swrap">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" class="si" id="user-search" placeholder="Cari nama / email..." oninput="filterUsers()">
+            <input type="text" class="si" id="user-search" placeholder="Cari nama / email..." oninput="filterUsers()" value="{{ request('q') }}">
         </div>
-        <select class="fi" id="user-role" onchange="filterUsers()">
-            <option value="semua">Semua Role</option>
-            <option value="penyewa">Penyewa</option>
-            <option value="penyedia">Penyedia</option>
-        </select>
         <select class="fi" id="user-status" onchange="filterUsers()">
             <option value="semua">Semua Status</option>
             <option value="aktif">Aktif</option>
-            <option value="suspend">Suspended</option>
+            <option value="suspended">Suspended</option>
         </select>
     </div>
     <button class="btn btn-outline btn-sm" onclick="showToast('#7C3AED','📊 Mengunduh laporan user...')">
@@ -89,52 +101,74 @@
 
 <div class="card">
     <div id="user-list">
+    @forelse($users as $u)
     @php
-    $users=[
-        ['init'=>'A','name'=>'Ahmad Fauzi','email'=>'ahmad@example.com','role'=>'penyewa','join'=>'25 Mei 2026','trx'=>12,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'B','name'=>'Budi Santoso','email'=>'budi@example.com','role'=>'penyedia','join'=>'24 Mei 2026','trx'=>45,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'S','name'=>'Siti Rahma','email'=>'siti@example.com','role'=>'penyewa','join'=>'23 Mei 2026','trx'=>3,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'D','name'=>'Dewi Rahayu','email'=>'dewi@example.com','role'=>'penyedia','join'=>'22 Mei 2026','trx'=>22,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'E','name'=>'Eko Prasetyo','email'=>'eko@example.com','role'=>'penyewa','join'=>'21 Mei 2026','trx'=>0,'status'=>'suspend','color'=>'#94A3B8'],
-        ['init'=>'F','name'=>'Fajar Nugraha','email'=>'fajar@example.com','role'=>'penyewa','join'=>'20 Mei 2026','trx'=>7,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'G','name'=>'Gita Maharani','email'=>'gita@example.com','role'=>'penyedia','join'=>'18 Mei 2026','trx'=>31,'status'=>'aktif','color'=>'#2563EB'],
-        ['init'=>'H','name'=>'Hadi Kurniawan','email'=>'hadi@example.com','role'=>'penyewa','join'=>'15 Mei 2026','trx'=>5,'status'=>'aktif','color'=>'#0D9488'],
-        ['init'=>'I','name'=>'Inda Pratiwi','email'=>'inda@example.com','role'=>'penyedia','join'=>'12 Mei 2026','trx'=>18,'status'=>'suspend','color'=>'#94A3B8'],
-        ['init'=>'J','name'=>'Joko Widodo','email'=>'joko@example.com','role'=>'penyewa','join'=>'10 Mei 2026','trx'=>2,'status'=>'aktif','color'=>'#0D9488'],
-    ];
+        $isSuspended = $u->role === 'suspended';
+        $colorIdx    = ord(strtoupper(substr($u->name, 0, 1))) % 8;
+        $avaClass    = $isSuspended ? 'ava-suspended' : 'ava-color-'.$colorIdx;
+        $statusVal   = $isSuspended ? 'suspended' : 'aktif';
     @endphp
-
-    @foreach($users as $u)
-    <div class="user-row" data-name="{{ strtolower($u['name'].' '.$u['email']) }}" data-role="{{ $u['role'] }}" data-status="{{ $u['status'] }}" id="urow-{{ $loop->index }}">
-        <div class="u-ava" style="background:{{ $u['color'] }};">{{ $u['init'] }}</div>
+    <div class="user-row"
+         data-name="{{ strtolower($u->name.' '.$u->email) }}"
+         data-status="{{ $statusVal }}"
+         id="urow-{{ $u->id }}">
+        <div class="u-ava {{ $avaClass }}">{{ strtoupper(substr($u->name, 0, 1)) }}</div>
         <div class="u-info">
-            <div class="u-name">{{ $u['name'] }}</div>
-            <div class="u-email">{{ $u['email'] }} · Bergabung {{ $u['join'] }}</div>
+            <div class="u-name">{{ $u->name }}</div>
+            <div class="u-email">{{ $u->email }} · Bergabung {{ $u->created_at->translatedFormat('d M Y') }}</div>
         </div>
-        <div style="flex-shrink:0;min-width:70px;text-align:center;">
-            <span class="badge {{ $u['role']==='penyedia'?'badge-info':'badge-neutral' }}" style="font-size:.65rem;">{{ ucfirst($u['role']) }}</span>
-        </div>
-        <div style="font-size:.82rem;font-weight:600;color:var(--text-secondary);min-width:40px;text-align:center;">{{ $u['trx'] }}x</div>
-        <div class="u-right">
-            @if($u['status']==='aktif')
-                <span class="badge badge-success" style="font-size:.65rem;">Aktif</span>
-                <button class="action-btn edit" onclick="showToast('#7C3AED','✏️ Mengedit {{ $u['name'] }}...')">Edit</button>
-                <button class="action-btn suspend" onclick="suspendUser({{ $loop->index }},'{{ $u['name'] }}')">Suspend</button>
-            @else
+        <div style="flex-shrink:0;min-width:90px;text-align:center;">
+            @if($isSuspended)
                 <span class="badge badge-danger" style="font-size:.65rem;">Suspended</span>
-                <button class="action-btn activate" onclick="activateUser({{ $loop->index }},'{{ $u['name'] }}')">Aktifkan</button>
+            @else
+                <span class="badge badge-neutral" style="font-size:.65rem;">User</span>
+            @endif
+        </div>
+        <div class="u-right">
+            @if($isSuspended)
+                {{-- Tombol Aktifkan --}}
+                <form method="POST" action="{{ route('admin.activate-user', $u->id) }}" style="margin:0;" onsubmit="return confirm('Aktifkan akun {{ addslashes($u->name) }}?')">
+                    @csrf
+                    <button type="submit" class="action-btn activate">Aktifkan</button>
+                </form>
+            @else
+                <button class="action-btn edit" onclick="showToast('#7C3AED','✏️ Mengedit {{ addslashes($u->name) }}...')">Edit</button>
+                {{-- Tombol Suspend --}}
+                <form method="POST" action="{{ route('admin.suspend-user', $u->id) }}" style="margin:0;" onsubmit="return confirm('Suspend akun {{ addslashes($u->name) }}?')">
+                    @csrf
+                    <button type="submit" class="action-btn suspend">Suspend</button>
+                </form>
             @endif
         </div>
     </div>
-    @endforeach
+    @empty
+    <div style="padding:2.5rem;text-align:center;color:var(--text-muted);font-size:.88rem;">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin:0 auto 1rem;display:block;opacity:.35;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        Tidak ada user ditemukan.
     </div>
-    <div class="pagination">
-        <button class="pg">‹</button>
-        <button class="pg active">1</button>
-        <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">2</button>
-        <button class="pg" onclick="this.parentElement.querySelectorAll('.pg').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
-        <button class="pg">›</button>
+    @endforelse
     </div>
+
+    {{-- Pagination --}}
+    @if($users->hasPages())
+    <div class="pagination-wrap">
+        {{-- Prev --}}
+        <span class="page-item {{ $users->onFirstPage() ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ $users->previousPageUrl() }}">‹</a>
+        </span>
+
+        @foreach($users->getUrlRange(1, $users->lastPage()) as $page => $url)
+            <span class="page-item {{ $page == $users->currentPage() ? 'active' : '' }}">
+                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+            </span>
+        @endforeach
+
+        {{-- Next --}}
+        <span class="page-item {{ !$users->hasMorePages() ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ $users->nextPageUrl() }}">›</a>
+        </span>
+    </div>
+    @endif
 </div>
 
 <div class="toast" id="admin-user-toast"></div>
@@ -143,35 +177,24 @@
 @push('scripts')
 <script>
     function filterUsers() {
-        var q = document.getElementById('user-search').value.toLowerCase();
-        var role = document.getElementById('user-role').value;
+        var q      = document.getElementById('user-search').value.toLowerCase();
         var status = document.getElementById('user-status').value;
         document.querySelectorAll('#user-list .user-row').forEach(function(row) {
-            var nm = row.dataset.name; var r = row.dataset.role; var s = row.dataset.status;
-            row.style.display = (nm.includes(q) && (role==='semua'||r===role) && (status==='semua'||s===status)) ? '' : 'none';
+            var nm = row.dataset.name;
+            var s  = row.dataset.status;
+            row.style.display = (nm.includes(q) && (status === 'semua' || s === status)) ? '' : 'none';
         });
     }
-    function suspendUser(idx, name) {
-        if (!confirm('Suspend akun '+name+'?')) return;
-        var row = document.getElementById('urow-'+idx);
-        var right = row.querySelector('.u-right');
-        row.querySelector('.u-ava').style.background='#94A3B8';
-        row.dataset.status = 'suspend';
-        right.innerHTML = '<span class="badge badge-danger" style="font-size:.65rem;">Suspended</span><button class="action-btn activate" onclick="activateUser('+idx+',\''+name+'\')">Aktifkan</button>';
-        showToast('#DC2626','🚫 Akun '+name+' berhasil di-suspend!');
-    }
-    function activateUser(idx, name) {
-        var row = document.getElementById('urow-'+idx);
-        var right = row.querySelector('.u-right');
-        row.querySelector('.u-ava').style.background='#0D9488';
-        row.dataset.status = 'aktif';
-        right.innerHTML = '<span class="badge badge-success" style="font-size:.65rem;">Aktif</span><button class="action-btn edit" onclick="showToast(\'#7C3AED\',\'✏️ Mengedit '+name+'...\')">Edit</button><button class="action-btn suspend" onclick="suspendUser('+idx+',\''+name+'\')">Suspend</button>';
-        showToast('#059669','✅ Akun '+name+' berhasil diaktifkan!');
-    }
+
     function showToast(bg, msg) {
         var t = document.getElementById('admin-user-toast');
         t.style.background = bg; t.textContent = msg; t.classList.add('show');
         clearTimeout(window._aut); window._aut = setTimeout(function(){ t.classList.remove('show'); }, 3000);
     }
+
+    // Tampilkan flash success sebagai toast juga (opsional)
+    @if(session('success'))
+        setTimeout(function(){ showToast('#059669', '✅ {{ addslashes(session("success")) }}'); }, 300);
+    @endif
 </script>
 @endpush

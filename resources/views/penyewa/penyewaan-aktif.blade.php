@@ -231,28 +231,101 @@
 
 {{-- Tab Filter --}}
 <div class="rental-tabs" role="tablist">
+    @php
+        $countAktif = $items->where('status', 'active')->count();
+        $countProses = $items->where('status', 'confirmed')->count();
+        $countAll = $items->count();
+    @endphp
     <button class="rental-tab active" id="tab-all"    onclick="switchTab('all',this)">
-        Semua <span class="tab-badge">0</span>
+        Semua <span class="tab-badge">{{ $countAll }}</span>
     </button>
     <button class="rental-tab" id="tab-aktif"  onclick="switchTab('aktif',this)">
-        Aktif <span class="tab-badge">0</span>
+        Aktif <span class="tab-badge">{{ $countAktif }}</span>
     </button>
     <button class="rental-tab" id="tab-proses" onclick="switchTab('proses',this)">
-        Diproses <span class="tab-badge">0</span>
-    </button>
-    <button class="rental-tab" id="tab-jadwal" onclick="switchTab('jadwal',this)">
-        Terjadwal <span class="tab-badge">0</span>
+        Diproses <span class="tab-badge">{{ $countProses }}</span>
     </button>
 </div>
 
 {{-- Rental List --}}
 <div class="rental-list" id="rental-list">
+    @if($items->isEmpty())
+        <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada penyewaan aktif</h3>
+            <p>Anda belum memiliki transaksi penyewaan yang sedang berjalan.</p>
+        </div>
+    @else
+        @foreach($items as $item)
+            @php
+                $primaryPhoto = $item->barang->fotos ? $item->barang->fotos->where('is_primary', true)->first() : null;
+                if (!$primaryPhoto && $item->barang->fotos) $primaryPhoto = $item->barang->fotos->first();
+                $dataStatus = $item->status === 'active' ? 'aktif' : 'proses';
+                $borderClass = $item->status === 'active' ? 'border-aktif' : 'border-proses';
+            @endphp
+            <div class="rental-card {{ $borderClass }}" data-status="{{ $dataStatus }}">
+                @if($primaryPhoto)
+                    <img src="{{ asset('storage/' . $primaryPhoto->path_foto) }}" class="rental-emoji" style="object-fit:cover;">
+                @else
+                    <div class="rental-emoji" style="background:var(--card-border);">📷</div>
+                @endif
+                
+                <div class="rental-info">
+                    <div class="rental-name">{{ $item->barang->nama }}</div>
+                    <div class="rental-seller">Toko: {{ $item->pesanan->pemilik->name ?? 'Penyedia' }}</div>
+                    <div class="rental-meta">
+                        <div class="rental-meta-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            {{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M') }} - {{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}
+                        </div>
+                        <div class="rental-meta-item">
+                            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $item->durasi_hari }} Hari
+                        </div>
+                    </div>
 
-    <div style="text-align:center; padding: 4rem 1rem; color: var(--text-muted);">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Tidak ada penyewaan aktif</h3>
-        <p>Anda belum memiliki transaksi penyewaan yang sedang berjalan.</p>
-    </div>
+                    @if($item->status === 'active')
+                        <div class="rental-progress">
+                            <div class="progress-label">
+                                <span>Sisa Waktu</span>
+                                @php
+                                    $end = \Carbon\Carbon::parse($item->tanggal_selesai)->endOfDay();
+                                    $now = now();
+                                    $sisa = $end->diffInDays($now);
+                                    if ($end->isPast()) $sisa = 0;
+                                @endphp
+                                <span style="color:var(--text);font-weight:600;">{{ $sisa }} hari lagi</span>
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill" style="width: 50%; background:var(--color-penyewa);"></div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="rental-actions">
+                    @if($item->status === 'active')
+                        <span class="badge" style="background: rgba(16,185,129,0.1); color: #10B981; border:none;">
+                            Sedang Disewa
+                        </span>
+                    @elseif($item->status === 'confirmed')
+                        @if($item->checklistPengambilan)
+                            <span class="badge" style="background: rgba(59,130,246,0.1); color: #3B82F6; border:none;">
+                                ⏳ Menunggu Verifikasi Penyedia
+                            </span>
+                        @else
+                            <span class="badge" style="background: rgba(245,158,11,0.1); color: #F59E0B; border:none;">
+                                Menunggu Pengambilan
+                            </span>
+                            <a href="{{ route('penyewa.penyewaan-aktif.checklist', $item->id) }}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size:0.75rem; margin-top: 0.5rem;">
+                                Isi Checklist
+                            </a>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    @endif
 </div>
 
 {{-- Modal Detail Sewa --}}

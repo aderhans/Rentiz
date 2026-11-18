@@ -9,7 +9,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@7.3.0/dist/turbo.es2017-umd.js"></script>
     <style>
+        /* Turbo Progress Bar */
+        .turbo-progress-bar {
+            height: 3px;
+            background: linear-gradient(90deg, #0D9488, #2563EB);
+            z-index: 99999;
+        }
         /* ═══════════════════════════════════════
            DESIGN TOKENS
         ═══════════════════════════════════════ */
@@ -398,6 +405,7 @@
             flex: 1;
             padding: 1.75rem;
             overflow-y: auto;
+            transition: opacity 140ms ease;
         }
 
         /* ═══════════════════════════════════════
@@ -644,11 +652,27 @@
             .main-wrapper { margin-left: 0; }
             .header-toggle { display: flex; }
             .stat-grid { grid-template-columns: 1fr 1fr; }
-            .page-content { padding: 1rem; }
+            .page-content { padding: 0.85rem; }
+            .top-header { padding: 0 1rem; }
+            .header-breadcrumb { max-width: 170px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.8rem; }
+            .page-title { font-size: 1.3rem; }
+            .page-subtitle { font-size: 0.82rem; }
+            .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        }
+
+        @media (max-width: 640px) {
+            .card-body { padding: 1rem; }
+            .card-header { padding: 0.85rem 1rem; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .frow { grid-template-columns: 1fr; }
+            .btn { min-height: 40px; }
         }
 
         @media (max-width: 480px) {
             .stat-grid { grid-template-columns: 1fr; }
+            .header-breadcrumb { max-width: 110px; font-size: 0.75rem; }
+            .top-header { gap: 0.5rem; }
+            .header-actions { gap: 0.4rem; }
         }
 
         /* ═══════════════════════════════════════
@@ -748,12 +772,13 @@
         <div class="mode-switcher">
             <form method="POST" action="{{ route('switch-mode') }}" id="switch-mode-form">
                 @csrf
+                <input type="hidden" name="target_mode" id="target-mode-input" value="{{ $activeMode === 'penyewa' ? 'penyedia' : 'penyewa' }}">
                 <div class="mode-switcher-track {{ $activeMode }}" id="mode-track">
-                    <button type="{{ $activeMode === 'penyewa' ? 'button' : 'submit' }}" class="mode-switch-btn {{ $activeMode === 'penyewa' ? 'active' : '' }}">
+                    <button type="button" onclick="switchModeQuick('penyewa')" class="mode-switch-btn {{ $activeMode === 'penyewa' ? 'active' : '' }}">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         Penyewa
                     </button>
-                    <button type="{{ $activeMode === 'penyedia' ? 'button' : 'submit' }}" class="mode-switch-btn {{ $activeMode === 'penyedia' ? 'active' : '' }}">
+                    <button type="button" onclick="switchModeQuick('penyedia')" class="mode-switch-btn {{ $activeMode === 'penyedia' ? 'active' : '' }}">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                         Penyedia
                     </button>
@@ -900,7 +925,7 @@
                         @endif
                     </div>
                 </div>
-                <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                <form method="POST" action="{{ route('logout') }}" data-turbo="false" style="display:inline;">
                     @csrf
                     <button type="submit" class="sidebar-logout" title="Logout">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -951,26 +976,62 @@
     </div>
 
     <script>
-        // Sidebar toggle (mobile)
-        var toggleBtn  = document.getElementById('sidebar-toggle');
-        var sidebar    = document.getElementById('app-sidebar');
-        var overlay    = document.getElementById('sidebar-overlay');
+        // Sidebar toggle (mobile) via event delegation (persistent across Turbo page transitions)
+        document.addEventListener('click', function (e) {
+            var toggle = e.target.closest('#sidebar-toggle');
+            var overlay = e.target.closest('#sidebar-overlay');
+            var sidebar = document.getElementById('app-sidebar');
+            var overlayEl = document.getElementById('sidebar-overlay');
 
-        function openSidebar() {
-            sidebar.classList.add('open');
-            overlay.classList.add('open');
-        }
-
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-        }
-
-        if (toggleBtn) toggleBtn.addEventListener('click', function () {
-            sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+            if (toggle && sidebar) {
+                sidebar.classList.toggle('open');
+                if (overlayEl) overlayEl.classList.toggle('open');
+            } else if (overlay && sidebar) {
+                sidebar.classList.remove('open');
+                if (overlayEl) overlayEl.classList.remove('open');
+            }
         });
 
-        if (overlay) overlay.addEventListener('click', closeSidebar);
+        // ── Mode Switch (Single 303 Redirect request via Turbo) ──
+        function switchModeQuick(targetMode) {
+            var currentMode = '{{ $activeMode }}';
+            if (currentMode === targetMode) return; // sudah di mode ini
+
+            var form = document.getElementById('switch-mode-form');
+            var input = document.getElementById('target-mode-input');
+            var track = document.getElementById('mode-track');
+            var pageMain = document.getElementById('page-main');
+
+            // Optimistic UI response
+            if (track) track.className = 'mode-switcher-track ' + targetMode;
+            if (pageMain) pageMain.style.opacity = '0.5';
+            if (input) input.value = targetMode;
+
+            if (form) {
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
+        }
+        window.switchModeAjax = switchModeQuick;
+
+        // Instant visual feedback on Turbo navigation
+        document.addEventListener('turbo:click', function () {
+            var pageMain = document.getElementById('page-main');
+            if (pageMain) pageMain.style.opacity = '0.6';
+        });
+
+        document.addEventListener('turbo:render', function () {
+            var pageMain = document.getElementById('page-main');
+            if (pageMain) pageMain.style.opacity = '1';
+        });
+
+        document.addEventListener('turbo:load', function () {
+            var pageMain = document.getElementById('page-main');
+            if (pageMain) pageMain.style.opacity = '1';
+        });
     </script>
     @stack('scripts')
 </body>

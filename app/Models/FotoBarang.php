@@ -35,6 +35,18 @@ class FotoBarang extends Model
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
         });
+
+        static::saved(function ($model) {
+            if (!empty($model->path_foto)) {
+                PersistentFile::storeFromPublicDisk($model->path_foto);
+            }
+        });
+
+        static::deleted(function ($model) {
+            if (!empty($model->path_foto)) {
+                PersistentFile::deleteByPath($model->path_foto);
+            }
+        });
     }
 
     public function barang()

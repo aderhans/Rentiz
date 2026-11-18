@@ -41,10 +41,10 @@
 </div>
 
 <div class="trx-summary">
-    <div class="trx-sum"><div class="val" style="color:var(--color-penyedia);">0</div><div class="lbl">Total Transaksi</div></div>
-    <div class="trx-sum"><div class="val" style="color:var(--success);font-size:1rem;">Rp 0</div><div class="lbl">Bulan Ini</div></div>
-    <div class="trx-sum"><div class="val" style="color:var(--text);">Rp 0</div><div class="lbl">Total Pendapatan</div></div>
-    <div class="trx-sum"><div class="val" style="color:var(--warning);">⭐ 0.0</div><div class="lbl">Avg. Rating</div></div>
+    <div class="trx-sum"><div class="val" style="color:var(--color-penyedia);">{{ $totalTransaksi }}</div><div class="lbl">Total Transaksi</div></div>
+    <div class="trx-sum"><div class="val" style="color:var(--success);font-size:1rem;">Rp {{ number_format($bulanIni, 0, ',', '.') }}</div><div class="lbl">Bulan Ini</div></div>
+    <div class="trx-sum"><div class="val" style="color:var(--text);">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</div><div class="lbl">Total Pendapatan</div></div>
+    <div class="trx-sum"><div class="val" style="color:var(--warning);">⭐ {{ $avgRating ? number_format($avgRating, 1) : '0.0' }}</div><div class="lbl">Avg. Rating</div></div>
 </div>
 
 <div class="filter-row">
@@ -73,25 +73,43 @@
 <div class="card">
     <div id="trx-list">
     @php
-    $transactions = [];
+    $statusMap = [
+        'pending_payment' => ['label' => 'Menunggu',   'class' => 'aktif'],
+        'paid'            => ['label' => 'Dibayar',    'class' => 'aktif'],
+        'confirmed'       => ['label' => 'Dikonfirmasi','class'=> 'aktif'],
+        'active'          => ['label' => 'Aktif',      'class' => 'aktif'],
+        'completed'       => ['label' => 'Selesai',    'class' => 'selesai'],
+        'returned'        => ['label' => 'Dikembalikan','class'=> 'selesai'],
+        'cancelled'       => ['label' => 'Dibatalkan', 'class' => 'batal'],
+        'refunded'        => ['label' => 'Direfund',   'class' => 'batal'],
+    ];
     @endphp
 
-    @forelse($transactions as $t)
-    <div class="trx-row" data-name="{{ strtolower($t['name'].' '.$t['id']) }}" data-status="{{ $t['status'] }}">
-        <div class="trx-ava">{{ $t['init'] }}</div>
+    @forelse($transaksi as $t)
+    @php
+        $st    = $statusMap[$t->status] ?? ['label' => ucfirst($t->status), 'class' => 'batal'];
+        $init  = strtoupper(substr($t->pemesan_nama, 0, 1));
+        $short = '#' . strtoupper(substr($t->pesanan_id, 0, 8));
+    @endphp
+    <div class="trx-row"
+         data-name="{{ strtolower($t->pemesan_nama . ' ' . $t->pesanan_id) }}"
+         data-status="{{ $st['class'] }}">
+        <div class="trx-ava">{{ $init }}</div>
         <div class="trx-detail">
-            <div class="trx-name">{{ $t['name'] }} <span style="font-size:.72rem;color:var(--text-muted);font-weight:400;">{{ $t['id'] }}</span></div>
-            <div class="trx-sub">{{ $t['item'] }}</div>
+            <div class="trx-name">{{ $t->pemesan_nama }} <span style="font-size:.72rem;color:var(--text-muted);font-weight:400;">{{ $short }}</span></div>
+            <div class="trx-sub">{{ $t->barang_nama }}</div>
         </div>
         <div style="flex-shrink:0;">
-            @if($t['status']==='selesai') <span class="badge badge-success" style="font-size:.68rem;">{{ $t['label'] }}</span>
-            @elseif($t['status']==='aktif') <span class="badge badge-warning" style="font-size:.68rem;">{{ $t['label'] }}</span>
-            @else <span class="badge badge-danger" style="font-size:.68rem;">{{ $t['label'] }}</span>
+            @if($st['class']==='selesai') <span class="badge badge-success" style="font-size:.68rem;">{{ $st['label'] }}</span>
+            @elseif($st['class']==='aktif') <span class="badge badge-warning" style="font-size:.68rem;">{{ $st['label'] }}</span>
+            @else <span class="badge badge-danger" style="font-size:.68rem;">{{ $st['label'] }}</span>
             @endif
         </div>
         <div class="trx-right">
-            <div class="trx-amount" style="{{ $t['status']==='batal'?'color:var(--text-muted);text-decoration:line-through;':'' }}">+ Rp {{ $t['amount'] }}</div>
-            <div class="trx-date">{{ $t['date'] }}</div>
+            <div class="trx-amount" style="{{ $st['class']==='batal'?'color:var(--text-muted);text-decoration:line-through;':'' }}">
+                + Rp {{ number_format($t->total_biaya, 0, ',', '.') }}
+            </div>
+            <div class="trx-date">{{ \Carbon\Carbon::parse($t->created_at)->format('d M Y') }}</div>
         </div>
     </div>
     @empty
@@ -102,13 +120,24 @@
     </div>
     @endforelse
     </div>
+    {{-- Pagination dari Laravel --}}
+    @if($transaksi->hasPages())
     <div class="pagination">
-        <button class="pg-btn">‹</button>
-        <button class="pg-btn active">1</button>
-        <button class="pg-btn" onclick="this.parentElement.querySelectorAll('.pg-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">2</button>
-        <button class="pg-btn" onclick="this.parentElement.querySelectorAll('.pg-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
-        <button class="pg-btn">›</button>
+        @if(!$transaksi->onFirstPage())
+        <a href="{{ $transaksi->previousPageUrl() }}" class="pg-btn">‹</a>
+        @else
+        <span class="pg-btn" style="opacity:.4;pointer-events:none;">‹</span>
+        @endif
+        @foreach($transaksi->getUrlRange(1, $transaksi->lastPage()) as $page => $url)
+        <a href="{{ $url }}" class="pg-btn {{ $page == $transaksi->currentPage() ? 'active' : '' }}">{{ $page }}</a>
+        @endforeach
+        @if($transaksi->hasMorePages())
+        <a href="{{ $transaksi->nextPageUrl() }}" class="pg-btn">›</a>
+        @else
+        <span class="pg-btn" style="opacity:.4;pointer-events:none;">›</span>
+        @endif
     </div>
+    @endif
 </div>
 @endsection
 

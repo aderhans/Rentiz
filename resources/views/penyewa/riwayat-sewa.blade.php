@@ -156,23 +156,23 @@
 {{-- Summary Stats --}}
 <div class="riwayat-stats">
     <div class="riwayat-stat">
-        <div class="rs-val" style="color:var(--color-penyewa);">0</div>
+        <div class="rs-val" style="color:var(--color-penyewa);">{{ $riwayat->total() }}</div>
         <div class="rs-label">Total Transaksi</div>
     </div>
     <div class="riwayat-stat">
-        <div class="rs-val" style="color:var(--success);">0</div>
+        <div class="rs-val" style="color:var(--success);">{{ $totalSewa }}</div>
         <div class="rs-label">Selesai</div>
     </div>
     <div class="riwayat-stat">
-        <div class="rs-val" style="color:var(--danger);">0</div>
+        <div class="rs-val" style="color:var(--danger);">{{ $riwayat->total() - $totalSewa }}</div>
         <div class="rs-label">Dibatalkan</div>
     </div>
     <div class="riwayat-stat">
-        <div class="rs-val" style="font-size:1.1rem;">Rp 0</div>
+        <div class="rs-val" style="font-size:1.1rem;">Rp {{ number_format($totalBiaya, 0, ',', '.') }}</div>
         <div class="rs-label">Total Pengeluaran</div>
     </div>
     <div class="riwayat-stat">
-        <div class="rs-val" style="color:var(--warning);">⭐ 0.0</div>
+        <div class="rs-val" style="color:var(--warning);">⭐ {{ $avgRating ? number_format($avgRating, 1) : '0.0' }}</div>
         <div class="rs-label">Rating Kamu</div>
     </div>
 </div>
@@ -210,38 +210,39 @@
 
     <div id="history-list">
         @php
-        $history = [];
+        $statusMap = [
+            'completed' => ['label' => 'Selesai',      'status' => 'selesai', 'bg' => '#D1FAE5', 'emoji' => '✅'],
+            'returned'  => ['label' => 'Dikembalikan', 'status' => 'selesai', 'bg' => '#D1FAE5', 'emoji' => '📦'],
+            'cancelled' => ['label' => 'Dibatalkan',   'status' => 'batal',   'bg' => '#FEE2E2', 'emoji' => '❌'],
+            'refunded'  => ['label' => 'Direfund',     'status' => 'batal',   'bg' => '#FEE2E2', 'emoji' => '↩️'],
+        ];
         @endphp
 
-        @forelse($history as $i => $h)
-        <div class="history-row" data-name="{{ strtolower($h['name']) }}" data-status="{{ $h['status'] }}">
-            <div class="history-emoji" style="background:{{ $h['bg'] }};">{{ $h['emoji'] }}</div>
+        @forelse($riwayat as $h)
+        @php
+            $st     = $statusMap[$h->status] ?? ['label' => ucfirst($h->status), 'status' => 'batal', 'bg' => '#F1F5F9', 'emoji' => '📄'];
+            $mulai  = \Carbon\Carbon::parse($h->tanggal_mulai)->format('d M Y');
+            $selesai= \Carbon\Carbon::parse($h->tanggal_selesai)->format('d M Y');
+        @endphp
+        <div class="history-row" data-name="{{ strtolower($h->barang_nama . ' ' . $h->penyedia_nama) }}" data-status="{{ $st['status'] }}">
+            <div class="history-emoji" style="background:{{ $st['bg'] }};">{{ $st['emoji'] }}</div>
             <div class="history-info">
-                <div class="history-name">{{ $h['name'] }}</div>
+                <div class="history-name">{{ $h->barang_nama }}</div>
                 <div class="history-meta">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    {{ $h['seller'] }} · {{ $h['period'] }} · {{ $h['duration'] }}
-                </div>
-                <div style="margin-top:4px;">
-                    @if($h['status'] === 'selesai')
-                        @if($h['rated'])
-                            <span class="star-rating">{{ str_repeat('⭐', $h['stars']) }}</span>
-                        @else
-                            <button class="rate-btn" onclick="this.innerHTML='⭐⭐⭐⭐⭐ Terima kasih!';this.style.color='var(--warning)';this.style.borderStyle='solid';this.style.borderColor='var(--warning)';">+ Beri Rating</button>
-                        @endif
-                    @endif
+                    {{ $h->penyedia_nama }} · {{ $mulai }} – {{ $selesai }} · {{ $h->durasi_hari }} hari
                 </div>
             </div>
             <div class="history-right">
-                <div class="history-price">Rp {{ $h['price'] }}</div>
+                <div class="history-price">Rp {{ number_format($h->subtotal, 0, ',', '.') }}</div>
                 <div style="margin-top:4px;">
-                    @if($h['status'] === 'selesai')
-                        <span class="badge badge-success">Selesai</span>
+                    @if($st['status'] === 'selesai')
+                        <span class="badge badge-success">{{ $st['label'] }}</span>
                     @else
-                        <span class="badge badge-danger">Dibatalkan</span>
+                        <span class="badge badge-danger">{{ $st['label'] }}</span>
                     @endif
                 </div>
-                @if($h['status'] === 'selesai')
+                @if($st['status'] === 'selesai')
                 <button class="btn btn-outline btn-sm" style="margin-top:4px;font-size:0.73rem;" onclick="alert('Fitur sewa ulang dalam pengembangan!')">Sewa Lagi</button>
                 @endif
             </div>
@@ -255,13 +256,24 @@
         @endforelse
     </div>
 
+    {{-- Pagination dari Laravel --}}
+    @if($riwayat->hasPages())
     <div class="pagination">
-        <button class="page-btn">‹</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn" onclick="this.parentElement.querySelectorAll('.page-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">2</button>
-        <button class="page-btn" onclick="this.parentElement.querySelectorAll('.page-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">3</button>
-        <button class="page-btn">›</button>
+        @if(!$riwayat->onFirstPage())
+        <a href="{{ $riwayat->previousPageUrl() }}" class="page-btn">‹</a>
+        @else
+        <span class="page-btn" style="opacity:.4;pointer-events:none;">‹</span>
+        @endif
+        @foreach($riwayat->getUrlRange(1, $riwayat->lastPage()) as $page => $url)
+        <a href="{{ $url }}" class="page-btn {{ $page == $riwayat->currentPage() ? 'active' : '' }}">{{ $page }}</a>
+        @endforeach
+        @if($riwayat->hasMorePages())
+        <a href="{{ $riwayat->nextPageUrl() }}" class="page-btn">›</a>
+        @else
+        <span class="page-btn" style="opacity:.4;pointer-events:none;">›</span>
+        @endif
     </div>
+    @endif
 </div>
 
 @endsection

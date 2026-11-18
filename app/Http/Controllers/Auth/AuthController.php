@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -108,7 +109,14 @@ class AuthController extends Controller
             'role'     => 'user', // Default — user bisa switch mode
         ]);
 
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login menggunakan akun baru Anda.');
+        // Fire Registered event — Laravel listener akan otomatis kirim email verifikasi
+        event(new Registered($user));
+
+        // Login user setelah registrasi agar bisa akses halaman verification.notice
+        Auth::login($user);
+
+        return redirect()->route('verification.notice')
+            ->with('success', 'Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun.');
     }
 
     /**
@@ -117,12 +125,27 @@ class AuthController extends Controller
      */
     public function switchMode(Request $request)
     {
-        $currentMode = session('active_mode', 'penyewa');
-        $newMode = $currentMode === 'penyewa' ? 'penyedia' : 'penyewa';
+        $targetMode = $request->input('target_mode');
+        if (!in_array($targetMode, ['penyewa', 'penyedia'])) {
+            $currentMode = session('active_mode', 'penyewa');
+            $targetMode = $currentMode === 'penyewa' ? 'penyedia' : 'penyewa';
+        }
 
-        session(['active_mode' => $newMode]);
+        session(['active_mode' => $targetMode]);
 
-        return redirect()->back();
+        $redirect = $targetMode === 'penyedia'
+            ? route('penyedia.daftar-barang')
+            : route('penyewa.cari-barang');
+
+        // HTTP 303 See Other: Turbo Drive mengikuti redirect dalam 1 langkah cepat (Single Request)
+        if ($request->expectsJson() && !$request->header('Turbo-Frame') && !$request->header('Accept-Encoding')) {
+            return response()->json([
+                'mode'     => $targetMode,
+                'redirect' => $redirect,
+            ]);
+        }
+
+        return redirect()->to($redirect, 303);
     }
 
     /**

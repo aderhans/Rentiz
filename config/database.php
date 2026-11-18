@@ -59,7 +59,11 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA', (
+                    !in_array(env('DB_HOST', '127.0.0.1'), ['127.0.0.1', 'localhost']) && file_exists('/etc/ssl/certs/ca-certificates.crt')
+                        ? '/etc/ssl/certs/ca-certificates.crt'
+                        : null
+                )),
             ]) : [],
         ],
 
