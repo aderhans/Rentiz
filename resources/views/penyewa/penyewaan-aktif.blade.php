@@ -212,6 +212,27 @@
     .tl-pending { background: #CBD5E1; }
     .tl-text { font-size: 0.83rem; font-weight: 600; color: var(--text); }
     .tl-date { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+
+    @media (max-width: 640px) {
+        .rental-card {
+            flex-wrap: wrap;
+            padding: 1rem;
+            gap: 0.85rem;
+        }
+        .rental-info {
+            flex: 1 1 calc(100% - 80px);
+        }
+        .rental-actions {
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #F1F5F9;
+            padding-top: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        .rental-actions .btn { margin-top: 0 !important; }
+    }
 </style>
 @endpush
 

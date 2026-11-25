@@ -330,27 +330,38 @@
 
         .header-breadcrumb {
             flex: 1;
+            min-width: 0;
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            overflow: hidden;
         }
 
         .breadcrumb-item {
             font-size: 0.83rem;
             color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .breadcrumb-item.current {
             color: var(--text);
             font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 1;
+            min-width: 0;
         }
 
-        .breadcrumb-sep { color: var(--text-muted); }
+        .breadcrumb-sep { color: var(--text-muted); flex-shrink: 0; }
 
         .header-actions {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
         .header-btn {
@@ -637,6 +648,11 @@
         /* ═══════════════════════════════════════
            RESPONSIVE
         ═══════════════════════════════════════ */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
         @media (max-width: 1024px) {
             .grid-2 { grid-template-columns: 1fr; }
         }
@@ -649,30 +665,45 @@
                 transform: translateX(0);
             }
             .sidebar-overlay.open { display: block; }
-            .main-wrapper { margin-left: 0; }
-            .header-toggle { display: flex; }
-            .stat-grid { grid-template-columns: 1fr 1fr; }
-            .page-content { padding: 0.85rem; }
-            .top-header { padding: 0 1rem; }
-            .header-breadcrumb { max-width: 170px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.8rem; }
-            .page-title { font-size: 1.3rem; }
-            .page-subtitle { font-size: 0.82rem; }
+            .main-wrapper { margin-left: 0; width: 100%; }
+            .header-toggle { display: flex; flex-shrink: 0; }
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+            .page-content { padding: 0.9rem; }
+            .top-header { padding: 0 0.9rem; gap: 0.65rem; justify-content: space-between; }
+            .header-breadcrumb { font-size: 0.8rem; }
+            .page-title { font-size: 1.25rem; line-height: 1.3; }
+            .page-subtitle { font-size: 0.8rem; }
             .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         }
 
         @media (max-width: 640px) {
             .card-body { padding: 1rem; }
-            .card-header { padding: 0.85rem 1rem; }
+            .card-header { padding: 0.85rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
             .grid-3 { grid-template-columns: 1fr; }
             .frow { grid-template-columns: 1fr; }
             .btn { min-height: 40px; }
+            .page-header { margin-bottom: 1.1rem; }
+            .filter-bar, .filter-row, .toolbar, .toolbar-left {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100%;
+            }
+            .filter-bar-input, .filter-select-sm, .swrap, .si, .fi, .search-wrap, .search-wrap input, .flt {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            .history-row, .trx-row, .top-item-row {
+                padding: 0.85rem 1rem !important;
+                gap: 0.65rem !important;
+                flex-wrap: wrap;
+            }
         }
 
         @media (max-width: 480px) {
             .stat-grid { grid-template-columns: 1fr; }
-            .header-breadcrumb { max-width: 110px; font-size: 0.75rem; }
+            .breadcrumb-item:first-child, .breadcrumb-sep:first-of-type { display: none; }
             .top-header { gap: 0.5rem; }
-            .header-actions { gap: 0.4rem; }
+            .header-actions { gap: 0.45rem; }
         }
 
         /* ═══════════════════════════════════════
@@ -980,13 +1011,14 @@
         document.addEventListener('click', function (e) {
             var toggle = e.target.closest('#sidebar-toggle');
             var overlay = e.target.closest('#sidebar-overlay');
+            var navItem = e.target.closest('#app-sidebar .nav-item');
             var sidebar = document.getElementById('app-sidebar');
             var overlayEl = document.getElementById('sidebar-overlay');
 
             if (toggle && sidebar) {
                 sidebar.classList.toggle('open');
                 if (overlayEl) overlayEl.classList.toggle('open');
-            } else if (overlay && sidebar) {
+            } else if ((overlay || navItem) && sidebar) {
                 sidebar.classList.remove('open');
                 if (overlayEl) overlayEl.classList.remove('open');
             }

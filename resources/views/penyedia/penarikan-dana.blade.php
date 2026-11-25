@@ -69,6 +69,13 @@
     .alert-banner { padding:.85rem 1.1rem;border-radius:var(--radius-md);margin-bottom:1.25rem;font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:.6rem; }
     .alert-banner.success { background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46; }
     .alert-banner.error { background:#FEF2F2;border:1px solid #FECACA;color:#991B1B; }
+
+    @media (max-width: 600px) {
+        .balance-card { padding: 1.2rem 1.1rem; }
+        .balance-amount { font-size: 1.65rem; }
+        .withdraw-form { padding: 1.1rem; }
+        .wf-title { flex-wrap: wrap; gap: 0.35rem; }
+    }
 </style>
 @endpush
 

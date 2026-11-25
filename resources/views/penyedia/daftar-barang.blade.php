@@ -58,6 +58,12 @@
 
     .toast { position:fixed;bottom:1.5rem;right:1.5rem;background:var(--color-penyedia);color:white;padding:.7rem 1.2rem;border-radius:var(--radius-sm);font-size:.84rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:9999;transform:translateY(100px);opacity:0;transition:all 300ms; }
     .toast.show { transform:translateY(0);opacity:1; }
+
+    @media (max-width: 600px) {
+        .summary-bar { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+        .summary-bar .sum-card:last-child { grid-column: 1 / -1; }
+        .item-grid { grid-template-columns: 1fr; }
+    }
 </style>
 @endpush
 

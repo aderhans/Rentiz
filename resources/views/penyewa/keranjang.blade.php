@@ -164,6 +164,44 @@
         background: #94a3b8;
         cursor: not-allowed;
     }
+
+    @media (max-width: 640px) {
+        .cart-item {
+            flex-wrap: wrap;
+            padding: 1rem;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+        .item-img {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+        }
+        .item-details {
+            flex: 1 1 calc(100% - 120px);
+            min-width: 170px;
+        }
+        .item-details form {
+            flex-wrap: wrap !important;
+            gap: 0.45rem !important;
+        }
+        .item-details form input[type="date"] {
+            width: 130px;
+            font-size: 0.76rem !important;
+        }
+        .item-actions {
+            margin-left: auto;
+        }
+        .store-footer-inner {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        .btn-checkout {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 @endpush
 

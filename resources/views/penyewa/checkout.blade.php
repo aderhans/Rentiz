@@ -14,6 +14,14 @@
 
     @media (max-width: 900px) {
         .checkout-layout { grid-template-columns: 1fr; }
+        .summary-card { position: static !important; top: auto !important; }
+    }
+
+    @media (max-width: 600px) {
+        .checkout-card, .summary-card { padding: 1.1rem; }
+        .form-row { grid-template-columns: 1fr; }
+        .item-card { flex-direction: column; gap: 0.75rem; }
+        .item-img { width: 100%; height: 150px; }
     }
 
     .section-title {

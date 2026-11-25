@@ -22,11 +22,49 @@
     }
 
     @media (max-width: 1024px) {
-        .main-content-wrapper { grid-template-columns: 1fr; }
+        .main-content-wrapper { grid-template-columns: 1fr; gap: 1.1rem; }
+        .gallery-container {
+            position: static !important;
+            top: auto !important;
+            background: white;
+            padding: 0.85rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+        }
+        .main-image {
+            aspect-ratio: 4 / 3;
+            max-height: 300px;
+            object-fit: contain;
+            background: #ffffff;
+            border: none;
+        }
     }
 
     @media (max-width: 800px) {
-        .detail-layout { grid-template-columns: 1fr; }
+        .detail-layout { grid-template-columns: 1fr; gap: 1.1rem; }
+        .sticky-panel { position: static !important; top: auto !important; gap: 1.1rem; }
+    }
+
+    @media (max-width: 540px) {
+        .content-card, .action-card { padding: 1.1rem; }
+        .info-grid { grid-template-columns: 1fr; gap: 0.65rem; margin-bottom: 1.15rem; }
+        .info-item { padding: 0.75rem 0.9rem; }
+        .thumbnail { width: 60px; height: 60px; flex-shrink: 0; }
+        .thumbnail-list { gap: 0.6rem; justify-content: center; }
+        .detail-title { font-size: 1.3rem !important; line-height: 1.3; }
+    }
+
+    .detail-stats-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.65rem;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .detail-stats-bar span {
+        white-space: nowrap;
     }
 
     /* Left Column */
@@ -204,15 +242,15 @@
 
         {{-- Detail Information --}}
         <div class="content-card">
-            <h1 style="font-family:var(--font-heading); font-size:1.75rem; font-weight:800; color:var(--text); margin-bottom:0.5rem;">{{ $barang->nama }}</h1>
+            <h1 class="detail-title" style="font-family:var(--font-heading); font-size:1.75rem; font-weight:800; color:var(--text); margin-bottom:0.5rem;">{{ $barang->nama }}</h1>
             
-            <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; font-size:0.9rem; color:var(--text-secondary);">
+            <div class="detail-stats-bar">
                 <span>⭐ 0.0 (0 Ulasan)</span>
                 <span>•</span>
                 <span>Tersewa 0 kali</span>
                 <span>•</span>
                 <span style="color: {{ $barang->status == 'active' ? 'var(--success)' : 'var(--danger)' }}; font-weight:600;">
-                    {{ $barang->status == 'active' ? 'Tersedia' : 'Tidak Tersedia' }}
+                    {{ $barang->status == 'active' ? '● Tersedia' : '● Tidak Tersedia' }}
                 </span>
             </div>
 

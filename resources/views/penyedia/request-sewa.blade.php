@@ -150,6 +150,31 @@
         border-radius: 20px;
         font-weight: 700;
     }
+
+    @media (max-width: 640px) {
+        .req-card {
+            flex-wrap: wrap;
+            padding: 1rem;
+            gap: 0.85rem;
+        }
+        .req-info {
+            flex: 1 1 calc(100% - 85px);
+        }
+        .req-actions {
+            width: 100%;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #F1F5F9;
+            padding-top: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        .req-actions .btn-handover {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 @endpush
 
