@@ -58,7 +58,7 @@
         .layout-left {
             flex: 0 0 45%;
             position: relative;
-            background-image: url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=1000');
+            background-image: url('https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -72,7 +72,60 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,41,59,0.7) 100%);
+            background: linear-gradient(135deg, rgba(15,23,42,0.88) 0%, rgba(19,78,74,0.78) 100%);
+        }
+
+        /* ── Top-Left Rentiz Brand Logo on Hero ── */
+        .left-top-logo {
+            position: absolute;
+            top: 2rem;
+            left: 2.5rem;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px 8px 12px;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+            transition: transform 200ms ease;
+        }
+
+        .left-top-logo:hover {
+            transform: translateY(-1px);
+        }
+
+        .rentiz-emblem {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+        }
+
+        .rentiz-wordmark {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+            text-align: left;
+        }
+
+        .rentiz-wordmark-title {
+            font-family: var(--font-heading);
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #165B63;
+            letter-spacing: -0.02em;
+        }
+
+        .rentiz-wordmark-tag {
+            font-family: var(--font-body);
+            font-size: 0.52rem;
+            font-weight: 700;
+            color: #348F97;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            margin-top: 3px;
+            white-space: nowrap;
         }
 
         .left-content {
@@ -421,9 +474,18 @@
         @media (max-width: 968px) {
             body { flex-direction: column; }
             .layout-left {
-                flex: none; padding: 4rem 2rem; min-height: 280px;
+                flex: none; padding: 5.5rem 2rem 3rem; min-height: 280px;
                 text-align: center; align-items: center;
             }
+            .left-top-logo {
+                top: 1.25rem;
+                left: 1.25rem;
+                padding: 6px 13px 6px 10px;
+                border-radius: 12px;
+            }
+            .rentiz-emblem { width: 34px; height: 34px; }
+            .rentiz-wordmark-title { font-size: 1.3rem; }
+            .rentiz-wordmark-tag { font-size: 0.46rem; }
             .left-content { max-width: 100%; }
             .left-content h1 { font-size: 2.25rem; }
             .right-content { padding: 2rem; }
@@ -438,9 +500,55 @@
     </style>
 </head>
 <body>
+    @php
+        // Ambil data asli langsung dari database (tanpa angka dummy)
+        $totalUsers = 0;
+        $avgRating = 0.0;
+
+        try {
+            $totalUsers = \App\Models\User::count();
+            if (\Illuminate\Support\Facades\Schema::hasTable('rating')) {
+                $avgRating = (float) (\Illuminate\Support\Facades\DB::table('rating')->avg('nilai') ?: 0);
+            }
+        } catch (\Throwable $e) {
+            // Fallback aman jika koneksi database sedang inisialisasi
+        }
+    @endphp
 
     {{-- Left Panel --}}
     <div class="layout-left">
+        {{-- Logo Rentiz di Pojok Kiri Atas --}}
+        <a href="{{ url('/') }}" class="left-top-logo">
+            <svg class="rentiz-emblem" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {{-- Gear kecil di kiri --}}
+                <circle cx="11" cy="28" r="4" stroke="#28838B" stroke-width="2.2"/>
+                <path d="M11 21V23M11 33V35M4 28H6M16 28H18M6.2 23.2L7.6 24.6M14.4 31.4L15.8 32.8M15.8 23.2L14.4 24.6M7.6 31.4L6.2 32.8" stroke="#28838B" stroke-width="1.8" stroke-linecap="round"/>
+                {{-- Gear/lingkaran aksen di dalam loop R --}}
+                <circle cx="41" cy="24" r="5" stroke="#28838B" stroke-width="2"/>
+                <circle cx="41" cy="24" r="2" fill="#28838B"/>
+                {{-- Pita Huruf R Teal Utama --}}
+                <path d="M22 48V15C22 15 36 8 46 15C54 20.5 52 32 42 36C33 39.5 24 38 20 45C17 50 22 57 28 54C33 51.5 35 42 35 37" stroke="url(#tealGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                {{-- Kaki Kanan Huruf R & Panah Oranye Melengkung --}}
+                <path d="M35 37C38 43 44 51 52 53" stroke="#E89234" stroke-width="6.5" stroke-linecap="round"/>
+                <path d="M14 45C14 35 23 26 36 22" stroke="url(#orangeGrad)" stroke-width="6.5" stroke-linecap="round"/>
+                <path d="M31 15L43 19L36 29Z" fill="#E89234"/>
+                <defs>
+                    <linearGradient id="tealGrad" x1="18" y1="10" x2="50" y2="56" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#3BA1A9"/>
+                        <stop offset="1" stop-color="#176168"/>
+                    </linearGradient>
+                    <linearGradient id="orangeGrad" x1="14" y1="45" x2="43" y2="18" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#D47A1E"/>
+                        <stop offset="1" stop-color="#F3A244"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="rentiz-wordmark">
+                <span class="rentiz-wordmark-title">Rentiz</span>
+                <span class="rentiz-wordmark-tag">SEWA BARANG LEBIH MUDAH</span>
+            </div>
+        </a>
+
         <div class="left-content">
             <h1>Sewa Barang Lebih Mudah.</h1>
             <p>Platform marketplace terpercaya. Temukan barang yang Anda butuhkan atau mulai sewakan barang Anda untuk tambahan penghasilan.</p>
@@ -456,13 +564,13 @@
                     <div class="trust-icon">
                         <svg viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
-                    <div class="trust-text"><strong>1.200+</strong>Pengguna aktif</div>
+                    <div class="trust-text"><strong>{{ number_format($totalUsers, 0, ',', '.') }}</strong>Pengguna aktif</div>
                 </div>
                 <div class="trust-item">
                     <div class="trust-icon">
                         <svg viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
                     </div>
-                    <div class="trust-text"><strong>4.8 ⭐</strong>Rating platform</div>
+                    <div class="trust-text"><strong>{{ number_format($avgRating, 1) }} ⭐</strong>Rating platform</div>
                 </div>
             </div>
         </div>
