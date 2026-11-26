@@ -202,7 +202,7 @@
     <div class="modal-box">
         <div class="modal-header">
             <span class="modal-title" id="edit-modal-title">Edit Barang</span>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <button type="button" class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <div class="modal-body">
             <form id="edit-form" method="POST" action="" enctype="multipart/form-data">
@@ -211,8 +211,8 @@
                 <input type="hidden" id="edit-item-id" name="id">
                 <div class="image-slider" id="edit-slider">
                     <div class="slide-track" id="edit-slide-track"></div>
-                    <button class="slider-arrow left" onclick="prevSlide(event)">&#8249;</button>
-                    <button class="slider-arrow right" onclick="nextSlide(event)">&#8250;</button>
+                    <button type="button" class="slider-arrow left" id="edit-arrow-left" onclick="prevSlide(event)">&#8249;</button>
+                    <button type="button" class="slider-arrow right" id="edit-arrow-right" onclick="nextSlide(event)">&#8250;</button>
                     <div class="slider-dots" id="edit-slider-dots"></div>
                 </div>
                 <div style="margin-bottom:.85rem;">
@@ -364,7 +364,7 @@
         editForm.action = updateBaseUrl + '/' + itemId;
         document.getElementById('edit-item-id').value = itemId;
         document.getElementById('edit-name').value = name;
-        document.getElementById('edit-price').value = price;
+        document.getElementById('edit-price').value = price ? Math.round(parseFloat(price)) : '';
         document.getElementById('edit-status-text').value = status === 'pending' ? 'Menunggu Verifikasi' : (status === 'active' ? 'Aktif' : (status === 'rented' ? 'Sedang Disewa' : (status === 'inactive' ? 'Nonaktif' : (status === 'rejected' ? 'Ditolak' : (status === 'suspended' ? 'Ditangguhkan' : status)))));
         document.getElementById('edit-category').value = categoryId;
         document.getElementById('edit-condition').value = condition || 'Baru (99%)';
@@ -384,8 +384,15 @@
     function renderSlider() {
         var track = document.getElementById('edit-slide-track');
         var dots = document.getElementById('edit-slider-dots');
+        var leftArrow = document.getElementById('edit-arrow-left');
+        var rightArrow = document.getElementById('edit-arrow-right');
         track.innerHTML = '';
         dots.innerHTML = '';
+
+        var showControls = sliderImages.length > 1;
+        if (leftArrow) leftArrow.style.display = showControls ? 'flex' : 'none';
+        if (rightArrow) rightArrow.style.display = showControls ? 'flex' : 'none';
+
         if (!sliderImages.length) {
             track.innerHTML = '<div class="slide"><span style="font-size:3rem;">📷</span></div>';
             return;
@@ -425,14 +432,20 @@
     }
 
     function prevSlide(event) {
-        event.stopPropagation();
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         if (!sliderImages.length) return;
         currentSlideIndex = (currentSlideIndex - 1 + sliderImages.length) % sliderImages.length;
         updateSliderPosition();
     }
 
     function nextSlide(event) {
-        event.stopPropagation();
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         if (!sliderImages.length) return;
         currentSlideIndex = (currentSlideIndex + 1) % sliderImages.length;
         updateSliderPosition();

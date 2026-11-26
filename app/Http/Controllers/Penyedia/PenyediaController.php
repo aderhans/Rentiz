@@ -130,7 +130,7 @@ class PenyediaController extends Controller
             'ketentuan_jaminan' => 'nullable|string',
         ]);
 
-        $barang->update([
+        $barang->fill([
             'nama' => $validated['title'],
             'deskripsi' => $validated['description'],
             'harga_per_hari' => $validated['price'],
@@ -141,8 +141,15 @@ class PenyediaController extends Controller
             'ketentuan_jaminan' => $validated['ketentuan_jaminan'] ?? null,
             'min_durasi_sewa' => $validated['min_durasi_sewa'],
             'max_durasi_sewa' => $validated['max_durasi_sewa'],
-            'status' => 'pending',
         ]);
+
+        $hasNewImages = $request->hasFile('images') && is_array($request->file('images')) && count($request->file('images')) > 0;
+        $hasDataChanged = $barang->isDirty() || $hasNewImages;
+
+        if ($hasDataChanged) {
+            $barang->status = 'pending';
+            $barang->save();
+        }
 
         if ($request->hasFile('images')) {
             $images = $request->file('images');
@@ -159,7 +166,11 @@ class PenyediaController extends Controller
             }
         }
 
-        return redirect()->route('penyedia.daftar-barang')->with('success', 'Barang berhasil diperbarui dan menunggu verifikasi admin.');
+        $msg = $hasDataChanged
+            ? 'Barang berhasil diperbarui dan menunggu verifikasi admin.'
+            : 'Tidak ada perubahan pada data barang.';
+
+        return redirect()->route('penyedia.daftar-barang')->with('success', $msg);
     }
 
     public function destroy($id)
