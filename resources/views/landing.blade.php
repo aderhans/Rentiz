@@ -58,37 +58,57 @@
         .layout-left {
             flex: 0 0 45%;
             position: relative;
-            background-image: url('https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=1200');
-            background-size: cover;
-            background-position: center;
+            background: #0F172A;
             display: flex;
             flex-direction: column;
             justify-content: center;
             padding: 4rem;
             color: white;
+            overflow: hidden;
+        }
+
+        /* ── Multi-Category Rental Mosaic Background ── */
+        .hero-bg-mosaic {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            z-index: 0;
+            opacity: 0.55;
+            transform: scale(1.03);
+        }
+
+        .hero-bg-mosaic div {
+            background-size: cover;
+            background-position: center;
+            filter: saturate(1.1) contrast(1.05);
         }
 
         .layout-left::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(15,23,42,0.88) 0%, rgba(19,78,74,0.78) 100%);
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(15,23,42,0.86) 0%, rgba(15,32,68,0.78) 50%, rgba(13,94,88,0.82) 100%);
         }
 
-        /* ── Top-Left Rentiz Brand Logo on Hero ── */
+        /* ── Top-Left Original Rentiz Logo on Hero (Horizontal Lockup) ── */
         .left-top-logo {
             position: absolute;
-            top: 2rem;
-            left: 2.5rem;
+            top: 1.75rem;
+            left: 2.25rem;
             z-index: 2;
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 8px 16px 8px 12px;
+            background: #FFFFFF;
+            padding: 7px 15px 7px 9px;
             border-radius: 14px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            border: 1.5px solid rgba(255, 255, 255, 0.95);
             transition: transform 200ms ease;
         }
 
@@ -96,10 +116,25 @@
             transform: translateY(-1px);
         }
 
-        .rentiz-emblem {
-            width: 42px;
-            height: 42px;
+        .rentiz-logo-crop {
+            width: 44px;
+            height: 44px;
+            border-radius: 9px;
+            overflow: hidden;
+            position: relative;
             flex-shrink: 0;
+            background: #F9F9F7;
+        }
+
+        .rentiz-logo-crop img {
+            position: absolute;
+            width: 410%;
+            height: auto;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -32.5%);
+            display: block;
+            pointer-events: none;
         }
 
         .rentiz-wordmark {
@@ -111,9 +146,9 @@
 
         .rentiz-wordmark-title {
             font-family: var(--font-heading);
-            font-size: 1.55rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            color: #165B63;
+            color: #135760;
             letter-spacing: -0.02em;
         }
 
@@ -121,7 +156,7 @@
             font-family: var(--font-body);
             font-size: 0.52rem;
             font-weight: 700;
-            color: #348F97;
+            color: #36939B;
             letter-spacing: 0.11em;
             text-transform: uppercase;
             margin-top: 3px;
@@ -474,18 +509,18 @@
         @media (max-width: 968px) {
             body { flex-direction: column; }
             .layout-left {
-                flex: none; padding: 5.5rem 2rem 3rem; min-height: 280px;
+                flex: none; padding: 5.75rem 2rem 3rem; min-height: 280px;
                 text-align: center; align-items: center;
             }
             .left-top-logo {
-                top: 1.25rem;
+                top: 1.15rem;
                 left: 1.25rem;
-                padding: 6px 13px 6px 10px;
+                padding: 6px 12px 6px 8px;
                 border-radius: 12px;
             }
-            .rentiz-emblem { width: 34px; height: 34px; }
-            .rentiz-wordmark-title { font-size: 1.3rem; }
-            .rentiz-wordmark-tag { font-size: 0.46rem; }
+            .rentiz-logo-crop { width: 36px; height: 36px; }
+            .rentiz-wordmark-title { font-size: 1.35rem; }
+            .rentiz-wordmark-tag { font-size: 0.45rem; }
             .left-content { max-width: 100%; }
             .left-content h1 { font-size: 2.25rem; }
             .right-content { padding: 2rem; }
@@ -517,32 +552,21 @@
 
     {{-- Left Panel --}}
     <div class="layout-left">
-        {{-- Logo Rentiz di Pojok Kiri Atas --}}
+        {{-- Multi-Category Rental Mosaic Background (Kamera, Tenda Outdoor, Sepeda, Alat Musik, Perkakas, Drone) --}}
+        <div class="hero-bg-mosaic" aria-hidden="true">
+            <div style="background-image: url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=700');" title="Fotografi & Kamera"></div>
+            <div style="background-image: url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&q=80&w=700');" title="Camping & Outdoor"></div>
+            <div style="background-image: url('https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&q=80&w=700');" title="Olahraga & Sepeda"></div>
+            <div style="background-image: url('https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=700');" title="Alat Musik & Event"></div>
+            <div style="background-image: url('https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=700');" title="Perkakas & Peralatan"></div>
+            <div style="background-image: url('https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80&w=700');" title="Drone & Elektronik"></div>
+        </div>
+
+        {{-- Logo Asli Rentiz di Pojok Kiri Atas (Persis Gambar Kedua) --}}
         <a href="{{ url('/') }}" class="left-top-logo">
-            <svg class="rentiz-emblem" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {{-- Gear kecil di kiri --}}
-                <circle cx="11" cy="28" r="4" stroke="#28838B" stroke-width="2.2"/>
-                <path d="M11 21V23M11 33V35M4 28H6M16 28H18M6.2 23.2L7.6 24.6M14.4 31.4L15.8 32.8M15.8 23.2L14.4 24.6M7.6 31.4L6.2 32.8" stroke="#28838B" stroke-width="1.8" stroke-linecap="round"/>
-                {{-- Gear/lingkaran aksen di dalam loop R --}}
-                <circle cx="41" cy="24" r="5" stroke="#28838B" stroke-width="2"/>
-                <circle cx="41" cy="24" r="2" fill="#28838B"/>
-                {{-- Pita Huruf R Teal Utama --}}
-                <path d="M22 48V15C22 15 36 8 46 15C54 20.5 52 32 42 36C33 39.5 24 38 20 45C17 50 22 57 28 54C33 51.5 35 42 35 37" stroke="url(#tealGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-                {{-- Kaki Kanan Huruf R & Panah Oranye Melengkung --}}
-                <path d="M35 37C38 43 44 51 52 53" stroke="#E89234" stroke-width="6.5" stroke-linecap="round"/>
-                <path d="M14 45C14 35 23 26 36 22" stroke="url(#orangeGrad)" stroke-width="6.5" stroke-linecap="round"/>
-                <path d="M31 15L43 19L36 29Z" fill="#E89234"/>
-                <defs>
-                    <linearGradient id="tealGrad" x1="18" y1="10" x2="50" y2="56" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#3BA1A9"/>
-                        <stop offset="1" stop-color="#176168"/>
-                    </linearGradient>
-                    <linearGradient id="orangeGrad" x1="14" y1="45" x2="43" y2="18" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#D47A1E"/>
-                        <stop offset="1" stop-color="#F3A244"/>
-                    </linearGradient>
-                </defs>
-            </svg>
+            <div class="rentiz-logo-crop">
+                <img src="{{ asset('storage/items/4eSTrWMhXcbScfSal2zO4X00I3O9I0ge6ZnTdm7m.jpg') }}" alt="Rentiz">
+            </div>
             <div class="rentiz-wordmark">
                 <span class="rentiz-wordmark-title">Rentiz</span>
                 <span class="rentiz-wordmark-tag">SEWA BARANG LEBIH MUDAH</span>
@@ -583,12 +607,13 @@
 
         <nav class="navbar">
             <a href="{{ url('/') }}" class="navbar-brand">
-                <div class="navbar-brand-icon">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-                    </svg>
+                <div class="rentiz-logo-crop" style="width:36px;height:36px;">
+                    <img src="{{ asset('storage/items/4eSTrWMhXcbScfSal2zO4X00I3O9I0ge6ZnTdm7m.jpg') }}" alt="Rentiz">
                 </div>
-                <span class="navbar-brand-text">Rentiz</span>
+                <div class="rentiz-wordmark">
+                    <span class="rentiz-wordmark-title" style="font-size:1.35rem;">Rentiz</span>
+                    <span class="rentiz-wordmark-tag" style="font-size:0.45rem;">SEWA BARANG LEBIH MUDAH</span>
+                </div>
             </a>
 
             <a href="{{ route('login', ['role' => 'admin']) }}" class="navbar-admin">

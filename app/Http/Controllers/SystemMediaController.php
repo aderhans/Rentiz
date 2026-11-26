@@ -85,13 +85,18 @@ class SystemMediaController extends Controller
             abort(404);
         }
 
-        // 1. Cek apakah file sudah ada di storage/app/public
+        // 1. Cek apakah file sudah ada di storage/app/public (runtime atau repo bawaan)
         $localFullPath = storage_path('app/public/' . $cleanPath);
-        if (is_file($localFullPath) && is_readable($localFullPath)) {
+        $repoFullPath  = base_path('storage/app/public/' . $cleanPath);
+        $resolvedPath  = (is_file($localFullPath) && is_readable($localFullPath))
+            ? $localFullPath
+            : ((is_file($repoFullPath) && is_readable($repoFullPath)) ? $repoFullPath : null);
+
+        if ($resolvedPath) {
             PersistentFile::storeFromPublicDisk($cleanPath);
 
-            $mime = @mime_content_type($localFullPath) ?: 'image/jpeg';
-            return response()->file($localFullPath, [
+            $mime = @mime_content_type($resolvedPath) ?: 'image/jpeg';
+            return response()->file($resolvedPath, [
                 'Content-Type'  => $mime,
                 'Cache-Control' => 'public, max-age=31536000',
             ]);
