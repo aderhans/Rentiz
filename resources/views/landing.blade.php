@@ -43,6 +43,11 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
         html { font-size: 16px; -webkit-font-smoothing: antialiased; }
 
         body {
@@ -51,7 +56,7 @@
             color: var(--text);
             min-height: 100vh;
             display: flex;
-            overflow-x: hidden;
+            align-items: stretch;
         }
 
         /* ── Split Layout ── */
@@ -94,7 +99,7 @@
             background: linear-gradient(135deg, rgba(15,23,42,0.86) 0%, rgba(15,32,68,0.78) 50%, rgba(13,94,88,0.82) 100%);
         }
 
-        /* ── Top-Left Original Rentiz Logo on Hero (Horizontal Lockup) ── */
+        /* ── Top-Left Original Rentiz Logo on Hero (Horizontal Lockup, Non-Clickable) ── */
         .left-top-logo {
             position: absolute;
             top: 1.75rem;
@@ -103,17 +108,13 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            text-decoration: none;
             background: #FFFFFF;
             padding: 7px 15px 7px 9px;
             border-radius: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
             border: 1.5px solid rgba(255, 255, 255, 0.95);
-            transition: transform 200ms ease;
-        }
-
-        .left-top-logo:hover {
-            transform: translateY(-1px);
+            cursor: default;
+            user-select: none;
         }
 
         .rentiz-logo-crop {
@@ -225,6 +226,8 @@
             display: flex;
             flex-direction: column;
             background: var(--bg-cream);
+            overflow: hidden;
+            min-width: 0;
         }
 
         /* ── Gradient Blobs ── */
@@ -253,7 +256,8 @@
         }
 
         .navbar-brand {
-            display: flex; align-items: center; gap: 10px; text-decoration: none;
+            display: flex; align-items: center; gap: 10px;
+            cursor: default; user-select: none;
         }
 
         .navbar-brand-icon {
@@ -562,8 +566,8 @@
             <div style="background-image: url('https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80&w=700');" title="Drone & Elektronik"></div>
         </div>
 
-        {{-- Logo Asli Rentiz di Pojok Kiri Atas (Persis Gambar Kedua) --}}
-        <a href="{{ url('/') }}" class="left-top-logo">
+        {{-- Logo Asli Rentiz di Pojok Kiri Atas (Non-Clickable) --}}
+        <div class="left-top-logo">
             <div class="rentiz-logo-crop">
                 <img src="{{ asset('storage/items/4eSTrWMhXcbScfSal2zO4X00I3O9I0ge6ZnTdm7m.jpg') }}" alt="Rentiz">
             </div>
@@ -571,7 +575,7 @@
                 <span class="rentiz-wordmark-title">Rentiz</span>
                 <span class="rentiz-wordmark-tag">SEWA BARANG LEBIH MUDAH</span>
             </div>
-        </a>
+        </div>
 
         <div class="left-content">
             <h1>Sewa Barang Lebih Mudah.</h1>
@@ -606,7 +610,7 @@
         <div class="blob-2"></div>
 
         <nav class="navbar">
-            <a href="{{ url('/') }}" class="navbar-brand">
+            <div class="navbar-brand">
                 <div class="rentiz-logo-crop" style="width:36px;height:36px;">
                     <img src="{{ asset('storage/items/4eSTrWMhXcbScfSal2zO4X00I3O9I0ge6ZnTdm7m.jpg') }}" alt="Rentiz">
                 </div>
@@ -614,7 +618,7 @@
                     <span class="rentiz-wordmark-title" style="font-size:1.35rem;">Rentiz</span>
                     <span class="rentiz-wordmark-tag" style="font-size:0.45rem;">SEWA BARANG LEBIH MUDAH</span>
                 </div>
-            </a>
+            </div>
 
             <a href="{{ route('login', ['role' => 'admin']) }}" class="navbar-admin">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
